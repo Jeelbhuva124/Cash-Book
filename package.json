@@ -1,0 +1,9 @@
+{
+  "name": "cash-book",
+  "version": "1.0.0",
+  "scripts": {
+    "frontend": "cd Frontend && npm run dev",
+    "backend": "cd Backend && npm run dev",
+    "install:all": "cd Frontend && npm install && cd ../Backend && npm install"
+  }
+}
