@@ -241,7 +241,7 @@ export default function SignIn() {
             <p className="text-sm text-muted-foreground">
               Don't have an account?{" "}
               <Link to="/signup" className="text-primary font-bold hover:underline">
-                Register Workspace
+                Register Account
               </Link>
             </p>
           </div>

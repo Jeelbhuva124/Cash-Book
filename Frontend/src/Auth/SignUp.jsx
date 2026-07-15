@@ -247,9 +247,9 @@ export default function SignUp() {
 
           <div className="text-center pt-4 border-t border-border mt-6">
             <p className="text-sm text-muted-foreground">
-              Already configured?{" "}
+              Already have an account?{" "}
               <Link to="/login" className="text-primary font-bold hover:underline">
-                Establish Connection
+                Sign in
               </Link>
             </p>
           </div>
