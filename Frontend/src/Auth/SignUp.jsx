@@ -56,26 +56,24 @@ export default function SignUp() {
   };
 
   return (
-    <div className="flex w-full min-h-screen bg-slate-50">
-      
+    <div className="flex w-full min-h-screen bg-background">
+
       {/* ── LEFT PANEL: Navy Branding Side (Daily Chalan Split Layout) ── */}
-      <div className="hidden lg:flex w-1/2 bg-[#101b37] text-white flex-col justify-between p-16 relative overflow-hidden">
+      <div className="hidden lg:flex w-1/2 bg-brand text-white flex-col justify-between p-16 relative overflow-hidden">
         {/* Subtle decorative glow */}
         <div className="absolute -bottom-32 -right-32 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[100px]" />
-        
+
         {/* Top Header */}
         <div className="relative z-10">
           <Link to="/" className="flex items-center gap-3 w-fit">
-            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-lg">
-              <BookOpen className="w-5 h-5 text-white" />
-            </div>
+            <img src="/logo.png" alt="Logo" className="w-14 h-14 object-contain" />
             <div>
               <p className="text-lg font-bold tracking-tight text-white">Daily Chalan</p>
               <p className="text-[10px] text-white/50 -mt-0.5">Smart Finance Tracker</p>
             </div>
           </Link>
 
-          <div className="flex items-center gap-2 mt-8 text-xs font-semibold tracking-wide text-white/60 uppercase border border-white/10 rounded-full px-3 py-1.5 bg-white/5 w-fit">
+          <div className="flex items-center gap-2 mt-8 text-xs font-semibold tracking-wide text-white/60 uppercase border border-white/10 rounded-full px-3 py-1.5 bg-card/5 w-fit">
             <Shield className="w-3.5 h-3.5 text-primary" />
             <span>Bank-Grade Encryption</span>
           </div>
@@ -114,22 +112,20 @@ export default function SignUp() {
       </div>
 
       {/* ── RIGHT PANEL: Auth Card Form ── */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-12 xl:p-24 bg-white">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-12 xl:p-24 bg-card ">
         <div className="w-full max-w-[420px] space-y-8">
-          
+
           {/* Mobile Header Logo */}
           <div className="lg:hidden flex items-center gap-2.5 mb-8">
-            <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center">
-              <BookOpen className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-xl font-bold text-slate-900">Daily Chalan</span>
+            <img src="/logo.png" alt="Logo" className="w-12 h-12 object-contain" />
+            <span className="text-xl font-bold text-foreground">Daily Chalan</span>
           </div>
 
           {/* Form Headers */}
           <div className="space-y-2">
             <div className="text-xs font-bold tracking-widest uppercase text-primary">Workspace Registration</div>
-            <h2 className="text-3xl font-extrabold text-slate-900">Create Account</h2>
-            <p className="text-slate-500 text-sm">
+            <h2 className="text-3xl font-extrabold text-foreground">Create Account</h2>
+            <p className="text-muted-foreground text-sm">
               Initialize your administrative access and configure cash book.
             </p>
           </div>
@@ -144,9 +140,9 @@ export default function SignUp() {
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Username Input */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold tracking-wider text-slate-500 uppercase ml-0.5">Administrator Name</label>
+              <label className="text-xs font-bold tracking-wider text-muted-foreground uppercase ml-0.5">Administrator Name</label>
               <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary transition-colors">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
                   <User className="h-4.5 w-4.5" />
                 </div>
                 <input
@@ -156,16 +152,16 @@ export default function SignUp() {
                   value={formData.name}
                   onChange={handleChange}
                   placeholder="johndoe"
-                  className="w-full pl-11 pr-4 py-3.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-primary focus:bg-white transition-all text-sm font-medium"
+                  className="w-full pl-11 pr-4 py-3.5 rounded-xl border border-border bg-muted/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:bg-card transition-all text-sm font-medium"
                 />
               </div>
             </div>
 
             {/* Email Input */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold tracking-wider text-slate-500 uppercase ml-0.5">Email Address</label>
+              <label className="text-xs font-bold tracking-wider text-muted-foreground uppercase ml-0.5">Email Address</label>
               <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary transition-colors">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
                   <Mail className="h-4.5 w-4.5" />
                 </div>
                 <input
@@ -175,16 +171,16 @@ export default function SignUp() {
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="john@example.com"
-                  className="w-full pl-11 pr-4 py-3.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-primary focus:bg-white transition-all text-sm font-medium"
+                  className="w-full pl-11 pr-4 py-3.5 rounded-xl border border-border bg-muted/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:bg-card transition-all text-sm font-medium"
                 />
               </div>
             </div>
 
             {/* Password Input */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold tracking-wider text-slate-500 uppercase ml-0.5">Access Key</label>
+              <label className="text-xs font-bold tracking-wider text-muted-foreground uppercase ml-0.5">Access Key</label>
               <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary transition-colors">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
                   <Lock className="h-4.5 w-4.5" />
                 </div>
                 <input
@@ -194,12 +190,12 @@ export default function SignUp() {
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="••••••••"
-                  className="w-full pl-11 pr-12 py-3.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-primary focus:bg-white transition-all text-sm font-medium tracking-widest"
+                  className="w-full pl-11 pr-12 py-3.5 rounded-xl border border-border bg-muted/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:bg-card transition-all text-sm font-medium tracking-widest"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
+                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-muted-foreground hover:text-muted-foreground transition-colors"
                 >
                   {showPassword ? <EyeOff className="h-4.5 w-4.5" /> : <Eye className="h-4.5 w-4.5" />}
                 </button>
@@ -208,9 +204,9 @@ export default function SignUp() {
 
             {/* Confirm Password Input */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold tracking-wider text-slate-500 uppercase ml-0.5">Confirm Access Key</label>
+              <label className="text-xs font-bold tracking-wider text-muted-foreground uppercase ml-0.5">Confirm Access Key</label>
               <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary transition-colors">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
                   <Lock className="h-4.5 w-4.5" />
                 </div>
                 <input
@@ -220,12 +216,12 @@ export default function SignUp() {
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   placeholder="••••••••"
-                  className="w-full pl-11 pr-12 py-3.5 rounded-xl border border-slate-200 bg-slate-50/50 text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-primary focus:bg-white transition-all text-sm font-medium tracking-widest"
+                  className="w-full pl-11 pr-12 py-3.5 rounded-xl border border-border bg-muted/50 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:bg-card transition-all text-sm font-medium tracking-widest"
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
+                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-muted-foreground hover:text-muted-foreground transition-colors"
                 >
                   {showConfirmPassword ? <EyeOff className="h-4.5 w-4.5" /> : <Eye className="h-4.5 w-4.5" />}
                 </button>
@@ -249,8 +245,8 @@ export default function SignUp() {
             </button>
           </form>
 
-          <div className="text-center pt-4 border-t border-slate-100 mt-6">
-            <p className="text-sm text-slate-500">
+          <div className="text-center pt-4 border-t border-border mt-6">
+            <p className="text-sm text-muted-foreground">
               Already configured?{" "}
               <Link to="/login" className="text-primary font-bold hover:underline">
                 Establish Connection

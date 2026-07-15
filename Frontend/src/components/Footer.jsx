@@ -11,9 +11,7 @@ export const UserFooter = () => {
           {/* Logo and Info */}
           <div className="col-span-1 md:col-span-2 flex flex-col gap-4">
             <Link to="/" className="flex items-center gap-2.5 group w-fit">
-              <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center shadow-lg">
-                <BookOpen className="w-5 h-5 text-primary-foreground" />
-              </div>
+              <img src="/logo.png" alt="Cash Book Logo" className="w-12 h-12 object-contain" />
               <div className="flex flex-col leading-tight">
                 <span className="text-base font-bold text-foreground">Cash Book</span>
                 <span className="text-[10px] text-muted-foreground">Smart Finance Tracker</span>

@@ -133,7 +133,7 @@ export default function Home() {
       return;
     }
     const headers = ["Title,Type,Category,Amount,Date\n"];
-    const rows = transactions.map(t => 
+    const rows = transactions.map(t =>
       `"${t.title.replace(/"/g, '""')}",${t.type},"${t.category}",${t.amount},${t.date}\n`
     );
     const blob = new Blob([...headers, ...rows], { type: 'text/csv;charset=utf-8;' });
@@ -148,28 +148,28 @@ export default function Home() {
   };
 
   return (
-    <div className="p-6 md:p-10 max-w-6xl mx-auto space-y-8 bg-slate-50 min-h-screen text-slate-800">
-      
+    <div className="p-6 md:p-10 max-w-6xl mx-auto space-y-8 bg-background min-h-screen text-foreground">
+
       {/* Header Greeting */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+          <h1 className="text-3xl font-extrabold text-foreground tracking-tight flex items-center gap-2">
             Welcome back, <span className="text-primary">{firstName}</span>! 👋
           </h1>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-muted-foreground">
             Here is your financial status overview for today.
           </p>
         </div>
-        
+
         <div className="flex gap-3">
           <button
             onClick={handleExportCSV}
-            className="flex items-center gap-2 px-4 py-2.5 border border-slate-200 bg-white text-slate-700 font-semibold rounded-xl text-sm hover:bg-slate-50 transition-colors shadow-sm"
+            className="flex items-center gap-2 px-4 py-2.5 border border-border bg-card text-foreground font-semibold rounded-xl text-sm hover:bg-background transition-colors shadow-sm"
           >
             <Download className="w-4 h-4" />
             Export CSV
           </button>
-          
+
           <button
             onClick={() => setShowAddForm(true)}
             className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground font-semibold rounded-xl text-sm hover:opacity-95 shadow-md shadow-primary/20 transition-all"
@@ -183,13 +183,13 @@ export default function Home() {
       {/* Balance Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Net Cash Card */}
-        <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm flex items-center justify-between">
+        <div className="bg-card border border-border rounded-2xl p-6 shadow-sm flex items-center justify-between">
           <div className="space-y-1.5">
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Net Cash Book Balance</p>
-            <p className={`text-3xl font-black ${netBalance >= 0 ? 'text-slate-900' : 'text-rose-600'}`}>
+            <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Net Cash Book Balance</p>
+            <p className={`text-3xl font-black ${netBalance >= 0 ? 'text-foreground' : 'text-expense'}`}>
               ₹{netBalance.toLocaleString()}
             </p>
-            <p className="text-xs text-slate-400 font-medium">Safe to spend balance</p>
+            <p className="text-xs text-muted-foreground font-medium">Safe to spend balance</p>
           </div>
           <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shadow-inner">
             <Wallet className="w-6 h-6" />
@@ -197,53 +197,53 @@ export default function Home() {
         </div>
 
         {/* Total Income Card */}
-        <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm flex items-center justify-between">
+        <div className="bg-card border border-border rounded-2xl p-6 shadow-sm flex items-center justify-between">
           <div className="space-y-1.5">
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Inflow (Income)</p>
-            <p className="text-3xl font-black text-emerald-600">
+            <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Total Inflow (Income)</p>
+            <p className="text-3xl font-black text-income">
               ₹{totalIncome.toLocaleString()}
             </p>
-            <div className="flex items-center gap-1 text-emerald-500 text-xs font-bold">
+            <div className="flex items-center gap-1 text-income text-xs font-bold">
               <ArrowUpRight className="w-4 h-4" />
               <span>Earnings this month</span>
             </div>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shadow-inner">
+          <div className="w-12 h-12 rounded-2xl bg-income-bg text-income flex items-center justify-center shadow-inner">
             <TrendingUp className="w-6 h-6" />
           </div>
         </div>
 
         {/* Total Expenses Card */}
-        <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm flex items-center justify-between">
+        <div className="bg-card border border-border rounded-2xl p-6 shadow-sm flex items-center justify-between">
           <div className="space-y-1.5">
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Outflow (Expenses)</p>
-            <p className="text-3xl font-black text-rose-600">
+            <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Total Outflow (Expenses)</p>
+            <p className="text-3xl font-black text-expense">
               ₹{totalExpense.toLocaleString()}
             </p>
-            <div className="flex items-center gap-1 text-rose-500 text-xs font-bold">
+            <div className="flex items-center gap-1 text-expense text-xs font-bold">
               <ArrowDownRight className="w-4 h-4" />
               <span>Spent this month</span>
             </div>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center shadow-inner">
+          <div className="w-12 h-12 rounded-2xl bg-expense-bg text-expense flex items-center justify-center shadow-inner">
             <Receipt className="w-6 h-6" />
           </div>
         </div>
       </div>
 
       {/* Main Ledger Table Section */}
-      <div className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden">
-        
+      <div className="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
+
         {/* Table Filters Header */}
-        <div className="p-5 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <h3 className="font-bold text-slate-800 text-lg flex items-center gap-2">
-            <BookOpen className="w-5 h-5 text-primary" />
+        <div className="p-5 border-b border-border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <h3 className="font-bold text-foreground text-lg flex items-center gap-2">
+            <img src="/logo.png" alt="Logo" className="w-7 h-7 object-contain" />
             Transaction Ledger
           </h3>
-          
+
           <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
             {/* Filter by Type */}
-            <div className="flex rounded-lg border border-slate-200 p-0.5 bg-slate-50 text-xs font-bold">
+            <div className="flex rounded-lg border border-border p-0.5 bg-background text-xs font-bold">
               {[
                 { label: 'All', value: 'all' },
                 { label: 'Income', value: 'income' },
@@ -252,11 +252,10 @@ export default function Home() {
                 <button
                   key={opt.value}
                   onClick={() => setFilterType(opt.value)}
-                  className={`px-3 py-1.5 rounded-md transition-colors ${
-                    filterType === opt.value
-                      ? 'bg-white text-primary shadow-sm border border-slate-100'
-                      : 'text-slate-500 hover:text-slate-800'
-                  }`}
+                  className={`px-3 py-1.5 rounded-md transition-colors ${filterType === opt.value
+                      ? 'bg-card text-primary shadow-sm border border-border'
+                      : 'text-muted-foreground hover:text-foreground'
+                    }`}
                 >
                   {opt.label}
                 </button>
@@ -268,14 +267,14 @@ export default function Home() {
               <select
                 value={filterCategory}
                 onChange={(e) => setFilterCategory(e.target.value)}
-                className="pl-3 pr-8 py-2 rounded-lg border border-slate-200 bg-white text-xs font-bold text-slate-600 appearance-none focus:outline-none focus:border-primary cursor-pointer"
+                className="pl-3 pr-8 py-2 rounded-lg border border-border bg-card text-xs font-bold text-muted-foreground appearance-none focus:outline-none focus:border-primary cursor-pointer"
               >
                 <option value="all">All Categories</option>
                 {CATEGORIES.map(c => (
                   <option key={c} value={c}>{c}</option>
                 ))}
               </select>
-              <Filter className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <Filter className="w-3.5 h-3.5 text-muted-foreground absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
           </div>
         </div>
@@ -284,18 +283,18 @@ export default function Home() {
         <div className="overflow-x-auto w-full">
           {filteredTransactions.length === 0 ? (
             <div className="text-center py-16 px-4">
-              <div className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4">
-                <Receipt className="w-6 h-6 text-slate-400" />
+              <div className="w-12 h-12 rounded-full bg-background flex items-center justify-center mx-auto mb-4">
+                <Receipt className="w-6 h-6 text-muted-foreground" />
               </div>
-              <p className="text-slate-700 font-bold mb-1">No transaction records found</p>
-              <p className="text-slate-400 text-xs max-w-xs mx-auto">
+              <p className="text-foreground font-bold mb-1">No transaction records found</p>
+              <p className="text-muted-foreground text-xs max-w-xs mx-auto">
                 Try changing your filters or add a new transaction to start tracking.
               </p>
             </div>
           ) : (
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-slate-50/70 border-b border-slate-100 text-xs font-bold text-slate-500 select-none uppercase tracking-wider">
+                <tr className="bg-muted/70 border-b border-border text-xs font-bold text-muted-foreground select-none uppercase tracking-wider">
                   <th className="px-6 py-4">Title</th>
                   <th className="px-6 py-4">Category</th>
                   <th className="px-6 py-4">Date</th>
@@ -305,30 +304,29 @@ export default function Home() {
               </thead>
               <tbody className="divide-y divide-slate-100/80">
                 {filteredTransactions.map((tx) => (
-                  <tr key={tx.id} className="hover:bg-slate-50/40 transition-colors text-sm">
-                    <td className="px-6 py-4 font-bold text-slate-800">
+                  <tr key={tx.id} className="hover:bg-muted/40 transition-colors text-sm">
+                    <td className="px-6 py-4 font-bold text-foreground">
                       <div className="flex items-center gap-3">
-                        <span className={`w-2 h-2 rounded-full ${tx.type === 'income' ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+                        <span className={`w-2 h-2 rounded-full ${tx.type === 'income' ? 'bg-income' : 'bg-expense'}`} />
                         {tx.title}
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="inline-block px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 text-[10px] font-bold">
+                      <span className="inline-block px-2.5 py-1 rounded-full bg-muted text-muted-foreground text-[10px] font-bold">
                         {tx.category}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-slate-500 font-medium">
+                    <td className="px-6 py-4 text-muted-foreground font-medium">
                       {tx.date}
                     </td>
-                    <td className={`px-6 py-4 text-right font-black ${
-                      tx.type === 'income' ? 'text-emerald-600' : 'text-rose-600'
-                    }`}>
+                    <td className={`px-6 py-4 text-right font-black ${tx.type === 'income' ? 'text-income' : 'text-expense'
+                      }`}>
                       {tx.type === 'income' ? '+' : '-'}₹{tx.amount.toLocaleString()}
                     </td>
                     <td className="px-6 py-4 text-center">
                       <button
                         onClick={() => handleDeleteTransaction(tx.id)}
-                        className="p-2 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-all cursor-pointer"
+                        className="p-2 rounded-lg text-muted-foreground hover:text-expense hover:bg-expense-bg transition-all cursor-pointer"
                         title="Delete transaction"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -352,7 +350,7 @@ export default function Home() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowAddForm(false)}
-              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+              className="absolute inset-0 bg-foreground/20 backdrop-blur-sm"
             />
 
             {/* Modal Card */}
@@ -360,16 +358,16 @@ export default function Home() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="relative bg-white border border-slate-100 rounded-3xl shadow-2xl p-6 md:p-8 w-full max-w-[460px] z-10 space-y-6"
+              className="relative bg-card border border-border rounded-3xl shadow-2xl p-6 md:p-8 w-full max-w-[460px] z-10 space-y-6"
             >
               <div className="flex justify-between items-center">
-                <h3 className="font-extrabold text-slate-900 text-xl flex items-center gap-2">
+                <h3 className="font-extrabold text-foreground text-xl flex items-center gap-2">
                   <Sparkles className="w-5 h-5 text-primary" />
                   New Cash Entry
                 </h3>
                 <button
                   onClick={() => setShowAddForm(false)}
-                  className="p-1.5 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
+                  className="p-1.5 rounded-full hover:bg-muted text-muted-foreground hover:text-muted-foreground transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -377,15 +375,14 @@ export default function Home() {
 
               <form onSubmit={handleAddTransaction} className="space-y-4">
                 {/* Income / Expense Toggle Selection */}
-                <div className="grid grid-cols-2 gap-2 p-1 rounded-xl bg-slate-100 border border-slate-200/50">
+                <div className="grid grid-cols-2 gap-2 p-1 rounded-xl bg-muted border border-border/50">
                   <button
                     type="button"
                     onClick={() => setType('expense')}
-                    className={`py-3 rounded-lg font-bold text-sm transition-all flex items-center justify-center gap-2 ${
-                      type === 'expense'
-                        ? 'bg-white text-rose-600 shadow-sm border border-slate-200/20'
-                        : 'text-slate-500 hover:text-slate-800'
-                    }`}
+                    className={`py-3 rounded-lg font-bold text-sm transition-all flex items-center justify-center gap-2 ${type === 'expense'
+                        ? 'bg-card text-expense shadow-sm border border-border/20'
+                        : 'text-muted-foreground hover:text-foreground'
+                      }`}
                   >
                     <ArrowDownRight className="w-4.5 h-4.5" />
                     Outflow (Expense)
@@ -393,11 +390,10 @@ export default function Home() {
                   <button
                     type="button"
                     onClick={() => setType('income')}
-                    className={`py-3 rounded-lg font-bold text-sm transition-all flex items-center justify-center gap-2 ${
-                      type === 'income'
-                        ? 'bg-white text-emerald-600 shadow-sm border border-slate-200/20'
-                        : 'text-slate-500 hover:text-slate-800'
-                    }`}
+                    className={`py-3 rounded-lg font-bold text-sm transition-all flex items-center justify-center gap-2 ${type === 'income'
+                        ? 'bg-card text-income shadow-sm border border-border/20'
+                        : 'text-muted-foreground hover:text-foreground'
+                      }`}
                   >
                     <ArrowUpRight className="w-4.5 h-4.5" />
                     Inflow (Income)
@@ -406,49 +402,49 @@ export default function Home() {
 
                 {/* Entry Title */}
                 <div className="space-y-1">
-                  <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">Title / Description</label>
+                  <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide">Title / Description</label>
                   <input
                     type="text"
                     required
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="e.g. Milk & Vegetables, Office Rent"
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:border-primary text-sm font-medium text-slate-800 placeholder:text-slate-400"
+                    className="w-full px-4 py-3 rounded-xl border border-border focus:outline-none focus:border-primary text-sm font-medium text-foreground placeholder:text-muted-foreground"
                   />
                 </div>
 
                 {/* Amount & Date */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">Amount (₹)</label>
+                    <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide">Amount (₹)</label>
                     <input
                       type="number"
                       required
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
                       placeholder="500"
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:border-primary text-sm font-bold text-slate-800 placeholder:text-slate-400"
+                      className="w-full px-4 py-3 rounded-xl border border-border focus:outline-none focus:border-primary text-sm font-bold text-foreground placeholder:text-muted-foreground"
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">Date</label>
+                    <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide">Date</label>
                     <input
                       type="date"
                       required
                       value={date}
                       onChange={(e) => setDate(e.target.value)}
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:border-primary text-sm font-medium text-slate-800"
+                      className="w-full px-4 py-3 rounded-xl border border-border focus:outline-none focus:border-primary text-sm font-medium text-foreground"
                     />
                   </div>
                 </div>
 
                 {/* Category Selection */}
                 <div className="space-y-1">
-                  <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">Category</label>
+                  <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide">Category</label>
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:border-primary bg-white text-sm font-medium text-slate-800"
+                    className="w-full px-4 py-3 rounded-xl border border-border focus:outline-none focus:border-primary bg-card text-sm font-medium text-foreground"
                   >
                     {CATEGORIES.map(c => (
                       <option key={c} value={c}>{c}</option>

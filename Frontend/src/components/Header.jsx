@@ -22,9 +22,7 @@ export const UserNavbar = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
-              <BookOpen className="w-5 h-5 text-primary-foreground" />
-            </div>
+            <img src="/logo.png" alt="Cash Book Logo" className="w-12 h-12 object-contain group-hover:scale-105 transition-transform" />
             <div className="flex flex-col leading-tight">
               <span className="text-base font-bold text-foreground tracking-tight">Cash Book</span>
               <span className="text-[10px] text-muted-foreground font-medium -mt-0.5">Smart Finance Tracker</span>
@@ -37,11 +35,10 @@ export const UserNavbar = () => {
               <Link
                 key={link.path}
                 to={link.path}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  location.pathname === link.path
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${location.pathname === link.path
                     ? 'bg-primary/10 text-primary'
                     : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                }`}
+                  }`}
               >
                 {link.label}
               </Link>
@@ -89,11 +86,10 @@ export const UserNavbar = () => {
                   key={link.path}
                   to={link.path}
                   onClick={() => setMobileOpen(false)}
-                  className={`block px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                    location.pathname === link.path
+                  className={`block px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${location.pathname === link.path
                       ? 'bg-primary/10 text-primary'
                       : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                  }`}
+                    }`}
                 >
                   {link.label}
                 </Link>

@@ -12,18 +12,16 @@ export const AiLayout = () => {
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
         {/* Mobile Header */}
-        <div className="lg:hidden flex items-center p-4 border-b border-slate-100 bg-white z-10 sticky top-0">
+        <div className="lg:hidden flex items-center p-4 border-b border-border bg-card z-10 sticky top-0">
           <button
             onClick={() => setMobileOpen(true)}
-            className="p-2 -ml-2 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-colors"
+            className="p-2 -ml-2 rounded-xl text-muted-foreground hover:bg-background hover:text-foreground transition-colors"
           >
             <Menu className="w-5 h-5" />
           </button>
           <div className="flex items-center gap-2 ml-2">
-            <div className="w-6 h-6 rounded-lg bg-primary/20 flex items-center justify-center">
-              <BookOpen className="w-3.5 h-3.5 text-primary" />
-            </div>
-            <span className="font-bold text-sm text-slate-800">Daily Chalan</span>
+            <img src="/logo.png" alt="Logo" className="w-9 h-9 object-contain" />
+            <span className="font-bold text-sm text-foreground">Daily Chalan</span>
           </div>
         </div>
 

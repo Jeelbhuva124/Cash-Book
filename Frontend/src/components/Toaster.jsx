@@ -5,27 +5,27 @@ import { X, CheckCircle2, AlertCircle, Info, AlertTriangle } from 'lucide-react'
 const TOAST_CONFIG = {
   success: {
     icon: CheckCircle2,
-    bar: 'bg-emerald-500',
-    iconColor: 'text-emerald-500',
-    bg: 'bg-emerald-500/10',
+    bar: 'bg-income',
+    iconColor: 'text-income',
+    bg: 'bg-income/10',
   },
   error: {
     icon: AlertCircle,
-    bar: 'bg-rose-500',
-    iconColor: 'text-rose-500',
-    bg: 'bg-rose-500/10',
+    bar: 'bg-expense',
+    iconColor: 'text-expense',
+    bg: 'bg-expense/10',
   },
   warning: {
     icon: AlertTriangle,
-    bar: 'bg-amber-500',
-    iconColor: 'text-amber-500',
-    bg: 'bg-amber-500/10',
+    bar: 'bg-warning',
+    iconColor: 'text-warning',
+    bg: 'bg-warning/10',
   },
   info: {
     icon: Info,
-    bar: 'bg-blue-500',
-    iconColor: 'text-blue-500',
-    bg: 'bg-blue-500/10',
+    bar: 'bg-info',
+    iconColor: 'text-info',
+    bg: 'bg-info/10',
   },
 };
 

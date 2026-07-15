@@ -4,108 +4,144 @@
 
 /* ── Light-mode palette ── */
 :root {
-  --background: 0 0% 99%;
-  --foreground: 220 25% 10%;
-  --card: 0 0% 100%;
-  --card-foreground: 220 25% 10%;
+  --background: #fcfcfc;
+  --foreground: #131720;
+  --card: #ffffff;
+  --card-foreground: #131720;
 
   /* Green Primary - Finance Theme */
-  --primary: 142 71% 38%;
-  --primary-foreground: 0 0% 100%;
+  --primary: #1a2475;
+  --primary-foreground: #ffffff;
 
-  --secondary: 142 30% 94%;
-  --secondary-foreground: 142 50% 20%;
+  --secondary: #f0f0f5;
+  --secondary-foreground: #1a2475;
 
-  --muted: 220 14% 94%;
-  --muted-foreground: 220 10% 45%;
+  --muted: #eeeff2;
+  --muted-foreground: #676f7e;
 
-  --accent: 142 40% 90%;
-  --accent-foreground: 142 71% 30%;
+  --accent: #e4e6f1;
+  --accent-foreground: #1a2475;
 
-  --border: 220 13% 88%;
-  --input: 220 13% 88%;
-  --ring: 142 71% 38%;
+  --border: #dcdfe4;
+  --input: #dcdfe4;
+  --ring: #1a2475;
 
-  --destructive: 0 84% 60%;
-  --destructive-foreground: 0 0% 100%;
+  --destructive: #ef4343;
+  --destructive-foreground: #ffffff;
 
   /* Sidebar specific */
-  --sidebar: 220 14% 96%;
-  --sidebar-hover: 220 14% 90%;
+  --sidebar: #f3f4f6;
+  --sidebar-hover: #e2e4e9;
 
   /* Warning */
-  --warning: 38 92% 50%;
-  --warning-foreground: 38 92% 15%;
+  --warning: #f59f0a;
+  --warning-foreground: #493003;
 
   /* Send Button */
-  --send-bg: 142 71% 38%;
-  --send-foreground: 0 0% 100%;
+  --send-bg: #1a2475;
+  --send-foreground: #ffffff;
+
+  /* Brand Specifics */
+  --brand: #101b37;
+
+  /* Info / Warning BG */
+  --info: #3c83f6;
+  --info-bg: #f0f6ff;
+  --warning-bg: #fffbeb;
+
+  /* Semantic Income / Expense */
+  --income: #059467;
+  --income-bg: #edf3f1;
+  --expense: #e41b54;
+  --expense-bg: #f3edee;
 
   --radius: 0.75rem;
 }
 
 /* ── Dark-mode palette ── */
 .dark {
-  --background: 220 20% 6%;
-  --foreground: 0 0% 93%;
-  --card: 220 18% 9%;
-  --card-foreground: 0 0% 93%;
+  --background: #0c0e12;
+  --foreground: #ededed;
+  --card: #13161b;
+  --card-foreground: #ededed;
 
   /* Green Primary */
-  --primary: 142 71% 45%;
-  --primary-foreground: 220 20% 6%;
+  --primary: #5c6ad6;
+  --primary-foreground: #0c0e12;
 
-  --secondary: 220 15% 14%;
-  --secondary-foreground: 0 0% 90%;
+  --secondary: #1e2229;
+  --secondary-foreground: #e6e6e6;
 
-  --sidebar: 220 18% 8%;
-  --sidebar-hover: 220 15% 13%;
+  --sidebar: #111318;
+  --sidebar-hover: #1c1f26;
 
-  --muted: 220 15% 14%;
-  --muted-foreground: 220 8% 65%;
+  --muted: #1e2229;
+  --muted-foreground: #9fa3ad;
 
-  --accent: 220 15% 14%;
-  --accent-foreground: 0 0% 90%;
+  --accent: #1e2229;
+  --accent-foreground: #e6e6e6;
 
-  --border: 220 15% 15%;
-  --input: 220 18% 9%;
-  --ring: 142 71% 45%;
+  --border: #21242c;
+  --input: #13161b;
+  --ring: #5c6ad6;
 
-  --destructive: 0 62.8% 35%;
-  --destructive-foreground: 0 0% 100%;
+  --destructive: #912121;
+  --destructive-foreground: #ffffff;
 
-  --warning: 38 92% 50%;
-  --warning-foreground: 0 0% 100%;
+  --warning: #f59f0a;
+  --warning-foreground: #ffffff;
 
-  --send-bg: 142 71% 45%;
-  --send-foreground: 220 20% 6%;
+  --send-bg: #5c6ad6;
+  --send-foreground: #0c0e12;
+
+  /* Brand Specifics */
+  --brand: #101b37;
+
+  /* Info / Warning BG */
+  --info: #3c83f6;
+  --info-bg: #1b2432;
+  --warning-bg: #32291b;
+
+  /* Semantic Income / Expense */
+  --income: #06c689;
+  --income-bg: #1b322a;
+  --expense: #ea4876;
+  --expense-bg: #321b21;
 }
 
 /* ── Tailwind v4 @theme ── */
 @theme {
-  --color-background: hsl(var(--background));
-  --color-foreground: hsl(var(--foreground));
-  --color-card: hsl(var(--card));
-  --color-card-foreground: hsl(var(--card-foreground));
-  --color-primary: hsl(var(--primary));
-  --color-primary-foreground: hsl(var(--primary-foreground));
-  --color-secondary: hsl(var(--secondary));
-  --color-secondary-foreground: hsl(var(--secondary-foreground));
-  --color-muted: hsl(var(--muted));
-  --color-muted-foreground: hsl(var(--muted-foreground));
-  --color-accent: hsl(var(--accent));
-  --color-accent-foreground: hsl(var(--accent-foreground));
-  --color-border: hsl(var(--border));
-  --color-input: hsl(var(--input));
-  --color-ring: hsl(var(--ring));
-  --color-destructive: hsl(var(--destructive));
-  --color-destructive-foreground: hsl(var(--destructive-foreground));
-  --color-sidebar: hsl(var(--sidebar));
-  --color-sidebar-hover: hsl(var(--sidebar-hover));
-  --color-warning: hsl(var(--warning));
-  --color-warning-foreground: hsl(var(--warning-foreground));
-  --color-send-bg: hsl(var(--send-bg));
-  --color-send-foreground: hsl(var(--send-foreground));
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-hover: var(--sidebar-hover);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-send-bg: var(--send-bg);
+  --color-send-foreground: var(--send-foreground);
+  --color-income: var(--income);
+  --color-income-bg: var(--income-bg);
+  --color-expense: var(--expense);
+  --color-expense-bg: var(--expense-bg);
+  --color-brand: var(--brand);
+  --color-info: var(--info);
+  --color-info-bg: var(--info-bg);
+  --color-warning-bg: var(--warning-bg);
   --radius: 0.75rem;
 }
 
@@ -126,36 +162,36 @@ body {
 
 /* ── Custom utility classes ── */
 @utility glass {
-  background: rgb(255 255 255 / 0.07);
+  background: #ffffff12;
   backdrop-filter: blur(16px);
-  border: 1px solid rgb(255 255 255 / 0.12);
-  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  border: 1px solid #ffffff1f;
+  box-shadow: 0 20px 25px -5px #0000001a, 0 8px 10px -6px #0000001a;
 }
 
 @utility glass-dark {
-  background: rgb(0 0 0 / 0.4);
+  background: #00000066;
   backdrop-filter: blur(16px);
-  border: 1px solid rgb(255 255 255 / 0.05);
-  box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+  border: 1px solid #ffffff0d;
+  box-shadow: 0 25px 50px -12px #00000040;
 }
 
 @utility text-gradient {
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
-  background-image: linear-gradient(135deg, hsl(142 71% 38%), hsl(158 64% 45%), hsl(174 60% 40%));
+  background-image: linear-gradient(135deg, #1a2475, #2273c3, #2898bd);
 }
 
 @utility text-gradient-warm {
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
-  background-image: linear-gradient(135deg, hsl(142 71% 38%), hsl(38 92% 50%));
+  background-image: linear-gradient(135deg, #1a2475, #f59f0a);
 }
 
 @utility finance-bg {
-  background: radial-gradient(ellipse at top, hsl(142 71% 38% / 0.08) 0%, transparent 60%),
-              radial-gradient(ellipse at bottom right, hsl(158 64% 45% / 0.06) 0%, transparent 50%);
+  background: radial-gradient(ellipse at top, #1a247514 0%, transparent 60%),
+              radial-gradient(ellipse at bottom right, #2273c30f 0%, transparent 50%);
 }
 
 /* ── Hide Scrollbar Globally ── */
@@ -178,8 +214,8 @@ body {
 }
 
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 20px hsl(142 71% 38% / 0.3); }
-  50% { box-shadow: 0 0 40px hsl(142 71% 38% / 0.6); }
+  0%, 100% { box-shadow: 0 0 20px #1a24754d; }
+  50% { box-shadow: 0 0 40px #1a247599; }
 }
 
 .animate-float {
@@ -187,7 +223,7 @@ body {
 }
 
 .animate-shimmer {
-  background: linear-gradient(90deg, transparent, hsl(142 71% 38% / 0.1), transparent);
+  background: linear-gradient(90deg, transparent, #1a24751a, transparent);
   background-size: 200% 100%;
   animation: shimmer 2s infinite;
 }

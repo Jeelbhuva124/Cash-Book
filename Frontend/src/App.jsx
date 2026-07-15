@@ -12,6 +12,12 @@ import { LandingPage } from './page/LandingPage';
 
 // ─── Dashboard (AI Layout) ────────────────────────────────
 import Landing from './Dashboard/pages/Home';
+import Analytics from './Dashboard/pages/Analytics';
+import Transactions from './Dashboard/pages/Transactions';
+import Reports from './Dashboard/pages/Reports';
+import Savings from './Dashboard/pages/Savings';
+import Reminders from './Dashboard/pages/Reminders';
+
 import { SettingsPage } from './Dashboard/pages/SettingsPage';
 import { AiLayout } from './Dashboard/components/AiLayout';
 
@@ -36,13 +42,13 @@ function App() {
               {/* ── AI Dashboard ── */}
               <Route path="/dashboard" element={<AiLayout />}>
                 <Route index element={<Landing />} />
-                <Route path="analytics" element={<Landing />} />
+                <Route path="analytics" element={<Analytics />} />
                 <Route path="accounts" element={<Landing />} />
-                <Route path="transactions" element={<Landing />} />
-                <Route path="reports" element={<Landing />} />
+                <Route path="transactions" element={<Transactions />} />
+                <Route path="reports" element={<Reports />} />
                 <Route path="budgets" element={<Landing />} />
-                <Route path="savings" element={<Landing />} />
-                <Route path="reminders" element={<Landing />} />
+                <Route path="savings" element={<Savings />} />
+                <Route path="reminders" element={<Reminders />} />
                 <Route path="settings" element={<SettingsPage />} />
               </Route>
 
