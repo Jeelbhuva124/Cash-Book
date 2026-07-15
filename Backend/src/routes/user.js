@@ -9,6 +9,7 @@ router.post('/save', userController.saveEntry);
 
 // LOGIN USER
 router.post('/login', userController.loginEntry);
+router.post('/verify-otp', userController.verifyOtp);
 
 // GOOGLE AUTH
 router.post('/google-auth', userController.googleAuthEntry);

@@ -12,6 +12,7 @@ const api = axios.create({
 export const userAPI = {
   signup: (data) => api.post('/users/signup', data).then((res) => res.data),
   login: (data) => api.post('/users/login', data).then((res) => res.data),
+  verifyOtp: (data) => api.post('/users/verify-otp', data).then((res) => res.data),
   googleAuth: (data) => api.post('/users/google-auth', data).then((res) => res.data),
 };
 

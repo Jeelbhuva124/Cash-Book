@@ -3,6 +3,10 @@ import { getAuth } from 'firebase-admin/auth';
 import { getApps } from 'firebase-admin/app';
 import https from 'https';
 import mongoose from 'mongoose';
+import emailService from '../Service/emailService.js';
+
+// In-memory store for OTPs to prevent database clutter and ensure high speed
+const otpStore = new Map();
 
 // Helper function to call Firebase Auth REST API for sign-in
 const firebaseSignIn = (email, password, apiKey) => {
@@ -139,34 +143,63 @@ const userController = {
     },
 
     loginEntry: async (req, res) => {
-        const { email_id, password } = req.body;
-        if (!email_id || !password) return res.status(400).json({ success: false, message: "Email and password are required" });
+        const { email_id } = req.body;
+        if (!email_id) return res.status(400).json({ success: false, message: "Email is required" });
 
         try {
-            const apiKey = process.env.FIREBASE_API_KEY;
-            let firebaseAuthFailed = false;
-            let firebaseUser = null;
+            const dbUser = await User.findOne({ email_id: email_id.toLowerCase() });
+            if (!dbUser) return res.status(404).json({ success: false, message: "User not found. Please register first." });
 
-            if (apiKey) {
-                try {
-                    firebaseUser = await firebaseSignIn(email_id, password, apiKey);
-                    console.log(`[Firebase] User authenticated: ${email_id}`);
-                } catch (fbErr) {
-                    console.error("[Firebase] Login Error:", fbErr.message);
-                    if (fbErr.message === 'PASSWORD_LOGIN_DISABLED' || fbErr.message?.includes('DISABLED')) {
-                        firebaseAuthFailed = true;
-                    } else {
-                        return res.status(401).json({ success: false, message: fbErr.message || "Invalid credentials" });
-                    }
-                }
+            // Generate OTP
+            const otp = Math.floor(1000 + Math.random() * 9000).toString();
+            const otpExpires = new Date(Date.now() + 2 * 60 * 1000); // 2 minutes
+            otpStore.set(email_id.toLowerCase(), { otp, expires: otpExpires });
+
+            // Send OTP email
+            await emailService.sendOtpEmail(dbUser.email_id, otp);
+
+            return res.status(200).json({
+                success: true,
+                otpRequired: true,
+                email_id: dbUser.email_id,
+                message: "A 4-digit verification code has been sent to your email."
+            });
+        } catch (err) {
+            console.error("Login User Error:", err.message);
+            return res.status(500).json({ success: false, message: err.message || "Internal server error" });
+        }
+    },
+
+    verifyOtp: async (req, res) => {
+        const { email_id, otp } = req.body;
+        if (!email_id || !otp) return res.status(400).json({ success: false, message: "Email and OTP are required" });
+
+        try {
+            const dbUser = await User.findOne({ email_id: email_id.toLowerCase() });
+            if (!dbUser) return res.status(404).json({ success: false, message: "User not found. Please register first." });
+
+            // OTP verification
+            const storedOtpInfo = otpStore.get(email_id.toLowerCase());
+            if (!storedOtpInfo || storedOtpInfo.otp !== otp) {
+                return res.status(400).json({ success: false, message: "Invalid verification code" });
             }
 
-            const dbUser = await User.findOne({ email_id: email_id.toLowerCase() });
-            if (!dbUser) return res.status(404).json({ success: false, message: "User not found in local database" });
+            if (new Date() > storedOtpInfo.expires) {
+                otpStore.delete(email_id.toLowerCase());
+                return res.status(400).json({ success: false, message: "Verification code has expired" });
+            }
 
-            if (!apiKey || firebaseAuthFailed) {
-                if (dbUser.password !== password) {
-                    return res.status(401).json({ success: false, message: "Invalid password" });
+            // Clear OTP once verified
+            otpStore.delete(email_id.toLowerCase());
+
+            // Generate Custom Firebase Auth Token
+            let firebaseToken = null;
+            if (getApps().length > 0) {
+                try {
+                    const auth = getAuth();
+                    firebaseToken = await auth.createCustomToken(dbUser.id);
+                } catch (fbErr) {
+                    console.error("[Firebase] Custom Token Generation Error:", fbErr.message);
                 }
             }
 
@@ -177,11 +210,11 @@ const userController = {
                     id: dbUser.id,
                     username: dbUser.username,
                     email_id: dbUser.email_id,
-                    firebaseToken: firebaseUser?.idToken || null
+                    firebaseToken: firebaseToken
                 }
             });
         } catch (err) {
-            console.error("Login User Error:", err.message);
+            console.error("Verify OTP Error:", err.message);
             return res.status(500).json({ success: false, message: err.message || "Internal server error" });
         }
     },

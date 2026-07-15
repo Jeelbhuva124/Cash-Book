@@ -112,3 +112,10 @@ dist
 *.njsproj
 *.sln
 *.sw?
+
+# Firebase Auth Credentials
+Backend/firebase-Auth.json
+
+# Powershell wrapper
+powershell.cmd
+
