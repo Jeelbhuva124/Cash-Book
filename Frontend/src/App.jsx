@@ -56,9 +56,9 @@ function App() {
               <Route element={<UserLayout />}>
                 <Route path="/" element={<LandingPage />} />
                 <Route path="/home" element={<LandingPage />} />
-                <Route path="/features" element={<LandingPage />} />
-                <Route path="/pricing" element={<LandingPage />} />
                 <Route path="/about" element={<LandingPage />} />
+                <Route path="/services" element={<LandingPage />} />
+                <Route path="/blog" element={<LandingPage />} />
                 <Route path="/contact" element={<LandingPage />} />
               </Route>
             </Routes>

@@ -10,10 +10,10 @@ export const UserNavbar = () => {
 
   const navLinks = [
     { label: 'Home', path: '/' },
-    { label: 'Features', path: '/features' },
-    { label: 'Pricing', path: '/pricing' },
-    { label: 'About', path: '/about' },
-    { label: 'Contact', path: '/contact' },
+    { label: 'About Us', path: '/about' },
+    { label: 'Services', path: '/services' },
+    { label: 'Blog', path: '/blog' },
+    { label: 'Contact Us', path: '/contact' },
   ];
 
   return (
@@ -30,17 +30,22 @@ export const UserNavbar = () => {
           </Link>
 
           {/* Desktop Nav Links */}
-          <div className="hidden md:flex items-center gap-1">
+          <div className="hidden md:flex items-center gap-6">
             {navLinks.map((link) => (
               <Link
                 key={link.path}
                 to={link.path}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${location.pathname === link.path
-                    ? 'bg-primary/10 text-primary'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                  }`}
+                className={`px-1 py-4 text-[15px] font-semibold transition-all relative ${
+                  (location.pathname === link.path || (link.path === '/' && location.pathname === '/home'))
+                    ? 'text-primary'
+                    : 'text-muted-foreground hover:text-primary'
+                }`}
               >
                 {link.label}
+                {/* Active Indicator Line */}
+                {(location.pathname === link.path || (link.path === '/' && location.pathname === '/home')) && (
+                  <span className="absolute left-0 right-0 bottom-[14px] h-[3px] bg-primary rounded-full" />
+                )}
               </Link>
             ))}
           </div>
@@ -86,10 +91,11 @@ export const UserNavbar = () => {
                   key={link.path}
                   to={link.path}
                   onClick={() => setMobileOpen(false)}
-                  className={`block px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${location.pathname === link.path
+                  className={`block px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
+                    (location.pathname === link.path || (link.path === '/' && location.pathname === '/home'))
                       ? 'bg-primary/10 text-primary'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                    }`}
+                      : 'text-muted-foreground hover:text-primary hover:bg-muted'
+                  }`}
                 >
                   {link.label}
                 </Link>
