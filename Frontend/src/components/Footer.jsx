@@ -1,74 +1,115 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, Twitter, Instagram, Youtube, Facebook } from 'lucide-react';
+import { Facebook, Twitter, Instagram, Linkedin, Send, FileText, Scale } from 'lucide-react';
 
 export const UserFooter = () => {
   return (
-    <footer className="relative bg-background pt-16 pb-0 overflow-hidden border-t border-border/40 mt-auto flex flex-col">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-8 lg:gap-12 pb-12">
-
-          {/* Logo and Info */}
-          <div className="col-span-1 md:col-span-2 flex flex-col gap-4">
-            <Link to="/" className="flex items-center gap-2.5 group w-fit">
-              <img src="/logo.png" alt="Cash Book Logo" className="w-12 h-12 object-contain" />
-              <div className="flex flex-col leading-tight">
-                <span className="text-base font-bold text-foreground">Cash Book</span>
-                <span className="text-[10px] text-muted-foreground">Smart Finance Tracker</span>
+    <footer className="bg-background pt-16 pb-8 border-t border-border mt-auto relative z-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 pb-12 border-b border-border/50">
+          
+          {/* Column 1: Brand & About (Takes 4 cols on md) */}
+          <div className="col-span-1 md:col-span-4 flex flex-col gap-5">
+            <Link to="/" className="flex items-center gap-3 w-fit">
+              <div className="bg-white p-1.5 rounded-xl">
+                 <img src="/logo.png" alt="Cash Book Logo" className="w-8 h-8 object-contain" />
               </div>
+              <span className="text-2xl font-bold text-foreground">Cash Book</span>
             </Link>
-            <p className="text-sm text-muted-foreground leading-relaxed max-w-sm">
-              Track daily expenses, manage business ledgers, and maintain shared accounts effortlessly. Your ultimate personal finance manager.
+            <p className="text-sm text-muted-foreground leading-relaxed max-w-xs mt-2">
+              Cash Book is India's leading smart finance management and money management app. Simplify your daily budget entry and digitize your khata book effortlessly.
             </p>
-            <div className="flex items-center gap-3 mt-2">
-              {[Twitter, Facebook, Instagram, Youtube].map((Icon, i) => (
-                <button key={i} className="w-9 h-9 rounded-full border border-border bg-muted/50 flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/50 transition-colors">
+            <div className="flex items-center gap-3 mt-4">
+              {[Facebook, Twitter, Instagram, Linkedin].map((Icon, i) => (
+                <button key={i} className="w-10 h-10 rounded-xl bg-card border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all">
                   <Icon className="w-4 h-4" />
                 </button>
               ))}
             </div>
-            <p className="text-[11px] text-muted-foreground/60">
-              © 2026 Cash Book · Made with ❤️ in India
-            </p>
           </div>
 
-          {/* Links Columns */}
-          <div className="col-span-1 md:col-span-3 grid grid-cols-2 md:grid-cols-3 gap-8">
-            {/* PRODUCT */}
-            <div className="flex flex-col gap-2">
-              <h4 className="text-xs font-bold text-foreground tracking-widest uppercase mb-2">Product</h4>
-              <Link to="/features" className="text-sm text-muted-foreground hover:text-primary transition-colors">Features</Link>
-              <Link to="/pricing" className="text-sm text-muted-foreground hover:text-primary transition-colors">Pricing</Link>
-              <Link to="/" className="text-sm text-muted-foreground hover:text-primary transition-colors">Dashboard</Link>
-              <Link to="/" className="text-sm text-muted-foreground hover:text-primary transition-colors">Mobile App</Link>
+          {/* Column 2: Quick Links (Takes 2 cols) */}
+          <div className="col-span-1 md:col-span-2 flex flex-col gap-4">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="w-2 h-2 rounded-full bg-expense animate-pulse"></span>
+              <h4 className="text-xs font-bold text-foreground tracking-widest uppercase">Quick Links</h4>
             </div>
+            <ul className="space-y-3">
+              {['Home', 'Why Us?', 'Services', 'Blog', 'Contact Us'].map((item) => (
+                <li key={item}>
+                  <Link to={item === 'Home' ? '/' : `/${item.toLowerCase().replace(' ', '').replace('?', '')}`} className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2">
+                     <span className="text-xs">›</span> {item}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
 
-            {/* COMPANY */}
-            <div className="flex flex-col gap-2">
-              <h4 className="text-xs font-bold text-foreground tracking-widest uppercase mb-2">Company</h4>
-              <Link to="/about" className="text-sm text-muted-foreground hover:text-primary transition-colors">About Us</Link>
-              <Link to="/contact" className="text-sm text-muted-foreground hover:text-primary transition-colors">Contact</Link>
-              <Link to="/login" className="text-sm text-muted-foreground hover:text-primary transition-colors">Login</Link>
-              <Link to="/signup" className="text-sm text-muted-foreground hover:text-primary transition-colors">Sign Up</Link>
+          {/* Column 3: Resources (Takes 2 cols) */}
+          <div className="col-span-1 md:col-span-2 flex flex-col gap-4">
+             <div className="flex items-center gap-2 mb-2">
+              <span className="w-2 h-2 rounded-full bg-brand"></span>
+              <h4 className="text-xs font-bold text-foreground tracking-widest uppercase">Resources</h4>
             </div>
+            <ul className="space-y-3">
+              {['FAQ', 'Help Center', 'Legal', 'Roadmap'].map((item) => (
+                <li key={item}>
+                  <Link to="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2">
+                    <span className="text-xs">›</span> {item}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
 
-            {/* RESOURCES */}
-            <div className="flex flex-col gap-2">
-              <h4 className="text-xs font-bold text-foreground tracking-widest uppercase mb-2">Resources</h4>
-              <Link to="/" className="text-sm text-muted-foreground hover:text-primary transition-colors">Help Center</Link>
-              <Link to="/" className="text-sm text-muted-foreground hover:text-primary transition-colors">Privacy Policy</Link>
-              <Link to="/" className="text-sm text-muted-foreground hover:text-primary transition-colors">Terms of Service</Link>
-              <Link to="/" className="text-sm text-muted-foreground hover:text-primary transition-colors">Security</Link>
+          {/* Column 4: Connect & Newsletter (Takes 4 cols) */}
+          <div className="col-span-1 md:col-span-4 flex flex-col gap-4">
+             <div className="flex items-center gap-2 mb-2">
+              <span className="w-2 h-2 rounded-full bg-income"></span>
+              <h4 className="text-xs font-bold text-foreground tracking-widest uppercase">Connect</h4>
             </div>
+            <ul className="space-y-3 mb-4">
+               <li>
+                  <Link to="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2">
+                    <FileText className="w-4 h-4" /> Privacy Policy
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2">
+                    <Scale className="w-4 h-4" /> Terms of Service
+                  </Link>
+                </li>
+            </ul>
+
+            <div className="space-y-3">
+              <p className="text-xs text-muted-foreground">Subscribe to our newsletter</p>
+              <div className="flex items-center gap-2">
+                <input 
+                  type="email" 
+                  placeholder="Email address" 
+                  className="flex-1 bg-card border border-border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-primary text-foreground"
+                />
+                <button className="bg-expense hover:opacity-90 transition-opacity p-2.5 rounded-xl text-white flex-shrink-0">
+                  <Send className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        {/* Bottom Bar */}
+        <div className="pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
+          <p className="text-xs text-muted-foreground">
+            © 2026 Cash Book. All rights reserved.
+          </p>
+          <div className="flex items-center gap-2">
+             <span className="w-2 h-2 rounded-full bg-income"></span>
+             <span className="text-xs text-muted-foreground">System Operational</span>
           </div>
         </div>
-      </div>
 
-      {/* Watermark Text */}
-      <div className="w-full flex items-end justify-center pointer-events-none select-none -mt-4 md:-mt-12 overflow-hidden relative z-0">
-        <h1 className="text-[18vw] md:text-[22vw] font-bold tracking-tighter leading-none text-center whitespace-nowrap bg-gradient-to-b from-foreground/8 to-background bg-clip-text text-transparent translate-y-[20%]">
-          CASH BOOK
-        </h1>
       </div>
     </footer>
   );

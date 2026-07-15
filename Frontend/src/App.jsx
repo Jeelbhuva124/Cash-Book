@@ -9,6 +9,10 @@ import { Toaster } from './components/Toaster';
 
 // ─── Landing Page ─────────────────────────────────────────
 import { LandingPage } from './page/LandingPage';
+import { About } from './page/About';
+import { Services } from './page/Services';
+import { Blog } from './page/Blog';
+import { Contact } from './page/Contact';
 
 // ─── Dashboard (AI Layout) ────────────────────────────────
 import Landing from './Dashboard/pages/Home';
@@ -56,10 +60,10 @@ function App() {
               <Route element={<UserLayout />}>
                 <Route path="/" element={<LandingPage />} />
                 <Route path="/home" element={<LandingPage />} />
-                <Route path="/about" element={<LandingPage />} />
-                <Route path="/services" element={<LandingPage />} />
-                <Route path="/blog" element={<LandingPage />} />
-                <Route path="/contact" element={<LandingPage />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/services" element={<Services />} />
+                <Route path="/blog" element={<Blog />} />
+                <Route path="/contact" element={<Contact />} />
               </Route>
             </Routes>
           </div>
