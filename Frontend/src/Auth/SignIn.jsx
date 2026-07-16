@@ -19,6 +19,12 @@ export default function SignIn() {
   const [canResend, setCanResend] = useState(false);
 
   useEffect(() => {
+    if (localStorage.getItem("token")) {
+      navigate("/dashboard");
+    }
+  }, [navigate]);
+
+  useEffect(() => {
     let interval = null;
     if (step === "otp" && otpTimer > 0) {
       interval = setInterval(() => {

@@ -53,18 +53,29 @@ export const UserNavbar = () => {
           {/* Actions */}
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            <Link
-              to="/login"
-              className="hidden sm:block text-sm font-medium text-muted-foreground hover:text-foreground transition-colors px-3 py-2"
-            >
-              Login
-            </Link>
-            <Link
-              to="/signup"
-              className="text-sm font-semibold bg-primary text-primary-foreground px-4 py-2 rounded-xl hover:opacity-90 transition-all shadow-md shadow-primary/25 hover:shadow-primary/40"
-            >
-              Get Started
-            </Link>
+            {localStorage.getItem("token") ? (
+              <Link
+                to="/dashboard"
+                className="text-sm font-semibold bg-primary text-primary-foreground px-4 py-2 rounded-xl hover:opacity-90 transition-all shadow-md shadow-primary/25 hover:shadow-primary/40"
+              >
+                Dashboard
+              </Link>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className="hidden sm:block text-sm font-medium text-muted-foreground hover:text-foreground transition-colors px-3 py-2"
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/signup"
+                  className="text-sm font-semibold bg-primary text-primary-foreground px-4 py-2 rounded-xl hover:opacity-90 transition-all shadow-md shadow-primary/25 hover:shadow-primary/40"
+                >
+                  Get Started
+                </Link>
+              </>
+            )}
             {/* Mobile Menu Button */}
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
@@ -101,12 +112,20 @@ export const UserNavbar = () => {
                 </Link>
               ))}
               <div className="pt-2 border-t border-border flex gap-2">
-                <Link to="/login" onClick={() => setMobileOpen(false)} className="flex-1 text-center py-2.5 text-sm font-medium text-muted-foreground border border-border rounded-xl hover:bg-muted transition-colors">
-                  Login
-                </Link>
-                <Link to="/signup" onClick={() => setMobileOpen(false)} className="flex-1 text-center py-2.5 text-sm font-semibold bg-primary text-primary-foreground rounded-xl hover:opacity-90 transition-opacity">
-                  Get Started
-                </Link>
+                {localStorage.getItem("token") ? (
+                  <Link to="/dashboard" onClick={() => setMobileOpen(false)} className="flex-1 text-center py-2.5 text-sm font-semibold bg-primary text-primary-foreground rounded-xl hover:opacity-90 transition-opacity">
+                    Dashboard
+                  </Link>
+                ) : (
+                  <>
+                    <Link to="/login" onClick={() => setMobileOpen(false)} className="flex-1 text-center py-2.5 text-sm font-medium text-muted-foreground border border-border rounded-xl hover:bg-muted transition-colors">
+                      Login
+                    </Link>
+                    <Link to="/signup" onClick={() => setMobileOpen(false)} className="flex-1 text-center py-2.5 text-sm font-semibold bg-primary text-primary-foreground rounded-xl hover:opacity-90 transition-opacity">
+                      Get Started
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </motion.div>
