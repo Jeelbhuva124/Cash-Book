@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { BookOpen, Shield, CheckCircle, Mail, Lock, User, Eye, EyeOff, ArrowRight } from "lucide-react";
 import { userAPI } from "../api/api.jsx";
@@ -17,6 +17,12 @@ export default function SignUp() {
   const [error, setError] = useState("");
   const { addToast } = useToast();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (localStorage.getItem("token")) {
+      navigate("/dashboard");
+    }
+  }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

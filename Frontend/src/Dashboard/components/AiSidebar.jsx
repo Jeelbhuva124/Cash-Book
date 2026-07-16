@@ -1,9 +1,8 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Plus, Search, BookOpen, BarChart3, Wallet,
-  Settings, Zap, PanelLeftClose, SquarePen,
-  Receipt, TrendingUp, PiggyBank, Bell, LogOut
+  LayoutDashboard, BookOpen, Tag, Layers, CreditCard,
+  Users, BarChart3, User, Settings, LogOut, ChevronDown, ChevronRight
 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ThemeToggle } from '../../components/ThemeToggle';
@@ -16,10 +15,11 @@ const NavItem = ({ icon: Icon, label, path, badge, onClick }) => {
     <Link
       to={path}
       onClick={onClick}
-      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors w-full ${isActive
-          ? 'bg-primary/15 text-primary'
-          : 'text-muted-foreground hover:bg-background hover:text-foreground'
-        }`}
+      className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors w-full ${
+        isActive
+          ? 'bg-primary/10 text-primary font-semibold'
+          : 'text-muted-foreground hover:bg-muted/40 hover:text-foreground'
+      }`}
     >
       <Icon className="w-4 h-4 flex-shrink-0" />
       <span className="flex-1">{label}</span>
@@ -34,6 +34,8 @@ const NavItem = ({ icon: Icon, label, path, badge, onClick }) => {
 
 const SidebarContent = ({ onClose }) => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   // Get user from localStorage
   const userRaw = localStorage.getItem("user");
@@ -49,47 +51,76 @@ const SidebarContent = ({ onClose }) => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-card border-r border-border text-foreground">
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-4 flex-shrink-0">
-        <Link to="/" className="flex items-center gap-2.5 cursor-pointer hover:bg-background px-2 py-1.5 rounded-xl transition-colors -ml-2">
-          <img src="/logo.png" alt="Cash Book Logo" className="w-10 h-10 object-contain" />
-          <span className="text-base font-semibold text-foreground">Daily Chalan</span>
+    <div className="flex flex-col h-full bg-white dark:bg-card border-r border-border text-foreground">
+      {/* Header / Logo */}
+      <div className="flex items-center justify-between px-5 py-4 flex-shrink-0">
+        <Link to="/" className="flex items-center gap-2 cursor-pointer hover:bg-muted/30 px-2 py-1.5 rounded-xl transition-colors">
+          <img src="/logo.png" alt="Daily Chalan Logo" className="w-8 h-8 object-contain" />
+          <span className="text-base font-bold text-foreground">Daily Chalan</span>
         </Link>
         <ThemeToggle />
       </div>
 
-      <div className="h-px bg-muted mx-3 my-1 flex-shrink-0" />
+      <div className="h-px bg-border/60 mx-4 flex-shrink-0" />
 
-      {/* Main Nav */}
-      <nav className="px-3 py-2 space-y-0.5 flex-shrink-0">
-        <NavItem icon={Wallet} label="Cash Dashboard" path="/dashboard" onClick={onClose} />
-        <NavItem icon={BarChart3} label="Ledger Analytics" path="/dashboard/analytics" badge="New" onClick={onClose} />
-        <NavItem icon={Receipt} label="Outflow Logs" path="/dashboard/transactions" onClick={onClose} />
-        <NavItem icon={TrendingUp} label="Tax Reports" path="/dashboard/reports" onClick={onClose} />
-      </nav>
+      {/* Navigation Items */}
+      <div className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
+        <NavItem icon={LayoutDashboard} label="Dashboard" path="/dashboard" onClick={onClose} />
+        <NavItem icon={BookOpen} label="All Daily Chalans" path="/dashboard/chalans" onClick={onClose} />
+        <NavItem icon={Tag} label="Category" path="/dashboard/categories" onClick={onClose} />
+        <NavItem icon={Layers} label="Subcategory" path="/dashboard/subcategories" onClick={onClose} />
+        <NavItem icon={CreditCard} label="Payment Mode" path="/dashboard/payment-modes" onClick={onClose} />
+        <NavItem icon={Users} label="Daily Chalan Invitations" path="/dashboard/invitations" badge="2" onClick={onClose} />
+        <NavItem icon={BarChart3} label="Reports" path="/dashboard/reports" onClick={onClose} />
+        <NavItem icon={User} label="Profile" path="/dashboard/profile" onClick={onClose} />
 
-      <div className="h-px bg-muted mx-3 my-1 flex-shrink-0" />
+        {/* Collapsible Settings */}
+        <div className="space-y-1">
+          <button
+            onClick={() => setSettingsOpen(!settingsOpen)}
+            className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors w-full text-muted-foreground hover:bg-muted/40 hover:text-foreground`}
+          >
+            <Settings className="w-4 h-4 flex-shrink-0" />
+            <span className="flex-1 text-left">Settings</span>
+            {settingsOpen ? (
+              <ChevronDown className="w-4 h-4 text-muted-foreground" />
+            ) : (
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            )}
+          </button>
 
-      {/* Tools */}
-      <div className="px-3 py-2 flex-shrink-0">
-        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-3 mb-2">
-          Finance Tools
-        </p>
-        <NavItem icon={PiggyBank} label="Savings Targets" path="/dashboard/savings" onClick={onClose} />
-        <NavItem icon={Bell} label="Reminders" path="/dashboard/reminders" onClick={onClose} />
+          <AnimatePresence>
+            {settingsOpen && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="overflow-hidden pl-7 space-y-1"
+              >
+                <Link
+                  to="/dashboard/settings"
+                  onClick={onClose}
+                  className={`block px-4 py-2 rounded-lg text-xs font-semibold ${
+                    location.pathname === '/dashboard/settings'
+                      ? 'text-primary font-bold bg-primary/5'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/20'
+                  }`}
+                >
+                  Account Settings
+                </Link>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
 
-      <div className="h-px bg-muted mx-3 my-1 flex-shrink-0" />
+      <div className="h-px bg-border/60 mx-4 flex-shrink-0" />
 
-      {/* Spacer */}
-      <div className="flex-1" />
-
-      {/* User Profile */}
-      <div className="px-3 py-3 flex-shrink-0 border-t border-border bg-muted/50">
-        <div className="flex items-center justify-between">
+      {/* User Footer Profile */}
+      <div className="p-4 flex-shrink-0 bg-muted/20">
+        <div className="flex items-center justify-between gap-2.5">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-semibold text-xs flex-shrink-0">
+            <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs flex-shrink-0">
               {initials}
             </div>
             <div className="text-left min-w-0">
@@ -115,7 +146,7 @@ export const AiSidebar = ({ mobileOpen, onClose }) => {
   return (
     <>
       {/* Desktop Sidebar */}
-      <div className="hidden lg:flex w-60 flex-shrink-0 h-full">
+      <div className="hidden lg:flex w-64 flex-shrink-0 h-full">
         <SidebarContent />
       </div>
 
@@ -123,7 +154,7 @@ export const AiSidebar = ({ mobileOpen, onClose }) => {
       {mobileOpen && (
         <div className="fixed inset-0 z-50 lg:hidden flex">
           <div className="fixed inset-0 bg-foreground/20 backdrop-blur-sm" onClick={onClose} />
-          <div className="relative w-60 h-full">
+          <div className="relative w-64 h-full">
             <SidebarContent onClose={onClose} />
           </div>
         </div>

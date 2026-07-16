@@ -20,13 +20,19 @@ import { Roadmap } from './page/Roadmap';
 import { Privacy } from './page/Privacy';
 import { Terms } from './page/Terms';
 
-// ─── Dashboard (AI Layout) ────────────────────────────────
+// ─── Dashboard Pages ──────────────────────────────────────
 import Landing from './Dashboard/pages/Home';
 import Analytics from './Dashboard/pages/Analytics';
 import Transactions from './Dashboard/pages/Transactions';
 import Reports from './Dashboard/pages/Reports';
 import Savings from './Dashboard/pages/Savings';
 import Reminders from './Dashboard/pages/Reminders';
+import Categories from './Dashboard/pages/Categories';
+import Subcategories from './Dashboard/pages/Subcategories';
+import PaymentModes from './Dashboard/pages/PaymentModes';
+import Chalans from './Dashboard/pages/Chalans';
+import Invitations from './Dashboard/pages/Invitations';
+import Profile from './Dashboard/pages/Profile';
 
 import { SettingsPage } from './Dashboard/pages/SettingsPage';
 import { AiLayout } from './Dashboard/components/AiLayout';
@@ -56,6 +62,15 @@ function App() {
                 <Route path="accounts" element={<Landing />} />
                 <Route path="transactions" element={<Transactions />} />
                 <Route path="reports" element={<Reports />} />
+                
+                {/* Reference Dashboard Routes */}
+                <Route path="chalans" element={<Chalans />} />
+                <Route path="categories" element={<Categories />} />
+                <Route path="subcategories" element={<Subcategories />} />
+                <Route path="payment-modes" element={<PaymentModes />} />
+                <Route path="invitations" element={<Invitations />} />
+                <Route path="profile" element={<Profile />} />
+
                 <Route path="budgets" element={<Landing />} />
                 <Route path="savings" element={<Savings />} />
                 <Route path="reminders" element={<Reminders />} />
