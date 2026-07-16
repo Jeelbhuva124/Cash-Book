@@ -13,6 +13,12 @@ import { About } from './page/About';
 import { Services } from './page/Services';
 import { Blog } from './page/Blog';
 import { Contact } from './page/Contact';
+import { FAQ } from './page/FAQ';
+import { HelpCenter } from './page/HelpCenter';
+import { Legal } from './page/Legal';
+import { Roadmap } from './page/Roadmap';
+import { Privacy } from './page/Privacy';
+import { Terms } from './page/Terms';
 
 // ─── Dashboard (AI Layout) ────────────────────────────────
 import Landing from './Dashboard/pages/Home';
@@ -64,6 +70,12 @@ function App() {
                 <Route path="/services" element={<Services />} />
                 <Route path="/blog" element={<Blog />} />
                 <Route path="/contact" element={<Contact />} />
+                <Route path="/faq" element={<FAQ />} />
+                <Route path="/helpcenter" element={<HelpCenter />} />
+                <Route path="/legal" element={<Legal />} />
+                <Route path="/roadmap" element={<Roadmap />} />
+                <Route path="/privacy" element={<Privacy />} />
+                <Route path="/terms" element={<Terms />} />
               </Route>
             </Routes>
           </div>

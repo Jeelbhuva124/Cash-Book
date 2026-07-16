@@ -153,4 +153,57 @@ const sendOtpEmail = async (email, otp) => {
     }
 };
 
-export default { sendOtpEmail };
+const sendContactMessageEmail = async (name, senderEmail, message) => {
+    const hasSmtpConfig = process.env.SMTP_USER && process.env.SMTP_PASS;
+
+    if (!hasSmtpConfig) {
+        console.log(`\n==========================================`);
+        console.log(`[DEVELOPMENT] SMTP not configured. Contact Message from ${name} (${senderEmail}): ${message}`);
+        console.log(`==========================================\n`);
+        return true;
+    }
+
+    try {
+        const smtpHost = process.env.SMTP_HOST || 'smtp.gmail.com';
+        const smtpPass = process.env.SMTP_PASS ? process.env.SMTP_PASS.replace(/\s+/g, '') : '';
+
+        const transporterConfig = {
+            host: smtpHost,
+            port: parseInt(process.env.SMTP_PORT) || 587,
+            secure: process.env.SMTP_SECURE === 'true' || parseInt(process.env.SMTP_PORT) === 465,
+            auth: {
+                user: process.env.SMTP_USER,
+                pass: smtpPass
+            },
+            tls: { rejectUnauthorized: false }
+        };
+
+        const transporter = nodemailer.createTransport(transporterConfig);
+
+        const mailOptions = {
+            from: `"Cash Book Support System" <${process.env.SMTP_USER}>`,
+            to: process.env.SMTP_USER, // Send to the admin's inbox
+            replyTo: senderEmail,
+            subject: `New Contact Form Submission from ${name}`,
+            text: `You have received a new message from the Cash Book Contact Form.\n\nName: ${name}\nEmail: ${senderEmail}\n\nMessage:\n${message}`,
+            html: `
+                <h3>New Contact Form Submission</h3>
+                <p><strong>Name:</strong> ${name}</p>
+                <p><strong>Email:</strong> ${senderEmail}</p>
+                <p><strong>Message:</strong></p>
+                <blockquote style="border-left: 4px solid #ccc; padding-left: 10px; margin-left: 0;">
+                    ${message.replace(/\n/g, '<br>')}
+                </blockquote>
+            `
+        };
+
+        await transporter.sendMail(mailOptions);
+        console.log(`[SMTP] Contact email from ${senderEmail} sent successfully`);
+        return true;
+    } catch (err) {
+        console.error(`[SMTP] Failed to send contact email:`, err.message);
+        throw new Error("Failed to send email");
+    }
+};
+
+export default { sendOtpEmail, sendContactMessageEmail };

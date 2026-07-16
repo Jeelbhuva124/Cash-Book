@@ -7,17 +7,38 @@ export const Contact = () => {
   const { addToast } = useToast();
   const [form, setForm] = useState({ name: '', email: '', message: '' });
 
-  const handleSubmit = (e) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.name || !form.email || !form.message) {
       addToast("Please fill all fields", "error");
       return;
     }
-    // Simulate API call
-    setTimeout(() => {
-      addToast("Message sent successfully! We'll get back to you soon.", "success");
-      setForm({ name: '', email: '', message: '' });
-    }, 800);
+    
+    setIsSubmitting(true);
+    try {
+      const response = await fetch('http://localhost:5001/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(form)
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        addToast("Message sent successfully! We'll get back to you soon.", "success");
+        setForm({ name: '', email: '', message: '' });
+      } else {
+        addToast(data.message || "Failed to send message", "error");
+      }
+    } catch (error) {
+      addToast("An error occurred while sending the message", "error");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -60,7 +81,7 @@ export const Contact = () => {
                   <div>
                     <h4 className="font-bold mb-1">Email Us</h4>
                     <p className="text-muted-foreground text-sm mb-1">Our friendly team is here to help.</p>
-                    <a href="mailto:support@cashbook.com" className="font-semibold text-primary">support@cashbook.com</a>
+                    <a href="mailto:cashbook1204@gmail.com" className="font-semibold text-primary">cashbook1204@gmail.com</a>
                   </div>
                 </div>
 
@@ -71,7 +92,7 @@ export const Contact = () => {
                   <div>
                     <h4 className="font-bold mb-1">Office</h4>
                     <p className="text-muted-foreground text-sm mb-1">Come say hello at our HQ.</p>
-                    <p className="font-semibold text-foreground">123 Finance Tower, Mumbai, India</p>
+                    <p className="font-semibold text-foreground">Mota varchha,Surat,Gujarat.</p>
                   </div>
                 </div>
 
@@ -82,7 +103,7 @@ export const Contact = () => {
                   <div>
                     <h4 className="font-bold mb-1">Phone</h4>
                     <p className="text-muted-foreground text-sm mb-1">Mon-Fri from 9am to 6pm.</p>
-                    <a href="tel:+911234567890" className="font-semibold text-primary">+91 123 456 7890</a>
+                    <a href="tel:+917861908799" className="font-semibold text-primary">+91 78619 08799</a>
                   </div>
                 </div>
               </div>
@@ -127,8 +148,13 @@ export const Contact = () => {
                     className="w-full px-4 py-3 bg-background border border-border rounded-xl focus:outline-none focus:border-primary transition-colors resize-none"
                   />
                 </div>
-                <button type="submit" className="w-full py-3.5 bg-primary text-primary-foreground font-bold rounded-xl hover:opacity-95 transition-opacity flex items-center justify-center gap-2">
-                  <Send className="w-4 h-4" /> Send Message
+                <button 
+                  type="submit" 
+                  disabled={isSubmitting}
+                  className="w-full py-3.5 bg-primary text-primary-foreground font-bold rounded-xl hover:opacity-95 transition-opacity flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                >
+                  <Send className={`w-4 h-4 ${isSubmitting ? 'animate-pulse' : ''}`} /> 
+                  {isSubmitting ? 'Sending...' : 'Send Message'}
                 </button>
               </form>
             </motion.div>

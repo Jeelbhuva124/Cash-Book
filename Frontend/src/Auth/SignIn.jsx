@@ -253,7 +253,7 @@ export default function SignIn() {
       </div>
 
       {/* ── RIGHT PANEL: Auth Card Form ── */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-12 xl:p-24 bg-card ">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-12 xl:p-24 bg-card relative">
         <div className="w-full max-w-[420px] space-y-8">
 
           {/* Mobile Header Logo */}
@@ -358,7 +358,7 @@ export default function SignIn() {
                 transition={{ type: "spring", stiffness: 350, damping: 28 }}
                 className="space-y-6"
               >
-                <div className="mb-2">
+                <div className="absolute top-6 left-6 md:top-8 md:left-8">
                   <button
                     type="button"
                     onClick={() => {

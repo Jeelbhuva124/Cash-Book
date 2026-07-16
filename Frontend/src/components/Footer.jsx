@@ -1,8 +1,17 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Facebook, Twitter, Instagram, Linkedin, Send, FileText, Scale } from 'lucide-react';
+import { useToast } from '../context/ToastContext';
+import { Facebook, Twitter, Instagram, Linkedin, Send, FileText, Scale, Mail } from 'lucide-react';
 
 export const UserFooter = () => {
+  const { addToast } = useToast();
+
+  const handleSubscribe = (e) => {
+    e.preventDefault();
+    addToast('Subscribed successfully!', 'success');
+    e.target.reset();
+  };
+
   return (
     <footer className="bg-background pt-16 pb-8 border-t border-border mt-auto relative z-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -21,10 +30,15 @@ export const UserFooter = () => {
               Cash Book is India's leading smart finance management and money management app. Simplify your daily budget entry and digitize your khata book effortlessly.
             </p>
             <div className="flex items-center gap-3 mt-4">
-              {[Facebook, Twitter, Instagram, Linkedin].map((Icon, i) => (
-                <button key={i} className="w-10 h-10 rounded-xl bg-card border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all">
+              {[
+                { Icon: Facebook, href: "#" },
+                { Icon: Twitter, href: "#" },
+                { Icon: Instagram, href: "#" },
+                { Icon: Linkedin, href: "#" }
+              ].map(({ Icon, href }, i) => (
+                <a key={i} href={href} className="w-10 h-10 rounded-xl bg-card border border-border flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 hover:scale-110 hover:-translate-y-1 transition-all duration-300">
                   <Icon className="w-4 h-4" />
-                </button>
+                </a>
               ))}
             </div>
           </div>
@@ -36,13 +50,22 @@ export const UserFooter = () => {
               <h4 className="text-xs font-bold text-foreground tracking-widest uppercase">Quick Links</h4>
             </div>
             <ul className="space-y-3">
-              {['Home', 'Why Us?', 'Services', 'Blog', 'Contact Us'].map((item) => (
-                <li key={item}>
-                  <Link to={item === 'Home' ? '/' : `/${item.toLowerCase().replace(' ', '').replace('?', '')}`} className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2">
-                     <span className="text-xs">›</span> {item}
-                  </Link>
-                </li>
-              ))}
+              {['Home', 'Why Us?', 'Services', 'Blog', 'Contact Us'].map((item) => {
+                let linkPath = '/';
+                if (item === 'Home') linkPath = '/';
+                else if (item === 'Why Us?') linkPath = '/about';
+                else if (item === 'Services') linkPath = '/services';
+                else if (item === 'Blog') linkPath = '/blog';
+                else if (item === 'Contact Us') linkPath = '/contact';
+                
+                return (
+                  <li key={item}>
+                    <Link to={linkPath} className="group text-sm text-muted-foreground hover:text-primary transition-all duration-300 flex items-center gap-2">
+                       <span className="text-xs group-hover:translate-x-1 transition-transform duration-300">›</span> {item}
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           </div>
 
@@ -53,13 +76,21 @@ export const UserFooter = () => {
               <h4 className="text-xs font-bold text-foreground tracking-widest uppercase">Resources</h4>
             </div>
             <ul className="space-y-3">
-              {['FAQ', 'Help Center', 'Legal', 'Roadmap'].map((item) => (
-                <li key={item}>
-                  <Link to="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2">
-                    <span className="text-xs">›</span> {item}
-                  </Link>
-                </li>
-              ))}
+              {['FAQ', 'Help Center', 'Legal', 'Roadmap'].map((item) => {
+                let linkPath = '/';
+                if (item === 'FAQ') linkPath = '/faq';
+                else if (item === 'Help Center') linkPath = '/helpcenter';
+                else if (item === 'Legal') linkPath = '/legal';
+                else if (item === 'Roadmap') linkPath = '/roadmap';
+
+                return (
+                  <li key={item}>
+                    <Link to={linkPath} className="group text-sm text-muted-foreground hover:text-primary transition-all duration-300 flex items-center gap-2">
+                      <span className="text-xs group-hover:translate-x-1 transition-transform duration-300">›</span> {item}
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           </div>
 
@@ -69,32 +100,18 @@ export const UserFooter = () => {
               <span className="w-2 h-2 rounded-full bg-income"></span>
               <h4 className="text-xs font-bold text-foreground tracking-widest uppercase">Connect</h4>
             </div>
-            <ul className="space-y-3 mb-4">
+            <ul className="space-y-3">
                <li>
-                  <Link to="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2">
-                    <FileText className="w-4 h-4" /> Privacy Policy
+                  <Link to="/privacy" className="group text-sm text-muted-foreground hover:text-primary transition-all duration-300 flex items-center gap-2">
+                    <FileText className="w-4 h-4 group-hover:scale-110 transition-transform duration-300" /> Privacy Policy
                   </Link>
                 </li>
                 <li>
-                  <Link to="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2">
-                    <Scale className="w-4 h-4" /> Terms of Service
+                  <Link to="/terms" className="group text-sm text-muted-foreground hover:text-primary transition-all duration-300 flex items-center gap-2">
+                    <Scale className="w-4 h-4 group-hover:scale-110 transition-transform duration-300" /> Terms of Service
                   </Link>
                 </li>
             </ul>
-
-            <div className="space-y-3">
-              <p className="text-xs text-muted-foreground">Subscribe to our newsletter</p>
-              <div className="flex items-center gap-2">
-                <input 
-                  type="email" 
-                  placeholder="Email address" 
-                  className="flex-1 bg-card border border-border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-primary text-foreground"
-                />
-                <button className="bg-expense hover:opacity-90 transition-opacity p-2.5 rounded-xl text-white flex-shrink-0">
-                  <Send className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
           </div>
 
         </div>

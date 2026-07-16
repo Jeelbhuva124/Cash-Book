@@ -8,6 +8,7 @@ import {
   SmartphoneIcon, Lock, Landmark, FileSpreadsheet, PlusCircle, CheckSquare,
   Sparkles, Fuel, ShoppingCart, Lightbulb, HeartPulse, Plane, Home as HomeIcon, Briefcase
 } from 'lucide-react';
+import { Testimonials } from '../components/Testimonials';
 
 const FeatureCard = ({ icon: Icon, title, description, borderAccent }) => (
   <motion.div
@@ -372,23 +373,7 @@ export function LandingPage() {
       </section>
 
       {/* ── CLIENT TESTIMONIALS ── */}
-      <section className="py-24 px-4 md:px-8 max-w-7xl mx-auto">
-        <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
-          <span className="text-xs font-bold text-primary tracking-widest uppercase">Loved by Users</span>
-          <h2 className="text-3xl md:text-4xl font-extrabold text-foreground">
-            What Our Clients Say
-          </h2>
-          <p className="text-muted-foreground text-sm md:text-base leading-relaxed">
-            Discover how thousands of business owners and individuals use Daily Chalan to stay financially disciplined.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {testimonials.map((t, i) => (
-            <TestimonialCard key={i} {...t} />
-          ))}
-        </div>
-      </section>
+      <Testimonials />
 
     </div>
   );
