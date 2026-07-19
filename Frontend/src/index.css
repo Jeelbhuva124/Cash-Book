@@ -165,7 +165,8 @@ body {
   background: #ffffff12;
   backdrop-filter: blur(16px);
   border: 1px solid #ffffff1f;
-  box-shadow: 0 20px 25px -5px #0000001a, 0 8px 10px -6px #0000001a;
+  box-shadow: 0px -4px 10px rgba(0, 0, 0, 0.05);
+  border-top: 1px solid var(--border);
 }
 
 @utility glass-dark {
@@ -251,3 +252,34 @@ body {
 .animate-pulse-glow {
   animation: pulse-glow 2s ease-in-out infinite;
 }
+
+/* ── Invoice Template Specific Styles ── */
+.inv-page { width: 794px; min-height: 1123px; box-sizing: border-box; background-color: #ffffff; color: #000000; }
+.inv-watermark { opacity: 0.08; }
+.inv-brand-bg { background-color: #1d4ed8; }
+.inv-brand-text { color: #1d4ed8; }
+.inv-brand-border { border-color: #1d4ed8; }
+.inv-white-text { color: #ffffff; }
+.inv-white-text-80 { color: rgba(255, 255, 255, 0.8); }
+.inv-black-text { color: #000000; }
+.inv-dark-text { color: #1f2937; }
+.inv-gray-text { color: #6b7280; }
+.inv-gray-dark-text { color: #4b5563; }
+.inv-slate-text { color: #374151; }
+.inv-slate-light-text { color: #475569; }
+.inv-slate-medium-text { color: #64748b; }
+.inv-navy-text { color: #0f172a; }
+.inv-navy-light-text { color: #1e293b; }
+.inv-green-text { color: #15803d; }
+.inv-red-text { color: #dc2626; }
+.inv-gray-light-text { color: #94a3b8; }
+
+.inv-light-bg { background-color: #f8fafc; }
+.inv-white-bg { background-color: #ffffff; }
+.inv-slate-light-bg { background-color: #f1f5f9; }
+.inv-table-header-bg { background-color: #1e293b; color: #ffffff; }
+.inv-dark-bg { background-color: #0f172a; }
+
+.inv-border-light { border-color: #e2e8f0; }
+.inv-border-slate { border-color: #334155; }
+.inv-border-dark { border-color: #1f2937; }

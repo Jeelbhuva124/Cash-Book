@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { formatCurrency } from '../../utils/currencyFormatter';
 import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -264,9 +265,9 @@ export default function Home() {
         {/* Card 1: Total Balance */}
         <div className="bg-white dark:bg-card border border-border/80 rounded-2xl p-5 shadow-sm flex items-center justify-between">
           <div className="space-y-1">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total Balance</p>
-            <p className="text-2xl font-bold text-foreground">
-              ₹{totalBalance.toLocaleString()}
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider truncate">Total Balance</p>
+            <p className="text-xl 2xl:text-2xl font-bold text-foreground whitespace-nowrap tracking-tight">
+              {formatCurrency(totalBalance)}
             </p>
           </div>
           <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 flex items-center justify-center">
@@ -277,9 +278,9 @@ export default function Home() {
         {/* Card 2: Total Cash In */}
         <div className="bg-white dark:bg-card border border-border/80 rounded-2xl p-5 shadow-sm flex items-center justify-between">
           <div className="space-y-1">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total Cash In</p>
-            <p className="text-2xl font-bold text-foreground">
-              ₹{totalCashIn.toLocaleString()}
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider truncate">Total Cash In</p>
+            <p className="text-xl 2xl:text-2xl font-bold text-foreground whitespace-nowrap tracking-tight">
+              {formatCurrency(totalCashIn)}
             </p>
           </div>
           <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
@@ -290,9 +291,9 @@ export default function Home() {
         {/* Card 3: Total Cash Out */}
         <div className="bg-white dark:bg-card border border-border/80 rounded-2xl p-5 shadow-sm flex items-center justify-between">
           <div className="space-y-1">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total Cash Out</p>
-            <p className="text-2xl font-bold text-expense">
-              ₹{totalCashOut.toLocaleString()}
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider truncate">Total Cash Out</p>
+            <p className="text-xl 2xl:text-2xl font-bold text-expense whitespace-nowrap tracking-tight">
+              {formatCurrency(totalCashOut)}
             </p>
           </div>
           <div className="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/30 text-expense flex items-center justify-center">
@@ -303,8 +304,8 @@ export default function Home() {
         {/* Card 4: Cashbooks */}
         <div className="bg-white dark:bg-card border border-border/80 rounded-2xl p-5 shadow-sm flex items-center justify-between">
           <div className="space-y-1">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Cashbooks</p>
-            <p className="text-2xl font-bold text-foreground">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider truncate">Cashbooks</p>
+            <p className="text-xl 2xl:text-2xl font-bold text-foreground whitespace-nowrap tracking-tight">
               {cashbooksCount}
             </p>
           </div>
@@ -327,7 +328,7 @@ export default function Home() {
           <div className="bg-[#f8fafc] dark:bg-[#15181f] border border-border/40 rounded-xl p-4">
             <p className="text-xs text-muted-foreground font-semibold">Cash In Today</p>
             <p className="text-lg font-bold text-foreground mt-1">
-              ₹{cashInToday.toLocaleString()}
+              {formatCurrency(cashInToday)}
             </p>
           </div>
 
@@ -335,7 +336,7 @@ export default function Home() {
           <div className="bg-[#f8fafc] dark:bg-[#15181f] border border-border/40 rounded-xl p-4">
             <p className="text-xs text-muted-foreground font-semibold">Cash Out Today</p>
             <p className="text-lg font-bold text-expense mt-1">
-              ₹{cashOutToday.toLocaleString()}
+              {formatCurrency(cashOutToday)}
             </p>
           </div>
 
@@ -370,7 +371,7 @@ export default function Home() {
                   <div key={catName} className="space-y-1.5">
                     <div className="flex justify-between text-xs font-semibold">
                       <span>{catName}</span>
-                      <span className="text-muted-foreground">₹{amt.toLocaleString()} ({pct}%)</span>
+                      <span className="text-muted-foreground">{formatCurrency(amt)} ({pct}%)</span>
                     </div>
                     <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
                       <div 
@@ -470,7 +471,7 @@ export default function Home() {
                       </div>
                     </td>
                     <td className={`py-3 text-right font-bold ${tx.type === 'income' ? 'text-emerald-600' : 'text-expense'}`}>
-                      {tx.type === 'income' ? '+' : '-'}₹{tx.amount.toLocaleString()}
+                      {tx.type  === 'income' ? '+' : ''}{formatCurrency(tx.type  === 'income' ? tx.amount : -tx.amount)}
                     </td>
                     <td className="py-3 text-center">
                       <button
@@ -494,7 +495,7 @@ export default function Home() {
         className="fixed bottom-6 right-6 w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-md flex items-center justify-center hover:scale-105 transition-all z-40 active:scale-95"
         title="Quick Transaction Entry"
       >
-        <Zap className="w-6 h-6 fill-current" />
+        <Plus className="w-6 h-6" />
       </button>
 
       {/* ── QUICK TRANSACTION ENTRY MODAL ── */}

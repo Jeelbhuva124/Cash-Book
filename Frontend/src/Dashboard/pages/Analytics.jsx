@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { formatCurrency } from '../../utils/currencyFormatter';
 import { PieChart, TrendingUp, TrendingDown, Activity, Wallet } from 'lucide-react';
 
 export default function Analytics() {
@@ -51,7 +52,7 @@ export default function Analytics() {
                   <div key={cat} className="space-y-1">
                     <div className="flex justify-between text-sm font-semibold">
                       <span>{cat}</span>
-                      <span>₹{amount.toLocaleString()} ({percentage}%)</span>
+                      <span>{formatCurrency(amount)} ({percentage}%)</span>
                     </div>
                     <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
                       <div 
@@ -78,7 +79,7 @@ export default function Analytics() {
                    <p className="font-semibold text-sm">{tx.title}</p>
                    <p className="text-[10px] text-muted-foreground font-bold uppercase">{tx.category}</p>
                  </div>
-                 <span className="font-black text-expense">-₹{tx.amount.toLocaleString()}</span>
+                 <span className="font-black text-expense">{formatCurrency(-tx.amount)}</span>
                </div>
              ))}
              {expenses.length === 0 && <p className="text-muted-foreground text-sm text-center py-8">No expenses recorded yet.</p>}

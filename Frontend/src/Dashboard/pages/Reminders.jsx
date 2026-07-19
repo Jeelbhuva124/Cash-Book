@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { formatCurrency } from '../../utils/currencyFormatter';
 import { Bell, Plus, Calendar, Clock, CheckCircle, Trash2 } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -93,7 +94,7 @@ export default function Reminders() {
                   <h3 className={`font-bold text-lg ${reminder.completed ? 'line-through text-muted-foreground' : ''}`}>{reminder.title}</h3>
                   <div className="flex items-center gap-3 text-xs font-semibold text-muted-foreground mt-1">
                     <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" /> {reminder.date}</span>
-                    {reminder.amount > 0 && <span className="flex items-center gap-1 text-expense font-bold">₹{reminder.amount.toLocaleString()}</span>}
+                    {reminder.amount > 0 && <span className="flex items-center gap-1 text-expense font-bold">{formatCurrency(reminder.amount)}</span>}
                   </div>
                 </div>
               </div>

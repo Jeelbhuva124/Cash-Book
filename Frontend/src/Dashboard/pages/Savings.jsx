@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { formatCurrency } from '../../utils/currencyFormatter';
 import { PiggyBank, Plus, Target, CheckCircle2 } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -74,7 +75,7 @@ export default function Savings() {
               <div className="flex items-start justify-between">
                 <div>
                   <h3 className="font-bold text-lg">{goal.title}</h3>
-                  <p className="text-xs font-semibold text-primary mt-1">Target: ₹{goal.target.toLocaleString()}</p>
+                  <p className="text-xs font-semibold text-primary mt-1">Target: {formatCurrency(goal.target)}</p>
                 </div>
                 <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
                   <Target className="w-5 h-5" />
@@ -83,7 +84,7 @@ export default function Savings() {
               
               <div className="space-y-2 pt-4">
                 <div className="flex justify-between text-sm font-bold text-muted-foreground">
-                  <span>Saved: ₹{goal.current.toLocaleString()}</span>
+                  <span>Saved: {formatCurrency(goal.current)}</span>
                   <span>{percentage}%</span>
                 </div>
                 <div className="w-full h-3 bg-muted rounded-full overflow-hidden">

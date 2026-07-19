@@ -4,6 +4,7 @@ import { BookOpen, Shield, CheckCircle, Mail, Lock, Eye, EyeOff, ArrowRight, Arr
 import { motion, AnimatePresence } from "framer-motion";
 import { userAPI } from "../api/api.jsx";
 import { useToast } from "../context/ToastContext";
+import { recordNewSession } from "../utils/sessionManager";
 import { signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "../config/firebase";
 
@@ -98,9 +99,9 @@ export default function SignIn() {
           const username = response.user?.username || "User";
           addToast(`Welcome back, ${username}! 👋`, "success");
           localStorage.setItem("user", JSON.stringify(response.user));
-          if (response.user?.firebaseToken) {
-            localStorage.setItem("token", response.user.firebaseToken);
-          }
+          const token = response.token || response.user?.token || response.user?.firebaseToken || "auth-session";
+          localStorage.setItem("token", token);
+          await recordNewSession();
           navigate("/dashboard");
         }
       } else {
@@ -133,9 +134,9 @@ export default function SignIn() {
         const username = response.user?.username || "User";
         addToast(`Welcome back, ${username}! 👋`, "success");
         localStorage.setItem("user", JSON.stringify(response.user));
-        if (response.user?.firebaseToken) {
-          localStorage.setItem("token", response.user.firebaseToken);
-        }
+        const token = response.token || response.user?.token || response.user?.firebaseToken || "auth-session";
+        localStorage.setItem("token", token);
+        await recordNewSession();
         navigate("/dashboard");
       } else {
         addToast(response.message || "Invalid verification code.", "error");
@@ -185,6 +186,7 @@ export default function SignIn() {
         addToast(`Welcome, ${username}! 🎉`, "success");
         localStorage.setItem("user", JSON.stringify(response.user));
         localStorage.setItem("token", response.user.firebaseToken);
+        await recordNewSession();
         navigate("/dashboard");
       } else {
         addToast(response.message || "Google Authentication failed.", "error");

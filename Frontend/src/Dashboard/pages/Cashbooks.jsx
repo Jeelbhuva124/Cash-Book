@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { formatCurrency } from '../../utils/currencyFormatter';
 import { useNavigate } from 'react-router-dom';
 import { Book, Plus, X, Trash2, LayoutGrid, List, Edit, Eye, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -212,17 +213,17 @@ export default function Cashbooks() {
                       </td>
                       <td className="px-6 py-4">
                         <span className="inline-flex px-4 py-1.5 rounded-full border border-border/80 text-[13px] font-semibold text-foreground tracking-wide">
-                          ₹{totalCredit.toLocaleString()}
+                          {formatCurrency(totalCredit)}
                         </span>
                       </td>
                       <td className="px-6 py-4">
                         <span className="inline-flex px-4 py-1.5 rounded-full border border-[#ef4444]/60 text-[#ef4444] text-[13px] font-semibold tracking-wide">
-                          ₹{totalDebit.toLocaleString()}
+                          {formatCurrency(totalDebit)}
                         </span>
                       </td>
                       <td className="px-6 py-4">
                         <span className="font-bold text-[15px] text-[#10b981] tracking-wide">
-                          ₹{currentBalance.toLocaleString()}
+                          {formatCurrency(currentBalance)}
                         </span>
                       </td>
                       <td className="px-6 py-4">

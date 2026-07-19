@@ -36,6 +36,8 @@ import Cashbooks from './Dashboard/pages/Cashbooks';
 import Profile from './Dashboard/pages/Profile';
 
 import { SettingsPage } from './Dashboard/pages/SettingsPage';
+import { Preferences } from './Dashboard/pages/Preferences';
+import { ActiveSessions } from './Dashboard/pages/ActiveSessions';
 import { DashboardLayout } from './Dashboard/components/DashboardLayout';
 
 // ─── Auth Pages ───────────────────────────────────────────
@@ -77,6 +79,8 @@ function App() {
                 <Route path="savings" element={<Savings />} />
                 <Route path="reminders" element={<Reminders />} />
                 <Route path="settings" element={<SettingsPage />} />
+                <Route path="settings/preferences" element={<Preferences />} />
+                <Route path="settings/sessions" element={<ActiveSessions />} />
               </Route>
 
               {/* ── Public Pages (with Header & Footer) ── */}
