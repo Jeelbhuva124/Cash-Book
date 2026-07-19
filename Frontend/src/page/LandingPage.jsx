@@ -108,7 +108,7 @@ export function LandingPage() {
       role: "Retail Shop Owner, Delhi",
       avatar: "RS",
       rating: 5,
-      text: "Daily Chalan has completely replaced my old notebook. Tracking customer credit and daily shop expenses is now a breeze. Extremely simple and clean UI."
+      text: "Cash Book has completely replaced my old notebook. Tracking customer credit and daily shop expenses is now a breeze. Extremely simple and clean UI."
     },
     {
       name: "Priya Patel",
@@ -151,17 +151,17 @@ export function LandingPage() {
           </div>
 
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-foreground leading-tight">
-            Track and manage your finances with <span className="text-primary font-black">Daily Chalan</span>.
+            Track and manage your finances with <span className="text-primary font-black">Cash Book</span>.
           </h1>
 
           <p className="text-base md:text-lg text-muted-foreground leading-relaxed">
-            Eliminate paperwork and digital clutter. Daily Chalan offers a simplified digital ledger book to record, analyze, and coordinate your personal and business cash flows in real-time.
+            Eliminate paperwork and digital clutter. Cash Book offers a simplified digital ledger book to record, analyze, and coordinate your personal and business cash flows in real-time.
           </p>
 
           <div className="flex flex-wrap gap-4 pt-2">
             <Link
               to="/signup"
-              className="px-8 py-3.5 bg-primary text-primary-foreground font-semibold rounded-xl hover:opacity-95 shadow-lg shadow-primary/20 transition-all text-sm md:text-base flex items-center gap-2"
+              className="px-8 py-3.5 bg-primary text-primary-foreground font-semibold rounded-xl hover:opacity-95 shadow-sm transition-all text-sm md:text-base flex items-center gap-2"
             >
               Get Started
               <ArrowRight className="w-4 h-4" />
@@ -177,8 +177,7 @@ export function LandingPage() {
 
         {/* Right Dashboard Mockup */}
         <div className="relative">
-          <div className="absolute inset-0 bg-primary/5 rounded-[32px] transform rotate-3 blur-sm" />
-          <div className="relative bg-card border border-border rounded-[24px] shadow-2xl overflow-hidden p-5 md:p-6">
+          <div className="relative bg-card border border-border rounded-2xl shadow-sm overflow-hidden p-5 md:p-6">
             
             {/* Mockup Header */}
             <div className="flex items-center justify-between pb-6 border-b border-border">
@@ -251,8 +250,8 @@ export function LandingPage() {
       {/* ── ABOUT US STORY ── */}
       <section className="py-20 px-4 md:px-8 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
         {/* Left Side Illustration */}
-        <div className="bg-muted rounded-3xl p-8 border border-border/40 relative">
-          <div className="bg-card p-5 rounded-2xl shadow-lg border border-border max-w-sm mx-auto">
+        <div className="bg-card rounded-2xl p-8 border border-border relative">
+          <div className="bg-background p-5 rounded-xl border border-border max-w-sm mx-auto">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
                 <Check className="w-5 h-5" />
@@ -275,7 +274,7 @@ export function LandingPage() {
             About Us – Our Story
           </h2>
           <p className="text-muted-foreground leading-relaxed">
-            Daily Chalan started with a simple belief: tracking where your money goes shouldn't require complex spreadsheet skills or a finance degree. We designed this platform to offerKirana stores, freelancers, families, and growing businesses a frictionless way to manage ledger logs digital accounts.
+            Cash Book started with a simple belief: tracking where your money goes shouldn't require complex spreadsheet skills or a finance degree. We designed this platform to offerKirana stores, freelancers, families, and growing businesses a frictionless way to manage ledger logs digital accounts.
           </p>
 
           <div className="space-y-3 pt-2">
@@ -304,25 +303,24 @@ export function LandingPage() {
 
       {/* ── MULTIPLATFORM CARD ── */}
       <section className="py-10 px-4 md:px-8 max-w-5xl mx-auto">
-        <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-3xl p-8 md:p-12 shadow-2xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-[80px]" />
+        <div className="bg-card border border-border rounded-2xl p-8 md:p-12 shadow-sm relative overflow-hidden">
           <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
             
             {/* Left side download options */}
             <div className="space-y-6">
               <span className="text-xs font-bold text-primary tracking-widest uppercase">Multiplatform</span>
-              <h2 className="text-3xl font-extrabold tracking-tight">
+              <h2 className="text-3xl font-extrabold tracking-tight text-foreground">
                 Manage Money Anytime, Anywhere.
               </h2>
-              <p className="text-white/70 text-sm leading-relaxed">
+              <p className="text-muted-foreground text-sm leading-relaxed">
                 Log entries via mobile apps on the go, or use the desktop web version to manage larger books at your desk. Everything stays synced instantly.
               </p>
               <div className="flex gap-4">
-                <button className="px-6 py-3 bg-card text-foreground font-semibold rounded-xl text-xs flex items-center gap-2 hover:bg-muted transition-colors">
+                <button className="px-6 py-3 bg-muted text-foreground border border-border font-semibold rounded-xl text-xs flex items-center gap-2 hover:bg-secondary transition-colors">
                   <Download className="w-4 h-4 text-primary" />
                   Google Play Store
                 </button>
-                <Link to="/login" className="px-6 py-3 bg-primary text-white font-semibold rounded-xl text-xs flex items-center gap-2 hover:opacity-95 transition-opacity">
+                <Link to="/login" className="px-6 py-3 bg-primary text-primary-foreground font-semibold rounded-xl text-xs flex items-center gap-2 hover:opacity-95 transition-opacity">
                   <Globe className="w-4 h-4" />
                   Web Login
                 </Link>
@@ -337,12 +335,12 @@ export function LandingPage() {
                 { title: "Bank-Grade Encryption", desc: "Data protection is our priority. Financial sheets stay private, encrypted, and isolated." }
               ].map((item, i) => (
                 <div key={i} className="flex gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-card/10 flex items-center justify-center flex-shrink-0">
+                  <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
                     <Check className="w-4 h-4 text-primary" />
                   </div>
                   <div>
-                    <h4 className="text-sm font-bold text-white">{item.title}</h4>
-                    <p className="text-xs text-white/60 leading-relaxed mt-0.5">{item.desc}</p>
+                    <h4 className="text-sm font-bold text-foreground">{item.title}</h4>
+                    <p className="text-xs text-muted-foreground leading-relaxed mt-0.5">{item.desc}</p>
                   </div>
                 </div>
               ))}

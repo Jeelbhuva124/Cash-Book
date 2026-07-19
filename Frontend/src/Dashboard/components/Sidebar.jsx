@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard, BookOpen, Tag, Layers, CreditCard,
-  Users, BarChart3, User, Settings, LogOut, ChevronDown, ChevronRight
+  Users, BarChart3, User, Settings, LogOut, ChevronDown, ChevronRight, Book
 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ThemeToggle } from '../../components/ThemeToggle';
@@ -15,11 +15,10 @@ const NavItem = ({ icon: Icon, label, path, badge, onClick }) => {
     <Link
       to={path}
       onClick={onClick}
-      className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors w-full ${
-        isActive
+      className={`flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors w-full ${isActive
           ? 'bg-primary/10 text-primary font-semibold'
           : 'text-muted-foreground hover:bg-muted/40 hover:text-foreground'
-      }`}
+        }`}
     >
       <Icon className="w-4 h-4 flex-shrink-0" />
       <span className="flex-1">{label}</span>
@@ -55,8 +54,8 @@ const SidebarContent = ({ onClose }) => {
       {/* Header / Logo */}
       <div className="flex items-center justify-between px-5 py-4 flex-shrink-0">
         <Link to="/" className="flex items-center gap-2 cursor-pointer hover:bg-muted/30 px-2 py-1.5 rounded-xl transition-colors">
-          <img src="/logo.png" alt="Daily Chalan Logo" className="w-8 h-8 object-contain" />
-          <span className="text-base font-bold text-foreground">Daily Chalan</span>
+          <img src="/logo.png" alt="Cash Book Logo" className="w-8 h-8 object-contain" />
+          <span className="text-base font-bold text-foreground">Cash Book</span>
         </Link>
         <ThemeToggle />
       </div>
@@ -66,11 +65,12 @@ const SidebarContent = ({ onClose }) => {
       {/* Navigation Items */}
       <div className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
         <NavItem icon={LayoutDashboard} label="Dashboard" path="/dashboard" onClick={onClose} />
-        <NavItem icon={BookOpen} label="All Daily Chalans" path="/dashboard/chalans" onClick={onClose} />
+        <NavItem icon={Book} label="Cashbooks" path="/dashboard/cashbooks" onClick={onClose} />
+        <NavItem icon={BookOpen} label="All Cash Books" path="/dashboard/chalans" onClick={onClose} />
         <NavItem icon={Tag} label="Category" path="/dashboard/categories" onClick={onClose} />
         <NavItem icon={Layers} label="Subcategory" path="/dashboard/subcategories" onClick={onClose} />
         <NavItem icon={CreditCard} label="Payment Mode" path="/dashboard/payment-modes" onClick={onClose} />
-        <NavItem icon={Users} label="Daily Chalan Invitations" path="/dashboard/invitations" badge="2" onClick={onClose} />
+        <NavItem icon={Users} label="Cash Book Invitations" path="/dashboard/invitations" badge="2" onClick={onClose} />
         <NavItem icon={BarChart3} label="Reports" path="/dashboard/reports" onClick={onClose} />
         <NavItem icon={User} label="Profile" path="/dashboard/profile" onClick={onClose} />
 
@@ -100,11 +100,10 @@ const SidebarContent = ({ onClose }) => {
                 <Link
                   to="/dashboard/settings"
                   onClick={onClose}
-                  className={`block px-4 py-2 rounded-lg text-xs font-semibold ${
-                    location.pathname === '/dashboard/settings'
+                  className={`block px-4 py-2 rounded-lg text-xs font-semibold ${location.pathname === '/dashboard/settings'
                       ? 'text-primary font-bold bg-primary/5'
                       : 'text-muted-foreground hover:text-foreground hover:bg-muted/20'
-                  }`}
+                    }`}
                 >
                   Account Settings
                 </Link>
@@ -142,7 +141,7 @@ const SidebarContent = ({ onClose }) => {
   );
 };
 
-export const AiSidebar = ({ mobileOpen, onClose }) => {
+export const Sidebar = ({ mobileOpen, onClose }) => {
   return (
     <>
       {/* Desktop Sidebar */}

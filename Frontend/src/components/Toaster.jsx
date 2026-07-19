@@ -40,7 +40,7 @@ function ToastItem({ toast, onRemove }) {
       animate={{ opacity: 1, x: 0, scale: 1 }}
       exit={{ opacity: 0, x: 60, scale: 0.85, transition: { duration: 0.2 } }}
       className="relative flex items-start gap-3 w-80 max-w-full
-        bg-card border border-border rounded-2xl shadow-2xl overflow-hidden p-4"
+        bg-card border border-border rounded-xl shadow-md overflow-hidden p-4"
     >
       <span className={`absolute left-0 inset-y-0 w-1 rounded-l-2xl ${cfg.bar}`} />
       <span className={`mt-0.5 p-1.5 rounded-xl shrink-0 ${cfg.bg}`}>

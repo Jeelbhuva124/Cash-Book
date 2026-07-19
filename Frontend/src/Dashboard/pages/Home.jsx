@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Wallet, ArrowUp, ArrowDown, TrendingUp, Info, 
   Plus, X, Zap, CheckCircle2, Trash2, Calendar
 } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
+import Dropdown from '../components/Dropdown';
 
 // Standard categories matching Landing Page trackers
 const DEFAULT_CATEGORIES = [
@@ -28,6 +30,7 @@ const DEFAULT_PAYMENT_MODES = [
 
 export default function Home() {
   const { addToast } = useToast();
+  const location = useLocation();
   const [showAddForm, setShowAddForm] = useState(false);
   const [transactions, setTransactions] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -56,10 +59,21 @@ export default function Home() {
   const activeChalanKey = `cashbook_active_id_${user?.email_id || 'guest'}`;
 
   useEffect(() => {
-    // 1. Load active chalan ID
-    const savedActiveId = localStorage.getItem(activeChalanKey) || '1';
-    setActiveChalanId(savedActiveId);
-    setSelectedChalanId(savedActiveId);
+    // 1. Determine active chalan ID (from router state, then fallback to placeholder '')
+    const stateId = location.state?.selectedCashbookId;
+    let initialId = '';
+    
+    if (stateId) {
+      initialId = stateId;
+      localStorage.setItem(activeChalanKey, stateId); // Keep local storage in sync for other components if needed
+    } else {
+      // If we didn't arrive here by clicking a cashbook, FORCE the default placeholder
+      // by clearing it.
+      localStorage.removeItem(activeChalanKey);
+    }
+    
+    setActiveChalanId(initialId);
+    setSelectedChalanId(initialId);
 
     // 2. Load categories
     const savedCats = localStorage.getItem(categoriesStorageKey);
@@ -139,6 +153,13 @@ export default function Home() {
 
     const updated = [newTx, ...transactions];
     saveTransactions(updated);
+    
+    // Automatically switch dashboard view to the cashbook where entry was added
+    if (selectedChalanId !== activeChalanId) {
+      setActiveChalanId(selectedChalanId);
+      localStorage.setItem(activeChalanKey, selectedChalanId);
+    }
+    
     addToast("Transaction recorded successfully!", "success");
 
     // Reset Form
@@ -157,9 +178,11 @@ export default function Home() {
   };
 
   // ── Metrics calculations scoped to active chalan ──
-  const activeTxs = transactions.filter(tx => 
-    tx.chalanId === activeChalanId || (activeChalanId === '1' && !tx.chalanId)
-  );
+  const activeTxs = activeChalanId === ''
+    ? transactions
+    : transactions.filter(tx => 
+        tx.chalanId === activeChalanId || (activeChalanId === '1' && !tx.chalanId)
+      );
 
   const totalCashIn = activeTxs
     .filter(t => t.type === 'income')
@@ -171,7 +194,7 @@ export default function Home() {
 
   const totalBalance = totalCashIn - totalCashOut;
 
-  // Active daily chalans count (fallback to default seed of 4)
+  // Active cash books count (fallback to default seed of 4)
   const cashbooksCount = chalans.length || 4;
 
   // Today metrics
@@ -215,9 +238,21 @@ export default function Home() {
             <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-[#1e293b] dark:text-foreground">
               Dashboard
             </h1>
-            <span className="text-xs bg-primary/10 text-primary px-2.5 py-1 rounded-full font-bold uppercase tracking-wider">
-              {activeChalanName}
-            </span>
+            <Dropdown
+              value={activeChalanId}
+              onChange={(e) => {
+                setActiveChalanId(e.target.value);
+                localStorage.setItem(activeChalanKey, e.target.value);
+              }}
+              className="w-48"
+              selectClassName="text-[13px] bg-primary/5 text-primary border-primary/20 font-semibold"
+            >
+              <option value="" disabled>Select Your Cashbook</option>
+              <option value="1">General Cashbook</option>
+              {chalans.filter(c => c.id !== '1').map(ch => (
+                <option key={ch.id} value={ch.id}>{ch.name}</option>
+              ))}
+            </Dropdown>
           </div>
           <p className="text-sm text-muted-foreground mt-0.5">Overview of your financial activity</p>
         </div>
@@ -410,7 +445,7 @@ export default function Home() {
                   <th className="pb-3">Title</th>
                   <th className="pb-3">Category</th>
                   <th className="pb-3">Payment Mode</th>
-                  <th className="pb-3">Date</th>
+                  <th className="pb-3">Date & Time</th>
                   <th className="pb-3 text-right">Amount</th>
                   <th className="pb-3 text-center">Action</th>
                 </tr>
@@ -426,7 +461,14 @@ export default function Home() {
                     </td>
                     <td className="py-3 text-muted-foreground text-xs">{tx.category}</td>
                     <td className="py-3 text-muted-foreground text-xs">{tx.paymentMode || 'Cash'}</td>
-                    <td className="py-3 text-muted-foreground text-xs">{tx.date}</td>
+                    <td className="py-3 text-muted-foreground text-xs">
+                      <div className="flex flex-col">
+                        <span>{tx.date}</span>
+                        <span className="opacity-70 text-[10px]">
+                          {new Date(parseInt(tx.id)).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+                    </td>
                     <td className={`py-3 text-right font-bold ${tx.type === 'income' ? 'text-emerald-600' : 'text-expense'}`}>
                       {tx.type === 'income' ? '+' : '-'}₹{tx.amount.toLocaleString()}
                     </td>
@@ -449,7 +491,7 @@ export default function Home() {
       {/* Floating Action Button (FAB) */}
       <button
         onClick={() => setShowAddForm(true)}
-        className="fixed bottom-6 right-6 w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-2xl flex items-center justify-center hover:scale-105 transition-all z-40 active:scale-95"
+        className="fixed bottom-6 right-6 w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-md flex items-center justify-center hover:scale-105 transition-all z-40 active:scale-95"
         title="Quick Transaction Entry"
       >
         <Zap className="w-6 h-6 fill-current" />
@@ -473,7 +515,7 @@ export default function Home() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="relative bg-white dark:bg-card border border-border rounded-3xl shadow-2xl p-6 w-full max-w-[460px] z-10 space-y-6 text-foreground"
+              className="relative bg-white dark:bg-card border border-border rounded-2xl shadow-sm p-6 w-full max-w-[460px] z-10 space-y-6 text-foreground"
             >
               <div className="flex justify-between items-center">
                 <h3 className="font-bold text-lg flex items-center gap-2">
@@ -520,15 +562,16 @@ export default function Home() {
                 {/* Cashbook Selection */}
                 <div className="space-y-1">
                   <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide">Select Cashbook</label>
-                  <select
+                  <Dropdown
                     value={selectedChalanId}
                     onChange={(e) => setSelectedChalanId(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-border bg-white dark:bg-card focus:outline-none focus:border-primary text-sm text-foreground font-medium"
+                    required
                   >
+                    <option value="" disabled>Select Your Cashbook</option>
                     {chalans.map(ch => (
                       <option key={ch.id} value={ch.id}>{ch.name}</option>
                     ))}
-                  </select>
+                  </Dropdown>
                 </div>
 
                 {/* Entry Title */}
@@ -573,27 +616,25 @@ export default function Home() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
                     <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide">Category</label>
-                    <select
+                    <Dropdown
                       value={category}
                       onChange={(e) => setCategory(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl border border-border bg-white dark:bg-card focus:outline-none focus:border-primary text-xs font-semibold text-foreground"
                     >
                       {categories.map(c => (
                         <option key={c.id} value={c.name}>{c.name}</option>
                       ))}
-                    </select>
+                    </Dropdown>
                   </div>
                   <div className="space-y-1">
                     <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide">Payment Mode</label>
-                    <select
+                    <Dropdown
                       value={paymentMode}
                       onChange={(e) => setPaymentMode(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl border border-border bg-white dark:bg-card focus:outline-none focus:border-primary text-xs font-semibold text-foreground"
                     >
                       {paymentModes.map(pm => (
                         <option key={pm.id} value={pm.name}>{pm.name}</option>
                       ))}
-                    </select>
+                    </Dropdown>
                   </div>
                 </div>
 

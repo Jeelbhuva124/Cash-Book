@@ -64,22 +64,20 @@ export default function SignUp() {
   return (
     <div className="flex w-full min-h-screen bg-background">
 
-      {/* ── LEFT PANEL: Navy Branding Side (Daily Chalan Split Layout) ── */}
-      <div className="hidden lg:flex w-1/2 bg-brand text-white flex-col justify-between p-16 relative overflow-hidden">
-        {/* Subtle decorative glow */}
-        <div className="absolute -bottom-32 -right-32 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[100px]" />
+      {/* ── LEFT PANEL: Navy Branding Side (Cash Book Split Layout) ── */}
+      <div className="hidden lg:flex w-1/2 bg-muted flex-col justify-between p-16 relative overflow-hidden border-r border-border">
 
         {/* Top Header */}
         <div className="relative z-10">
           <Link to="/" className="flex items-center gap-3 w-fit">
             <img src="/logo.png" alt="Logo" className="w-14 h-14 object-contain" />
             <div>
-              <p className="text-lg font-bold tracking-tight text-white">Daily Chalan</p>
-              <p className="text-[10px] text-white/50 -mt-0.5">Smart Finance Tracker</p>
+              <p className="text-lg font-bold tracking-tight text-foreground">Cash Book</p>
+              <p className="text-[10px] text-muted-foreground -mt-0.5">Smart Finance Tracker</p>
             </div>
           </Link>
 
-          <div className="flex items-center gap-2 mt-8 text-xs font-semibold tracking-wide text-white/60 uppercase border border-white/10 rounded-full px-3 py-1.5 bg-card/5 w-fit">
+          <div className="flex items-center gap-2 mt-8 text-xs font-semibold tracking-wide text-muted-foreground uppercase border border-border rounded-full px-3 py-1.5 bg-card w-fit">
             <Shield className="w-3.5 h-3.5 text-primary" />
             <span>Bank-Grade Encryption</span>
           </div>
@@ -87,12 +85,12 @@ export default function SignUp() {
 
         {/* Mid Heading */}
         <div className="relative z-10 space-y-6 my-auto">
-          <h1 className="text-4xl xl:text-5xl font-black leading-tight text-white">
-            Start tracking and<br />
-            saving money today.
+          <h1 className="text-4xl xl:text-5xl font-black leading-tight text-foreground">
+            Start tracking<br />
+            your finances today.
           </h1>
-          <p className="text-white/60 text-sm leading-relaxed max-w-md">
-            Create your account to start managing your daily kitchen expenses, business cash flows, family budgets, and outstanding credits in one simple app.
+          <p className="text-muted-foreground text-sm leading-relaxed max-w-md">
+            Join thousands of users tracking daily kitchen expenses, business cash flows, family budgets, and outstanding credits in one simple app.
           </p>
 
           <div className="space-y-3 pt-4">
@@ -101,7 +99,7 @@ export default function SignUp() {
               "Interactive credit/debit logs",
               "Clean PDF & Excel report downloads"
             ].map((feature, i) => (
-              <div key={i} className="flex items-center gap-3 text-sm text-white/80">
+              <div key={i} className="flex items-center gap-3 text-sm text-foreground">
                 <CheckCircle className="w-4 h-4 text-primary flex-shrink-0" />
                 <span>{feature}</span>
               </div>
@@ -110,9 +108,9 @@ export default function SignUp() {
         </div>
 
         {/* Bottom Social Proof */}
-        <div className="relative z-10 border-t border-white/10 pt-8 mt-12">
-          <div className="text-xs text-white/40 leading-tight">
-            © 2026 Daily Chalan Ledger Systems. All rights reserved.
+        <div className="relative z-10 border-t border-border pt-8 mt-12">
+          <div className="text-xs text-muted-foreground leading-tight">
+            © 2026 Cash Book Ledger Systems. All rights reserved.
           </div>
         </div>
       </div>
@@ -124,7 +122,7 @@ export default function SignUp() {
           {/* Mobile Header Logo */}
           <div className="lg:hidden flex items-center gap-2.5 mb-8">
             <img src="/logo.png" alt="Logo" className="w-12 h-12 object-contain" />
-            <span className="text-xl font-bold text-foreground">Daily Chalan</span>
+            <span className="text-xl font-bold text-foreground">Cash Book</span>
           </div>
 
           {/* Form Headers */}
@@ -238,7 +236,7 @@ export default function SignUp() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full flex items-center justify-center gap-2 py-4 rounded-xl text-primary-foreground bg-primary hover:opacity-95 transition-all font-semibold text-sm shadow-lg shadow-primary/20 disabled:opacity-70 disabled:cursor-not-allowed hover:scale-[1.01] active:scale-[0.99] mt-2"
+              className="w-full flex items-center justify-center gap-2 py-4 rounded-xl text-primary-foreground bg-primary hover:opacity-95 transition-all font-semibold text-sm shadow-sm disabled:opacity-70 disabled:cursor-not-allowed hover:scale-[1.01] active:scale-[0.99] mt-2"
             >
               {isLoading ? (
                 <div className="h-5 w-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />

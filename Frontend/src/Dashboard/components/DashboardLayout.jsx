@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, Navigate, Link, useNavigate } from 'react-router-dom';
-import { AiSidebar } from './AiSidebar';
+import { Sidebar } from './Sidebar';
 import { 
   Menu, Search, Play, Moon, Sun, Maximize2, Minimize2, 
   Bell, User, ChevronDown, LogOut 
 } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 
-export const AiLayout = () => {
+export const DashboardLayout = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -59,7 +59,7 @@ export const AiLayout = () => {
   return (
     <div className="flex h-screen bg-background overflow-hidden text-foreground">
       {/* Sidebar Navigation */}
-      <AiSidebar mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} />
+      <Sidebar mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} />
 
       <div className="flex-grow flex flex-col min-w-0 overflow-hidden relative bg-[#f4f6fc] dark:bg-background">
         
@@ -84,7 +84,7 @@ export const AiLayout = () => {
               >
                 <Menu className="w-4 h-4" />
               </button>
-              <span className="font-semibold text-lg text-foreground tracking-tight select-none">Daily Chalan</span>
+              <span className="font-semibold text-lg text-foreground tracking-tight select-none">Cash Book</span>
             </div>
 
             {/* Search Input */}
@@ -151,7 +151,7 @@ export const AiLayout = () => {
               </button>
 
               {userDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-52 bg-card border border-border rounded-2xl shadow-xl py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-100">
+                <div className="absolute right-0 mt-2 w-52 bg-card border border-border rounded-2xl shadow-sm py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-100">
                   <div className="px-4 py-2 border-b border-border/60">
                     <p className="text-xs text-muted-foreground font-bold uppercase">Account</p>
                     <p className="text-sm font-semibold text-foreground truncate mt-0.5">{username}</p>

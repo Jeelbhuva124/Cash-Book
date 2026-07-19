@@ -117,7 +117,7 @@ export default function Reminders() {
         {showModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowModal(false)} className="absolute inset-0 bg-foreground/20 backdrop-blur-sm" />
-            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="relative bg-card border border-border rounded-3xl shadow-2xl p-6 md:p-8 w-full max-w-[400px] z-10 space-y-6">
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="relative bg-card border border-border rounded-2xl shadow-sm p-6 md:p-8 w-full max-w-[400px] z-10 space-y-6">
               <h3 className="font-extrabold text-xl flex items-center gap-2">Add Reminder</h3>
               <form onSubmit={handleAddReminder} className="space-y-4">
                 <div className="space-y-1">

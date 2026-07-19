@@ -206,4 +206,57 @@ const sendContactMessageEmail = async (name, senderEmail, message) => {
     }
 };
 
-export default { sendOtpEmail, sendContactMessageEmail };
+const sendInviteEmail = async (email, inviteeName, inviterName, cashbookName, permissions) => {
+    const hasSmtpConfig = process.env.SMTP_USER && process.env.SMTP_PASS;
+
+    if (!hasSmtpConfig) {
+        console.log(`\n==========================================`);
+        console.log(`[DEVELOPMENT] SMTP not configured. Invitation sent to ${email} for Cashbook: ${cashbookName}`);
+        console.log(`==========================================\n`);
+        return true;
+    }
+
+    try {
+        const smtpHost = process.env.SMTP_HOST || 'smtp.gmail.com';
+        const smtpPass = process.env.SMTP_PASS ? process.env.SMTP_PASS.replace(/\s+/g, '') : '';
+
+        const transporterConfig = {
+            host: smtpHost,
+            port: parseInt(process.env.SMTP_PORT) || 587,
+            secure: process.env.SMTP_SECURE === 'true' || parseInt(process.env.SMTP_PORT) === 465,
+            auth: {
+                user: process.env.SMTP_USER,
+                pass: smtpPass
+            },
+            tls: { rejectUnauthorized: false }
+        };
+
+        const transporter = nodemailer.createTransport(transporterConfig);
+
+        const mailOptions = {
+            from: `"Cash Book Invitations" <${process.env.SMTP_USER}>`,
+            to: email,
+            subject: `You have been invited to join a Cash Book`,
+            html: `
+                <div style="font-family: Arial, sans-serif; max-w-600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+                    <h2 style="color: #2b3674;">Cash Book Invitation</h2>
+                    <p>Hello ${inviteeName || ''},</p>
+                    <p><strong>${inviterName || 'A user'}</strong> has invited you to collaborate on the Cash Book: <strong>${cashbookName}</strong>.</p>
+                    <p>You have been assigned <strong>${permissions}</strong> access.</p>
+                    <br/>
+                    <a href="http://localhost:5173/dashboard/invitations" style="background-color: #8186c6; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Accept Invitation</a>
+                    <br/><br/>
+                    <p>Thanks,<br/>The Cash Book Team</p>
+                </div>
+            `
+        };
+
+        await transporter.sendMail(mailOptions);
+        console.log(`[SMTP] Invitation email to ${email} sent successfully`);
+        return true;
+    } catch (err) {
+        console.error(`[SMTP] Failed to send invitation email:`, err.message);
+        throw new Error("Failed to send email");
+    }
+};
+export default { sendOtpEmail, sendContactMessageEmail, sendInviteEmail };

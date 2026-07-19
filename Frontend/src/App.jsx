@@ -32,10 +32,11 @@ import Subcategories from './Dashboard/pages/Subcategories';
 import PaymentModes from './Dashboard/pages/PaymentModes';
 import Chalans from './Dashboard/pages/Chalans';
 import Invitations from './Dashboard/pages/Invitations';
+import Cashbooks from './Dashboard/pages/Cashbooks';
 import Profile from './Dashboard/pages/Profile';
 
 import { SettingsPage } from './Dashboard/pages/SettingsPage';
-import { AiLayout } from './Dashboard/components/AiLayout';
+import { DashboardLayout } from './Dashboard/components/DashboardLayout';
 
 // ─── Auth Pages ───────────────────────────────────────────
 import SignIn from './Auth/SignIn';
@@ -56,7 +57,7 @@ function App() {
               <Route path="/signup" element={<SignUp />} />
 
               {/* ── AI Dashboard ── */}
-              <Route path="/dashboard" element={<AiLayout />}>
+              <Route path="/dashboard" element={<DashboardLayout />}>
                 <Route index element={<Landing />} />
                 <Route path="analytics" element={<Analytics />} />
                 <Route path="accounts" element={<Landing />} />
@@ -69,6 +70,7 @@ function App() {
                 <Route path="subcategories" element={<Subcategories />} />
                 <Route path="payment-modes" element={<PaymentModes />} />
                 <Route path="invitations" element={<Invitations />} />
+                <Route path="cashbooks" element={<Cashbooks />} />
                 <Route path="profile" element={<Profile />} />
 
                 <Route path="budgets" element={<Landing />} />
