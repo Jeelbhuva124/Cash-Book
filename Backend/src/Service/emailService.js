@@ -244,7 +244,7 @@ const sendInviteEmail = async (email, inviteeName, inviterName, cashbookName, pe
                     <p><strong>${inviterName || 'A user'}</strong> has invited you to collaborate on the Cash Book: <strong>${cashbookName}</strong>.</p>
                     <p>You have been assigned <strong>${permissions}</strong> access.</p>
                     <br/>
-                    <a href="http://localhost:5173/dashboard/invitations" style="background-color: #8186c6; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Accept Invitation</a>
+                    <a href="http://localhost:5173/dashboard/invitations" style="background-color: #5a75f6; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">Accept Invitation</a>
                     <br/><br/>
                     <p>Thanks,<br/>The Cash Book Team</p>
                 </div>

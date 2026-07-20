@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard, BookOpen, Tag, Layers, CreditCard,
   Users, BarChart3, User, Settings, LogOut, Book,
-  Palette, UserCog, ChevronDown
+  Palette, UserCog, ChevronDown, History
 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
@@ -15,6 +15,7 @@ const SIDEBAR_ITEMS = [
   { label: 'Payment Mode', icon: CreditCard, path: '/dashboard/payment-modes' },
   { label: 'Cash Book Invitations', icon: Users, path: '/dashboard/invitations', badge: '2' },
   { label: 'Reports', icon: BarChart3, path: '/dashboard/reports' },
+  { label: 'History', icon: History, path: '/dashboard/history' },
   { label: 'Profile', icon: User, path: '/dashboard/profile' },
   { 
     label: 'Settings', 
@@ -74,7 +75,7 @@ const NavItem = ({ item, location, onClose, isCollapsed }) => {
     isCollapsed ? 'justify-center px-0' : 'px-2.5 gap-2.5'
   } ${
     isActive
-      ? 'bg-primary/10 text-primary font-semibold'
+      ? 'bg-card text-foreground shadow-sm font-semibold'
       : 'text-muted-foreground hover:bg-sidebar-hover hover:text-foreground'
   }`;
 
@@ -104,7 +105,7 @@ const NavItem = ({ item, location, onClose, isCollapsed }) => {
                   onClick={onClose}
                   className={`flex items-center gap-2.5 py-2 pl-9 pr-2.5 rounded-lg text-sm font-medium transition-colors ${
                     location.pathname === sub.path
-                      ? 'bg-primary/10 text-primary font-semibold'
+                      ? 'bg-card text-foreground shadow-sm font-semibold'
                       : 'text-muted-foreground hover:bg-sidebar-hover hover:text-foreground'
                   }`}
                 >

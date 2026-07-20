@@ -105,14 +105,14 @@ export const DashboardLayout = () => {
   }
 
   return (
-    <div className="flex h-screen bg-background overflow-hidden text-foreground">
+    <div className="flex h-screen bg-transparent dark:bg-transparent overflow-hidden text-foreground">
       {/* Sidebar Navigation */}
       <Sidebar mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} isCollapsed={isCollapsed} />
 
-      <div className="flex-grow flex flex-col min-w-0 overflow-hidden relative bg-[#f4f6fc] dark:bg-background">
+      <div className="flex-grow flex flex-col min-w-0 overflow-hidden relative bg-transparent dark:bg-transparent">
         
         {/* Unified Top Navbar Header */}
-        <header className="flex items-center justify-between px-6 py-3 border-b border-border bg-white dark:bg-card sticky top-0 z-20 shadow-sm h-[64px]">
+        <header className="flex items-center justify-between px-6 py-3 bg-transparent dark:bg-card sticky top-0 z-20 h-[64px]">
           
           {/* Left Area: Sidebar toggle and Brand logo */}
           <div className="flex items-center gap-4">

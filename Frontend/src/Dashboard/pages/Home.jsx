@@ -47,6 +47,7 @@ export default function Home() {
   const [amount, setAmount] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedChalanId, setSelectedChalanId] = useState('1');
+  const [clientIp, setClientIp] = useState('Fetching IP...');
 
   // Load user session
   const userRaw = localStorage.getItem("user");
@@ -58,6 +59,13 @@ export default function Home() {
   const modesStorageKey = `cashbook_payment_modes_${user?.email_id || 'guest'}`;
   const chalansStorageKey = `cashbook_chalans_${user?.email_id || 'guest'}`;
   const activeChalanKey = `cashbook_active_id_${user?.email_id || 'guest'}`;
+
+  useEffect(() => {
+    fetch('https://api.ipify.org?format=json')
+      .then(res => res.json())
+      .then(data => setClientIp(data.ip))
+      .catch(() => setClientIp('Unknown IP'));
+  }, []);
 
   useEffect(() => {
     // 1. Determine active chalan ID (from router state, then fallback to placeholder '')
@@ -149,7 +157,8 @@ export default function Home() {
       paymentMode,
       amount: parseFloat(amount),
       date,
-      chalanId: selectedChalanId
+      chalanId: selectedChalanId,
+      location: clientIp
     };
 
     const updated = [newTx, ...transactions];
@@ -230,7 +239,7 @@ export default function Home() {
   const activeChalanName = chalans.find(c => c.id === activeChalanId)?.name || "General Cashbook";
 
   return (
-    <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6 text-foreground bg-[#f4f6fc] dark:bg-background min-h-screen">
+    <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6 text-foreground bg-transparent dark:bg-transparent min-h-screen">
       
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">

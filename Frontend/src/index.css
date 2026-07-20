@@ -4,109 +4,109 @@
 
 /* ── Light-mode palette ── */
 :root {
-  --background: #fcfcfc;
-  --foreground: #131720;
+  --background: #eff4ff;
+  --foreground: #111827;
   --card: #ffffff;
-  --card-foreground: #131720;
+  --card-foreground: #111827;
 
-  /* Green Primary - Finance Theme */
-  --primary: #1a2475;
+  /* Soft Blue Primary */
+  --primary: #5a75f6;
   --primary-foreground: #ffffff;
 
-  --secondary: #f0f0f5;
-  --secondary-foreground: #1a2475;
+  --secondary: #e2e8f0;
+  --secondary-foreground: #1e293b;
 
-  --muted: #eeeff2;
-  --muted-foreground: #676f7e;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
 
-  --accent: #e4e6f1;
-  --accent-foreground: #1a2475;
+  --accent: #dce4ff;
+  --accent-foreground: #1e3a8a;
 
-  --border: #dcdfe4;
-  --input: #dcdfe4;
-  --ring: #1a2475;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #5a75f6;
 
-  --destructive: #ef4343;
+  --destructive: #ef4444;
   --destructive-foreground: #ffffff;
 
   /* Sidebar specific */
-  --sidebar: #f3f4f6;
-  --sidebar-hover: #e2e4e9;
+  --sidebar: transparent;
+  --sidebar-hover: #ffffff;
 
   /* Warning */
   --warning: #f59f0a;
   --warning-foreground: #493003;
 
   /* Send Button */
-  --send-bg: #1a2475;
+  --send-bg: #5a75f6;
   --send-foreground: #ffffff;
 
   /* Brand Specifics */
-  --brand: #101b37;
+  --brand: #111827;
 
   /* Info / Warning BG */
-  --info: #3c83f6;
-  --info-bg: #f0f6ff;
+  --info: #3b82f6;
+  --info-bg: #eff6ff;
   --warning-bg: #fffbeb;
 
   /* Semantic Income / Expense */
-  --income: #059467;
-  --income-bg: #edf3f1;
-  --expense: #e41b54;
-  --expense-bg: #f3edee;
+  --income: #22c55e;
+  --income-bg: #dcfce7;
+  --expense: #ef4444;
+  --expense-bg: #fee2e2;
 
-  --radius: 0.75rem;
+  --radius: 1.5rem;
 }
 
 /* ── Dark-mode palette ── */
 .dark {
-  --background: #0c0e12;
-  --foreground: #ededed;
-  --card: #13161b;
-  --card-foreground: #ededed;
+  --background: #0f172a;
+  --foreground: #f8fafc;
+  --card: #1e293b;
+  --card-foreground: #f8fafc;
 
-  /* Green Primary */
-  --primary: #5c6ad6;
-  --primary-foreground: #0c0e12;
+  /* Soft Blue Primary */
+  --primary: #5a75f6;
+  --primary-foreground: #ffffff;
 
-  --secondary: #1e2229;
-  --secondary-foreground: #e6e6e6;
+  --secondary: #334155;
+  --secondary-foreground: #f8fafc;
 
-  --sidebar: #111318;
-  --sidebar-hover: #1c1f26;
+  --sidebar: transparent;
+  --sidebar-hover: #334155;
 
-  --muted: #1e2229;
-  --muted-foreground: #9fa3ad;
+  --muted: #334155;
+  --muted-foreground: #94a3b8;
 
-  --accent: #1e2229;
-  --accent-foreground: #e6e6e6;
+  --accent: #334155;
+  --accent-foreground: #f8fafc;
 
-  --border: #21242c;
-  --input: #13161b;
-  --ring: #5c6ad6;
+  --border: #334155;
+  --input: #334155;
+  --ring: #5a75f6;
 
-  --destructive: #912121;
+  --destructive: #ef4444;
   --destructive-foreground: #ffffff;
 
   --warning: #f59f0a;
   --warning-foreground: #ffffff;
 
-  --send-bg: #5c6ad6;
-  --send-foreground: #0c0e12;
+  --send-bg: #5a75f6;
+  --send-foreground: #ffffff;
 
   /* Brand Specifics */
-  --brand: #101b37;
+  --brand: #f8fafc;
 
   /* Info / Warning BG */
-  --info: #3c83f6;
-  --info-bg: #1b2432;
-  --warning-bg: #32291b;
+  --info: #3b82f6;
+  --info-bg: #1e3a8a;
+  --warning-bg: #422006;
 
   /* Semantic Income / Expense */
-  --income: #06c689;
-  --income-bg: #1b322a;
-  --expense: #ea4876;
-  --expense-bg: #321b21;
+  --income: #22c55e;
+  --income-bg: #064e3b;
+  --expense: #ef4444;
+  --expense-bg: #7f1d1d;
 }
 
 /* ── Tailwind v4 @theme ── */
@@ -152,13 +152,26 @@
 }
 
 body {
-  background-color: var(--color-background);
+  background: var(--background); /* Fallback */
   color: var(--color-foreground);
   font-feature-settings: "rlig" 1, "calt" 1;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   scroll-behavior: smooth;
 }
+
+/* Apply gradient in light mode only */
+:root:not(.dark) body {
+  background: linear-gradient(135deg, #d3deff 0%, #f4f6fb 100%);
+  background-attachment: fixed;
+}
+
+/* Apply gradient in dark mode */
+.dark body {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  background-attachment: fixed;
+}
+
 
 /* ── Custom utility classes ── */
 @utility glass {

@@ -15,7 +15,7 @@ const Invitations = () => {
   const [inviteName, setInviteName] = useState('');
   const [invitePermission, setInvitePermission] = useState('View Only');
   
-  const { showToast } = useToast();
+  const { addToast } = useToast();
   
   const userRaw = localStorage.getItem("user");
   const user = userRaw ? JSON.parse(userRaw) : null;
@@ -41,8 +41,13 @@ const Invitations = () => {
     e.preventDefault();
     
     if (!selectedBook) {
-      showToast("Please select a Cashbook first from the dropdown.", "error");
+      addToast("Please select a Cashbook first from the dropdown.", "error");
       setShowModal(false);
+      return;
+    }
+    
+    if (!inviteName || !inviteName.trim()) {
+      addToast("Please enter a valid User Name or Email.", "error");
       return;
     }
     
@@ -50,9 +55,9 @@ const Invitations = () => {
     const inviterName = user ? `${user.first_name || ''} ${user.last_name || ''}`.trim() : 'Admin';
     
     try {
-      showToast("Sending invitation email...", "info");
+      addToast("Sending invitation...", "info");
       
-      await axios.post('http://localhost:5000/api/invite', {
+      await axios.post('http://localhost:5001/api/invite', {
         email: inviteName,
         inviteeName: inviteName,
         inviterName: inviterName || 'A Cash Book user',
@@ -74,12 +79,12 @@ const Invitations = () => {
       setInvitations(updatedInvites);
       localStorage.setItem(invitationsStorageKey, JSON.stringify(updatedInvites));
       
-      showToast(`Invitation sent to ${inviteName}`, "success");
+      addToast(`Invitation sent to ${inviteName}`, "success");
       setShowModal(false);
       setInviteName('');
       setInvitePermission('View Only');
     } catch (error) {
-      showToast(error.response?.data?.message || "Failed to send email. Please try again.", "error");
+      addToast("An error occurred while saving the invitation.", "error");
     }
   };
 
@@ -120,12 +125,12 @@ const Invitations = () => {
           <button 
             onClick={() => {
               if (!selectedBook) {
-                showToast("Please select a Cashbook first.", "error");
+                addToast("Please select a Cashbook first.", "error");
                 return;
               }
               setShowModal(true);
             }}
-            className="w-full md:w-auto px-5 py-2.5 bg-[#8186c6] hover:bg-[#7075b5] text-white rounded-lg flex items-center justify-center gap-2 font-semibold text-[14px] transition-colors whitespace-nowrap h-[42px] shadow-sm"
+            className="w-full md:w-auto px-5 py-2.5 bg-[#5a75f6] hover:bg-[#4661df] text-white rounded-lg flex items-center justify-center gap-2 font-bold text-[14px] transition-colors whitespace-nowrap h-[42px] shadow-sm cursor-pointer"
           >
             <UserPlus className="w-[18px] h-[18px]" />
             Invite User
@@ -182,9 +187,9 @@ const Invitations = () => {
                           const updated = invitations.filter(i => i.id !== invite.id);
                           setInvitations(updated);
                           localStorage.setItem(invitationsStorageKey, JSON.stringify(updated));
-                          showToast("Invitation canceled.", "success");
+                          addToast("Invitation canceled.", "success");
                         }}
-                        className="text-xs font-semibold text-[#ef4444] hover:underline"
+                        className="px-3 py-1.5 bg-red-50 text-red-600 rounded-md hover:bg-red-100 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20 text-xs font-bold transition-colors cursor-pointer"
                       >
                         Cancel
                       </button>
@@ -228,12 +233,11 @@ const Invitations = () => {
                 </button>
               </div>
               
-              <form onSubmit={handleInvite} className="space-y-4">
+              <div className="space-y-4">
                 <div className="space-y-1">
                   <label className="text-[12px] font-bold text-muted-foreground uppercase tracking-wide">User Name / Email</label>
                   <input
                     type="text"
-                    required
                     value={inviteName}
                     onChange={(e) => setInviteName(e.target.value)}
                     placeholder="Enter name or email"
@@ -246,7 +250,6 @@ const Invitations = () => {
                   <Dropdown
                     value={invitePermission}
                     onChange={(e) => setInvitePermission(e.target.value)}
-                    required
                   >
                     <option value="View Only">View Only</option>
                     <option value="Edit">Edit</option>
@@ -255,13 +258,14 @@ const Invitations = () => {
                 </div>
                 
                 <button
-                  type="submit"
-                  className="w-full py-3 bg-[#8186c6] hover:bg-[#7075b5] text-white font-semibold rounded-xl text-sm hover:opacity-95 shadow-md transition-all flex items-center justify-center gap-1.5 mt-2 cursor-pointer"
+                  type="button"
+                  onClick={handleInvite}
+                  className="w-full py-3 bg-[#5a75f6] hover:bg-[#4661df] text-white font-bold rounded-xl text-sm hover:opacity-95 shadow-md transition-all flex items-center justify-center gap-1.5 mt-2 cursor-pointer"
                 >
                   <CheckCircle2 className="w-4 h-4" />
                   Send Invitation
                 </button>
-              </form>
+              </div>
             </motion.div>
           </div>
         )}

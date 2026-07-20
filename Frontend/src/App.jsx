@@ -25,6 +25,7 @@ import Landing from './Dashboard/pages/Home';
 import Analytics from './Dashboard/pages/Analytics';
 import Transactions from './Dashboard/pages/Transactions';
 import Reports from './Dashboard/pages/Reports';
+import History from './Dashboard/pages/History';
 import Savings from './Dashboard/pages/Savings';
 import Reminders from './Dashboard/pages/Reminders';
 import Categories from './Dashboard/pages/Categories';
@@ -65,6 +66,7 @@ function App() {
                 <Route path="accounts" element={<Landing />} />
                 <Route path="transactions" element={<Transactions />} />
                 <Route path="reports" element={<Reports />} />
+                <Route path="history" element={<History />} />
                 
                 {/* Reference Dashboard Routes */}
                 <Route path="chalans" element={<Chalans />} />
