@@ -9,6 +9,8 @@ import {
   Sparkles, Fuel, ShoppingCart, Lightbulb, HeartPulse, Plane, Home as HomeIcon, Briefcase
 } from 'lucide-react';
 import { Testimonials } from '../components/Testimonials';
+import { EarthSection } from '../components/EarthSection';
+import { SecuritySection } from '../components/SecuritySection';
 
 const FeatureCard = ({ icon: Icon, title, description, borderAccent }) => (
   <motion.div
@@ -16,9 +18,8 @@ const FeatureCard = ({ icon: Icon, title, description, borderAccent }) => (
     whileInView={{ opacity: 1, y: 0 }}
     viewport={{ once: true }}
     transition={{ duration: 0.5 }}
-    className={`bg-card rounded-2xl p-6 shadow-sm border hover:shadow-md transition-all duration-300 ${
-      borderAccent ? 'border-expense border-2' : 'border-border'
-    }`}
+    className={`bg-card rounded-2xl p-6 border shadow-lg shadow-black/20 hover:shadow-xl hover:shadow-primary/20 hover:-translate-y-0.5 transition-all duration-300 ${borderAccent ? 'border-expense border-2' : 'border-border'
+      }`}
   >
     <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center mb-4">
       <Icon className="w-6 h-6 text-primary" />
@@ -29,7 +30,7 @@ const FeatureCard = ({ icon: Icon, title, description, borderAccent }) => (
 );
 
 const TestimonialCard = ({ name, role, avatar, rating, text }) => (
-  <div className="bg-card border border-border rounded-2xl p-6 shadow-sm flex flex-col gap-4">
+  <div className="bg-card border border-border rounded-2xl p-6 shadow-lg shadow-black/20 hover:shadow-xl hover:shadow-primary/20 hover:-translate-y-0.5 transition-all duration-300 flex flex-col gap-4">
     <div className="flex items-center gap-1">
       {Array.from({ length: 5 }).map((_, i) => (
         <Star key={i} className={`w-4 h-4 ${i < rating ? 'text-warning fill-warning' : 'text-muted-foreground/30'}`} />
@@ -49,7 +50,7 @@ const TestimonialCard = ({ name, role, avatar, rating, text }) => (
 );
 
 const TrackerCard = ({ icon: Icon, title, desc }) => (
-  <div className="bg-card border border-border rounded-xl p-5 shadow-sm hover:shadow-md transition-all duration-200 flex gap-4">
+  <div className="bg-card border border-border rounded-xl p-5 shadow-lg shadow-black/20 hover:shadow-xl hover:shadow-primary/20 hover:-translate-y-0.5 transition-all duration-300 flex gap-4">
     <div className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
       <Icon className="w-5 h-5" />
     </div>
@@ -161,14 +162,14 @@ export function LandingPage() {
           <div className="flex flex-wrap gap-4 pt-2">
             <Link
               to="/signup"
-              className="px-8 py-3.5 bg-primary text-primary-foreground font-semibold rounded-xl hover:opacity-95 shadow-sm transition-all text-sm md:text-base flex items-center gap-2"
+              className="px-8 py-3.5 bg-primary text-primary-foreground font-semibold rounded-xl hover:opacity-95 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-1 transition-all text-sm md:text-base flex items-center gap-2"
             >
               Get Started
               <ArrowRight className="w-4 h-4" />
             </Link>
             <Link
               to="/login"
-              className="px-8 py-3.5 bg-card border border-border text-foreground font-semibold rounded-xl hover:bg-muted transition-colors text-sm md:text-base"
+              className="px-8 py-3.5 bg-card border border-border text-foreground font-semibold rounded-xl hover:bg-muted hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-1 transition-all text-sm md:text-base"
             >
               Web Login
             </Link>
@@ -177,8 +178,8 @@ export function LandingPage() {
 
         {/* Right Dashboard Mockup */}
         <div className="relative">
-          <div className="relative bg-card border border-border rounded-2xl shadow-sm overflow-hidden p-5 md:p-6">
-            
+          <div className="relative bg-card border border-border rounded-2xl shadow-lg shadow-black/20 hover:shadow-xl hover:shadow-primary/20 hover:-translate-y-0.5 transition-all duration-300 overflow-hidden p-5 md:p-6">
+
             {/* Mockup Header */}
             <div className="flex items-center justify-between pb-6 border-b border-border">
               <div className="flex items-center gap-2">
@@ -186,7 +187,9 @@ export function LandingPage() {
                 <span className="w-3 h-3 rounded-full bg-warning" />
                 <span className="w-3 h-3 rounded-full bg-income" />
               </div>
-              <div className="h-6 w-32 bg-muted rounded-full" />
+              <div className="h-6 px-4 bg-muted rounded-full flex items-center justify-center text-[10px] font-bold text-muted-foreground tracking-widest uppercase">
+                Cash Book
+              </div>
             </div>
 
             {/* Mockup Balance row */}
@@ -196,9 +199,9 @@ export function LandingPage() {
                 { title: "Total Expense", amount: "₹18,240", color: "text-expense", bg: "bg-expense-bg" },
                 { title: "Net Cash", amount: "₹27,260", color: "text-info", bg: "bg-info-bg" }
               ].map((card, i) => (
-                <div key={i} className={`p-3 rounded-xl ${card.bg} border border-border/50`}>
-                  <p className="text-[10px] text-muted-foreground font-medium mb-1">{card.title}</p>
-                  <p className={`text-xs md:text-sm font-bold ${card.color}`}>{card.amount}</p>
+                <div key={i} className={`p-3 rounded-xl ${card.bg} border border-border/50 shadow-lg shadow-black/20 hover:shadow-xl hover:shadow-primary/20 hover:-translate-y-0.5 transition-all duration-300`}>
+                  <p className="text-[10px] text-slate-700 dark:text-white/80 font-medium mb-1">{card.title}</p>
+                  <p className={`text-xs md:text-sm font-bold ${card.color} dark:text-white`}>{card.amount}</p>
                 </div>
               ))}
             </div>
@@ -211,7 +214,7 @@ export function LandingPage() {
                 { title: "Freelance Project Deposit", desc: "Income", amt: "+₹12,500", type: "income" },
                 { title: "Petrol Station", desc: "Fuel & Travel", amt: "-₹1,200", type: "expense" }
               ].map((row, i) => (
-                <div key={i} className="flex items-center justify-between p-3 bg-muted rounded-xl">
+                <div key={i} className="flex items-center justify-between p-3 bg-muted rounded-xl hover:bg-card hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-0.5 transition-all duration-300 border border-transparent hover:border-primary/20 cursor-default">
                   <div>
                     <p className="text-xs font-bold text-foreground">{row.title}</p>
                     <p className="text-[10px] text-muted-foreground">{row.desc}</p>
@@ -250,8 +253,14 @@ export function LandingPage() {
       {/* ── ABOUT US STORY ── */}
       <section className="py-20 px-4 md:px-8 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
         {/* Left Side Illustration */}
-        <div className="bg-card rounded-2xl p-8 border border-border relative">
-          <div className="bg-background p-5 rounded-xl border border-border max-w-sm mx-auto">
+        <motion.div 
+          initial={{ opacity: 0, x: -30 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: false, amount: 0.2 }}
+          transition={{ duration: 0.6 }}
+          className="bg-card rounded-2xl p-8 border border-border shadow-lg shadow-black/20 hover:shadow-xl hover:shadow-primary/20 hover:-translate-y-0.5 transition-all duration-300 relative"
+        >
+          <div className="bg-background p-5 rounded-xl border border-border max-w-sm mx-auto shadow-sm hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-0.5 transition-all duration-300 cursor-default">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
                 <Check className="w-5 h-5" />
@@ -262,13 +271,25 @@ export function LandingPage() {
               </div>
             </div>
             <div className="h-2 bg-muted rounded-full overflow-hidden">
-              <div className="w-full h-full bg-primary" />
+              <motion.div 
+                initial={{ width: 0 }}
+                whileInView={{ width: "100%" }}
+                viewport={{ once: false }}
+                transition={{ duration: 1.5, delay: 0.4, ease: "easeOut" }}
+                className="h-full bg-primary" 
+              />
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Right Content */}
-        <div className="space-y-6">
+        <motion.div 
+          initial={{ opacity: 0, x: 30 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: false, amount: 0.2 }}
+          transition={{ duration: 0.6 }}
+          className="space-y-6"
+        >
           <span className="text-xs font-bold text-primary tracking-widest uppercase">Who We Are</span>
           <h2 className="text-3xl md:text-4xl font-extrabold text-foreground">
             About Us – Our Story
@@ -277,20 +298,41 @@ export function LandingPage() {
             Cash Book started with a simple belief: tracking where your money goes shouldn't require complex spreadsheet skills or a finance degree. We designed this platform to offerKirana stores, freelancers, families, and growing businesses a frictionless way to manage ledger logs digital accounts.
           </p>
 
-          <div className="space-y-3 pt-2">
+          <motion.div 
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: false, amount: 0.2 }}
+            variants={{
+              hidden: {},
+              visible: {
+                transition: {
+                  delayChildren: 0.4,
+                  staggerChildren: 0.5
+                }
+              }
+            }}
+            className="space-y-3 pt-2"
+          >
             {[
               "Highly optimized for speed & fast entries",
               "Works natively offline with offline persistence storage",
               "Secured with advanced industry-grade ledger encryption",
             ].map((text, i) => (
-              <div key={i} className="flex items-start gap-3">
+              <motion.div 
+                key={i} 
+                variants={{
+                  hidden: { opacity: 0, x: 20 },
+                  visible: { opacity: 1, x: 0, transition: { duration: 0.5 } }
+                }}
+                className="flex items-start gap-3"
+              >
                 <div className="mt-0.5 p-1 rounded-full bg-primary/10 text-primary">
                   <Check className="w-3.5 h-3.5" />
                 </div>
                 <span className="text-foreground text-sm font-medium">{text}</span>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
 
           <div className="pt-2">
             <Link to="/about" className="inline-flex items-center gap-1.5 text-primary font-bold text-sm hover:underline">
@@ -298,14 +340,14 @@ export function LandingPage() {
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
-        </div>
+        </motion.div>
       </section>
 
       {/* ── MULTIPLATFORM CARD ── */}
       <section className="py-10 px-4 md:px-8 max-w-5xl mx-auto">
-        <div className="bg-card border border-border rounded-2xl p-8 md:p-12 shadow-sm relative overflow-hidden">
+        <div className="bg-card border border-border rounded-2xl p-8 md:p-12 shadow-lg shadow-black/20 hover:shadow-xl hover:shadow-primary/20 hover:-translate-y-0.5 transition-all duration-300 relative overflow-hidden">
           <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
-            
+
             {/* Left side download options */}
             <div className="space-y-6">
               <span className="text-xs font-bold text-primary tracking-widest uppercase">Multiplatform</span>
@@ -316,11 +358,11 @@ export function LandingPage() {
                 Log entries via mobile apps on the go, or use the desktop web version to manage larger books at your desk. Everything stays synced instantly.
               </p>
               <div className="flex gap-4">
-                <button className="px-6 py-3 bg-muted text-foreground border border-border font-semibold rounded-xl text-xs flex items-center gap-2 hover:bg-secondary transition-colors">
+                <button className="px-6 py-3 bg-muted text-foreground border border-border font-semibold rounded-xl text-xs flex items-center gap-2 hover:bg-secondary hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-0.5 transition-all">
                   <Download className="w-4 h-4 text-primary" />
                   Google Play Store
                 </button>
-                <Link to="/login" className="px-6 py-3 bg-primary text-primary-foreground font-semibold rounded-xl text-xs flex items-center gap-2 hover:opacity-95 transition-opacity">
+                <Link to="/login" className="px-6 py-3 bg-primary text-primary-foreground font-semibold rounded-xl text-xs flex items-center gap-2 hover:opacity-95 hover:shadow-lg hover:shadow-primary/30 hover:-translate-y-0.5 transition-all">
                   <Globe className="w-4 h-4" />
                   Web Login
                 </Link>
@@ -369,6 +411,12 @@ export function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* ── SECURITY SECTION (SNEPITECH CLONE) ── */}
+      <SecuritySection />
+
+      {/* ── EARTH SECTION (SNEPITECH CLONE) ── */}
+      <EarthSection />
 
       {/* ── CLIENT TESTIMONIALS ── */}
       <Testimonials />

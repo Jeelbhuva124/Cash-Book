@@ -41,7 +41,7 @@ export const About = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
-                className="p-6 bg-background border border-border rounded-3xl hover:border-primary/50 transition-colors"
+                className="p-6 bg-background border border-border rounded-3xl shadow-sm hover:shadow-xl hover:shadow-primary/20 hover:-translate-y-0.5 transition-all duration-300"
               >
                 <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mb-6">
                   <item.icon className="w-6 h-6" />

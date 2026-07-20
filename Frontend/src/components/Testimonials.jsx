@@ -78,7 +78,7 @@ const TestimonialCard = ({ data, expandedCard, setExpandedCard }) => {
   return (
     <div className="w-[350px] md:w-[400px] flex-shrink-0 touch-pan-y group p-2">
       <div 
-        className="bg-card border border-border p-6 rounded-2xl h-full flex flex-col relative overflow-hidden transition-all duration-300 group-hover:shadow-xl group-hover:-translate-y-1 group-hover:border-primary/30"
+        className="bg-card border border-border p-6 rounded-2xl h-full flex flex-col relative overflow-hidden shadow-lg shadow-black/20 transition-all duration-300 group-hover:shadow-xl group-hover:shadow-primary/20 group-hover:-translate-y-1 group-hover:border-primary/30"
       >
         <div className="absolute top-4 right-4 opacity-10">
           <Quote className="w-12 h-12 text-primary" />

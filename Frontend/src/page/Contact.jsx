@@ -15,7 +15,7 @@ export const Contact = () => {
       addToast("Please fill all fields", "error");
       return;
     }
-    
+
     setIsSubmitting(true);
     try {
       const response = await fetch('http://localhost:5001/api/contact', {
@@ -44,14 +44,14 @@ export const Contact = () => {
   return (
     <div className="flex flex-col min-h-screen pt-16 bg-background">
       <section className="py-20 px-4 text-center max-w-3xl mx-auto">
-        <motion.h1 
+        <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-4xl md:text-5xl font-black tracking-tight text-foreground mb-6"
         >
           Get in <span className="text-primary">Touch</span>
         </motion.h1>
-        <motion.p 
+        <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
@@ -64,13 +64,13 @@ export const Contact = () => {
       <section className="py-12 pb-24">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24">
-            
+
             {/* Contact Info */}
-            <motion.div 
-               initial={{ opacity: 0, x: -20 }}
-               whileInView={{ opacity: 1, x: 0 }}
-               viewport={{ once: true }}
-               className="space-y-8"
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="space-y-8"
             >
               <h2 className="text-2xl font-bold">Contact Information</h2>
               <div className="space-y-6">
@@ -110,50 +110,50 @@ export const Contact = () => {
             </motion.div>
 
             {/* Contact Form */}
-            <motion.div 
-               initial={{ opacity: 0, x: 20 }}
-               whileInView={{ opacity: 1, x: 0 }}
-               viewport={{ once: true }}
-               className="bg-card border border-border p-8 rounded-3xl shadow-lg shadow-background"
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="bg-card border border-border p-8 rounded-3xl shadow-lg shadow-background hover:shadow-xl hover:shadow-primary/20 hover:-translate-y-0.5 transition-all duration-300"
             >
               <h2 className="text-2xl font-bold mb-6">Send us a message</h2>
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="space-y-2">
                   <label className="text-sm font-bold text-foreground">Full Name</label>
-                  <input 
-                    type="text" 
-                    placeholder="John Doe" 
+                  <input
+                    type="text"
+                    placeholder="John Doe"
                     value={form.name}
-                    onChange={(e) => setForm({...form, name: e.target.value})}
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
                     className="w-full px-4 py-3 bg-background border border-border rounded-xl focus:outline-none focus:border-primary transition-colors"
                   />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-bold text-foreground">Email</label>
-                  <input 
-                    type="email" 
-                    placeholder="john@example.com" 
+                  <input
+                    type="email"
+                    placeholder="john@example.com"
                     value={form.email}
-                    onChange={(e) => setForm({...form, email: e.target.value})}
+                    onChange={(e) => setForm({ ...form, email: e.target.value })}
                     className="w-full px-4 py-3 bg-background border border-border rounded-xl focus:outline-none focus:border-primary transition-colors"
                   />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-bold text-foreground">Message</label>
-                  <textarea 
+                  <textarea
                     rows={4}
-                    placeholder="How can we help you?" 
+                    placeholder="How can we help you?"
                     value={form.message}
-                    onChange={(e) => setForm({...form, message: e.target.value})}
+                    onChange={(e) => setForm({ ...form, message: e.target.value })}
                     className="w-full px-4 py-3 bg-background border border-border rounded-xl focus:outline-none focus:border-primary transition-colors resize-none"
                   />
                 </div>
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   disabled={isSubmitting}
                   className="w-full py-3.5 bg-primary text-primary-foreground font-bold rounded-xl hover:opacity-95 transition-opacity flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                 >
-                  <Send className={`w-4 h-4 ${isSubmitting ? 'animate-pulse' : ''}`} /> 
+                  <Send className={`w-4 h-4 ${isSubmitting ? 'animate-pulse' : ''}`} />
                   {isSubmitting ? 'Sending...' : 'Send Message'}
                 </button>
               </form>

@@ -38,14 +38,14 @@ export const Services = () => {
   return (
     <div className="flex flex-col min-h-screen pt-16 bg-background">
       <section className="py-20 px-4 text-center max-w-4xl mx-auto">
-        <motion.h1 
+        <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-4xl md:text-5xl font-black tracking-tight text-foreground mb-6"
         >
-          Everything You Need to <br/> <span className="text-primary">Manage Wealth</span>
+          Everything You Need to <br /> <span className="text-primary">Manage Wealth</span>
         </motion.h1>
-        <motion.p 
+        <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
@@ -59,13 +59,13 @@ export const Services = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {services.map((service, i) => (
-              <motion.div 
+              <motion.div
                 key={i}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
-                className="group p-8 bg-card border border-border rounded-3xl hover:border-primary/40 transition-all hover:shadow-2xl hover:shadow-primary/5 relative overflow-hidden"
+                className="group p-8 bg-card border border-border rounded-3xl shadow-lg shadow-background hover:shadow-xl hover:shadow-primary/20 hover:-translate-y-0.5 transition-all duration-300 relative overflow-hidden"
               >
                 <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-primary/5 to-transparent rounded-bl-full -z-10 transition-transform group-hover:scale-125"></div>
                 <div className={`w-14 h-14 ${service.bg} rounded-2xl flex items-center justify-center ${service.color} mb-6`}>

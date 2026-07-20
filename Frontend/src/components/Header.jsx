@@ -30,24 +30,34 @@ export const UserNavbar = () => {
           </Link>
 
           {/* Desktop Nav Links */}
-          <div className="hidden md:flex items-center gap-6">
-            {navLinks.map((link) => (
-              <Link
-                key={link.path}
-                to={link.path}
-                className={`px-1 py-4 text-[15px] font-semibold transition-all relative ${
-                  (location.pathname === link.path || (link.path === '/' && location.pathname === '/home'))
-                    ? 'text-primary'
-                    : 'text-muted-foreground hover:text-primary'
-                }`}
-              >
-                {link.label}
-                {/* Active Indicator Line */}
-                {(location.pathname === link.path || (link.path === '/' && location.pathname === '/home')) && (
-                  <span className="absolute left-0 right-0 bottom-[14px] h-[3px] bg-primary rounded-full" />
-                )}
-              </Link>
-            ))}
+          <div className="hidden md:flex items-center p-1.5 border border-border/80 rounded-full bg-background/30 shadow-sm backdrop-blur-md hover:shadow-lg hover:shadow-primary/10 transition-all duration-300">
+            {navLinks.map((link) => {
+              const isActive = location.pathname === link.path || (link.path === '/' && location.pathname === '/home');
+
+              return (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  className={`px-5 py-2 rounded-full text-[15px] font-semibold transition-colors relative z-10 ${isActive
+                      ? 'text-primary'
+                      : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                >
+                  {link.label}
+                  {/* Active Indicator Pill */}
+                  {isActive && (
+                    <motion.div
+                      layoutId="active-nav-pill"
+                      className="absolute inset-0 rounded-full bg-primary/10 border border-primary/20 -z-10"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                    />
+                  )}
+                </Link>
+              );
+            })}
           </div>
 
           {/* Actions */}
@@ -56,7 +66,7 @@ export const UserNavbar = () => {
             {localStorage.getItem("token") ? (
               <Link
                 to="/dashboard"
-                className="text-sm font-semibold bg-primary text-primary-foreground px-4 py-2 rounded-xl hover:opacity-90 transition-all shadow-md shadow-primary/25 hover:shadow-primary/40"
+                className="text-sm font-semibold bg-primary text-primary-foreground px-4 py-2 rounded-xl hover:opacity-90 transition-all shadow-md shadow-primary/25 hover:shadow-xl hover:shadow-primary/40 hover:-translate-y-0.5"
               >
                 Dashboard
               </Link>
@@ -70,7 +80,7 @@ export const UserNavbar = () => {
                 </Link>
                 <Link
                   to="/signup"
-                  className="text-sm font-semibold bg-primary text-primary-foreground px-4 py-2 rounded-xl hover:opacity-90 transition-all shadow-md shadow-primary/25 hover:shadow-primary/40"
+                  className="text-sm font-semibold bg-primary text-primary-foreground px-4 py-2 rounded-xl hover:opacity-90 transition-all shadow-md shadow-primary/25 hover:shadow-xl hover:shadow-primary/40 hover:-translate-y-0.5"
                 >
                   Get Started
                 </Link>
@@ -102,18 +112,17 @@ export const UserNavbar = () => {
                   key={link.path}
                   to={link.path}
                   onClick={() => setMobileOpen(false)}
-                  className={`block px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
-                    (location.pathname === link.path || (link.path === '/' && location.pathname === '/home'))
+                  className={`block px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors ${(location.pathname === link.path || (link.path === '/' && location.pathname === '/home'))
                       ? 'bg-primary/10 text-primary'
                       : 'text-muted-foreground hover:text-primary hover:bg-muted'
-                  }`}
+                    }`}
                 >
                   {link.label}
                 </Link>
               ))}
               <div className="pt-2 border-t border-border flex gap-2">
                 {localStorage.getItem("token") ? (
-                  <Link to="/dashboard" onClick={() => setMobileOpen(false)} className="flex-1 text-center py-2.5 text-sm font-semibold bg-primary text-primary-foreground rounded-xl hover:opacity-90 transition-opacity">
+                  <Link to="/dashboard" onClick={() => setMobileOpen(false)} className="flex-1 text-center py-2.5 text-sm font-semibold bg-primary text-primary-foreground rounded-xl hover:opacity-90 transition-all shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 hover:-translate-y-0.5">
                     Dashboard
                   </Link>
                 ) : (
@@ -121,7 +130,7 @@ export const UserNavbar = () => {
                     <Link to="/login" onClick={() => setMobileOpen(false)} className="flex-1 text-center py-2.5 text-sm font-medium text-muted-foreground border border-border rounded-xl hover:bg-muted transition-colors">
                       Login
                     </Link>
-                    <Link to="/signup" onClick={() => setMobileOpen(false)} className="flex-1 text-center py-2.5 text-sm font-semibold bg-primary text-primary-foreground rounded-xl hover:opacity-90 transition-opacity">
+                    <Link to="/signup" onClick={() => setMobileOpen(false)} className="flex-1 text-center py-2.5 text-sm font-semibold bg-primary text-primary-foreground rounded-xl hover:opacity-90 transition-all shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 hover:-translate-y-0.5">
                       Get Started
                     </Link>
                   </>

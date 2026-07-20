@@ -6,6 +6,7 @@ import { ToastProvider } from './context/ToastContext';
 
 // ─── Shared Components ────────────────────────────────────
 import { Toaster } from './components/Toaster';
+import { RouteScrollToTop } from './components/RouteScrollToTop';
 
 // ─── Landing Page ─────────────────────────────────────────
 import { LandingPage } from './page/LandingPage';
@@ -53,6 +54,7 @@ function App() {
     <ThemeProvider defaultTheme="dark" storageKey="cashbook-ui-theme">
       <ToastProvider>
         <Router>
+          <RouteScrollToTop />
           <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
             <Routes>
               {/* ── Auth Pages ── */}

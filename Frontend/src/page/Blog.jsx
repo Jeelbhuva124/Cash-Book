@@ -30,14 +30,14 @@ export const Blog = () => {
   return (
     <div className="flex flex-col min-h-screen pt-16 bg-background">
       <section className="py-20 px-4 text-center max-w-3xl mx-auto">
-        <motion.h1 
+        <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-4xl md:text-5xl font-black tracking-tight text-foreground mb-6"
         >
           Insights for <span className="text-primary">Financial Growth</span>
         </motion.h1>
-        <motion.p 
+        <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
@@ -51,18 +51,18 @@ export const Blog = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {posts.map((post, i) => (
-              <motion.article 
+              <motion.article
                 key={i}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
-                className="group flex flex-col bg-card border border-border rounded-3xl overflow-hidden hover:border-primary/40 transition-all hover:shadow-xl hover:shadow-primary/5 cursor-pointer"
+                className="group flex flex-col bg-card border border-border rounded-3xl overflow-hidden shadow-lg shadow-background hover:shadow-xl hover:shadow-primary/20 hover:-translate-y-0.5 transition-all duration-300 cursor-pointer"
               >
                 <div className="relative h-48 overflow-hidden">
-                  <img 
-                    src={post.image} 
-                    alt={post.title} 
+                  <img
+                    src={post.image}
+                    alt={post.title}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                   <div className="absolute top-4 left-4 bg-background/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
