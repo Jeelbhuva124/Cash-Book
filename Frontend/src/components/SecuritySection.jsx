@@ -95,7 +95,7 @@ export const SecuritySection = () => {
             className="text-3xl md:text-4xl font-bold text-foreground tracking-tight leading-[1.2]"
           >
             Zero-Knowledge Architecture as <br className="hidden md:block"/>
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-emerald-500">Standard</span>
+            <span className="text-primary">Standard</span>
           </motion.h2>
 
           {/* Description */}
@@ -130,7 +130,7 @@ export const SecuritySection = () => {
             variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } }}
             className="pt-4"
           >
-            <Link to="/security" className="inline-flex items-center gap-2 px-8 py-3.5 bg-gradient-to-r from-primary to-emerald-500 text-white font-bold rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/40 hover:-translate-y-0.5 transition-all">
+            <Link to="/security" className="inline-flex items-center gap-2 px-8 py-3.5 bg-primary text-primary-foreground font-bold rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/40 hover:opacity-90 hover:-translate-y-0.5 transition-all">
               Read Security Posture
               <ArrowUpRight className="w-4 h-4" />
             </Link>

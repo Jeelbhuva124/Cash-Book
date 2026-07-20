@@ -20,6 +20,7 @@ import { Legal } from './page/Legal';
 import { Roadmap } from './page/Roadmap';
 import { Privacy } from './page/Privacy';
 import { Terms } from './page/Terms';
+import { Security } from './page/Security';
 
 // ─── Dashboard Pages ──────────────────────────────────────
 import Landing from './Dashboard/pages/Home';
@@ -101,6 +102,7 @@ function App() {
                 <Route path="/roadmap" element={<Roadmap />} />
                 <Route path="/privacy" element={<Privacy />} />
                 <Route path="/terms" element={<Terms />} />
+                <Route path="/security" element={<Security />} />
               </Route>
             </Routes>
           </div>

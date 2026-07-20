@@ -135,9 +135,13 @@ export const UserFooter = () => {
 
         {/* Bottom Bar */}
         <div className="pt-8 flex flex-col md:flex-row items-center justify-between gap-6">
-          <p className="text-[10px] sm:text-[11px] font-medium text-muted-foreground uppercase tracking-widest">
-            © 2026 CASH BOOK. ALL RIGHTS RESERVED.
-          </p>
+          <div className="flex items-center gap-6">
+            <div className="hidden sm:flex items-center gap-6 text-[10px] sm:text-[11px] font-medium text-muted-foreground uppercase tracking-widest">
+              <Link to="/privacy" className="hover:text-primary transition-colors">Privacy</Link>
+              <Link to="/terms" className="hover:text-primary transition-colors">Terms</Link>
+              <Link to="/security" className="hover:text-primary transition-colors">Security</Link>
+            </div>
+          </div>
 
           <div className="flex items-center gap-2 px-4 py-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/5 shadow-sm hover:shadow-lg hover:shadow-emerald-500/20 hover:-translate-y-0.5 transition-all duration-300">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
@@ -146,13 +150,9 @@ export const UserFooter = () => {
             </span>
           </div>
 
-          <div className="flex items-center gap-6">
-            <div className="hidden sm:flex items-center gap-6 text-[10px] sm:text-[11px] font-medium text-muted-foreground uppercase tracking-widest">
-              <Link to="/privacy" className="hover:text-primary transition-colors">Privacy</Link>
-              <Link to="/terms" className="hover:text-primary transition-colors">Terms</Link>
-              <Link to="/security" className="hover:text-primary transition-colors">Security</Link>
-            </div>
-          </div>
+          <p className="text-[10px] sm:text-[11px] font-medium text-muted-foreground uppercase tracking-widest text-center md:text-right">
+            © 2026 CASH BOOK. ALL RIGHTS RESERVED.
+          </p>
         </div>
 
       </div>
