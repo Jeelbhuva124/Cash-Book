@@ -59,24 +59,61 @@ export const Preferences = () => {
 
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <span className="font-medium text-sm">Dark Mode</span>
-              {/* Toggle Switch */}
-              <button 
-                onClick={() => setTheme(isDarkMode ? 'light' : 'dark')}
-                className={`w-11 h-6 rounded-full transition-colors relative flex items-center px-0.5 cursor-pointer ${isDarkMode ? 'bg-primary' : 'bg-muted-foreground/30'}`}
-              >
-                <div className={`w-5 h-5 rounded-full bg-white transition-transform ${isDarkMode ? 'translate-x-5' : 'translate-x-0'}`} />
-              </button>
+              <span className="font-medium text-sm">Theme</span>
+              
+              <div className="bg-muted/30 p-0.5 rounded-full w-32 border border-border/50">
+                <div className="relative flex w-full">
+                  {/* Sliding Indicator */}
+                  <div 
+                    className={`absolute inset-y-0 w-1/2 bg-primary/10 rounded-full transition-transform duration-300 ease-in-out ${isDarkMode ? 'translate-x-full' : 'translate-x-0'}`} 
+                  />
+                  
+                  {/* Light Option */}
+                  <button 
+                    onClick={() => setTheme('light')}
+                    className={`relative z-10 flex-1 py-1 text-xs font-medium transition-colors cursor-pointer ${!isDarkMode ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+                  >
+                    Light
+                  </button>
+                  
+                  {/* Dark Option */}
+                  <button 
+                    onClick={() => setTheme('dark')}
+                    className={`relative z-10 flex-1 py-1 text-xs font-medium transition-colors cursor-pointer ${isDarkMode ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+                  >
+                    Dark
+                  </button>
+                </div>
+              </div>
             </div>
             
             <div className="flex items-center justify-between">
               <span className="font-medium text-sm">Notifications</span>
-              <button 
-                onClick={() => setNotificationsEnabled(!notificationsEnabled)}
-                className={`w-11 h-6 rounded-full transition-colors relative flex items-center px-0.5 cursor-pointer ${notificationsEnabled ? 'bg-primary' : 'bg-muted-foreground/30'}`}
-              >
-                <div className={`w-5 h-5 rounded-full bg-white transition-transform ${notificationsEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
-              </button>
+              
+              <div className="bg-muted/30 p-0.5 rounded-full w-32 border border-border/50">
+                <div className="relative flex w-full">
+                  {/* Sliding Indicator */}
+                  <div 
+                    className={`absolute inset-y-0 w-1/2 bg-primary/10 rounded-full transition-transform duration-300 ease-in-out ${notificationsEnabled ? 'translate-x-0' : 'translate-x-full'}`} 
+                  />
+                  
+                  {/* On Option */}
+                  <button 
+                    onClick={() => setNotificationsEnabled(true)}
+                    className={`relative z-10 flex-1 py-1 text-xs font-medium transition-colors cursor-pointer ${notificationsEnabled ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+                  >
+                    On
+                  </button>
+                  
+                  {/* Off Option */}
+                  <button 
+                    onClick={() => setNotificationsEnabled(false)}
+                    className={`relative z-10 flex-1 py-1 text-xs font-medium transition-colors cursor-pointer ${!notificationsEnabled ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+                  >
+                    Off
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>

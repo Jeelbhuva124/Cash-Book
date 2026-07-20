@@ -248,21 +248,7 @@ export default function Home() {
             <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-[#1e293b] dark:text-foreground">
               Dashboard
             </h1>
-            <Dropdown
-              value={activeChalanId}
-              onChange={(e) => {
-                setActiveChalanId(e.target.value);
-                localStorage.setItem(activeChalanKey, e.target.value);
-              }}
-              className="w-48"
-              selectClassName="text-[13px] bg-primary/5 text-primary border-primary/20 font-semibold"
-            >
-              <option value="" disabled>Select Your Cashbook</option>
-              <option value="1">General Cashbook</option>
-              {chalans.filter(c => c.id !== '1').map(ch => (
-                <option key={ch.id} value={ch.id}>{ch.name}</option>
-              ))}
-            </Dropdown>
+
           </div>
           <p className="text-sm text-muted-foreground mt-0.5">Overview of your financial activity</p>
         </div>

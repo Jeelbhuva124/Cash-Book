@@ -16,19 +16,19 @@ const SIDEBAR_ITEMS = [
   { label: 'Cash Book Invitations', icon: Users, path: '/dashboard/invitations', badge: '2' },
   { label: 'Reports', icon: BarChart3, path: '/dashboard/reports' },
   { label: 'History', icon: History, path: '/dashboard/history' },
-  { label: 'Profile', icon: User, path: '/dashboard/profile' },
   { 
     label: 'Settings', 
     icon: Settings, 
     path: '/dashboard/settings',
     subItems: [
-      { label: 'Preferences', icon: Palette, path: '/dashboard/settings/preferences' },
-      { label: 'Active Session', icon: UserCog, path: '/dashboard/settings/sessions' }
+      { label: 'Profile', icon: User, path: '/dashboard/settings/profile' },
+      { label: 'Active Session', icon: UserCog, path: '/dashboard/settings/sessions' },
+      { label: 'Preferences', icon: Palette, path: '/dashboard/settings/preferences' }
     ]
   },
 ];
 
-const NavItem = ({ item, location, onClose, isCollapsed }) => {
+const NavItem = ({ item, location, onClose, isCollapsed, index = 0 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const hasSubItems = item.subItems && item.subItems.length > 0;
   
@@ -42,9 +42,8 @@ const NavItem = ({ item, location, onClose, isCollapsed }) => {
         {!isCollapsed && (
           <motion.span
             initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -10 }}
-            transition={{ duration: 0.2 }}
+            animate={{ opacity: 1, x: 0, transition: { duration: 0.2, delay: index * 0.04 } }}
+            exit={{ opacity: 0, x: -10, transition: { duration: 0.2 } }}
             className="flex-1 text-left whitespace-nowrap overflow-hidden"
           >
             {item.label}
@@ -165,7 +164,7 @@ const SidebarContent = ({ onClose, isCollapsed }) => {
 
       <div className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-2 space-y-1">
         {SIDEBAR_ITEMS.map((item, idx) => (
-          <NavItem key={idx} item={item} location={location} onClose={onClose} isCollapsed={isCollapsed} />
+          <NavItem key={idx} item={item} location={location} onClose={onClose} isCollapsed={isCollapsed} index={idx} />
         ))}
       </div>
 
@@ -201,7 +200,7 @@ export const Sidebar = ({ mobileOpen, onClose, isCollapsed }) => {
     <>
       <motion.div
         animate={{ width: isCollapsed ? 72 : 224 }}
-        transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
+        transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
         className="hidden lg:flex flex-shrink-0 h-full overflow-hidden bg-sidebar"
       >
         <SidebarContent isCollapsed={isCollapsed} />
@@ -221,7 +220,7 @@ export const Sidebar = ({ mobileOpen, onClose, isCollapsed }) => {
               initial={{ x: '-100%' }}
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
-              transition={{ type: 'spring', bounce: 0, duration: 0.3 }}
+              transition={{ type: 'spring', bounce: 0, duration: 0.6 }}
               className="relative w-56 h-full shadow-2xl"
             >
               <SidebarContent onClose={onClose} isCollapsed={false} />

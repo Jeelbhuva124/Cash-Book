@@ -38,7 +38,7 @@ export const UserNavbar = () => {
                 <Link
                   key={link.path}
                   to={link.path}
-                  className={`px-5 py-2 rounded-full text-[15px] font-semibold transition-colors relative z-10 ${isActive
+                  className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors relative z-10 ${isActive
                       ? 'text-primary'
                       : 'text-muted-foreground hover:text-foreground'
                     }`}

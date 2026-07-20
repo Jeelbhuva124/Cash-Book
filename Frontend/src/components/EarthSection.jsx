@@ -129,7 +129,7 @@ export const EarthSection = () => {
   const [focusTrigger, setFocusTrigger] = useState(0);
 
   return (
-    <section className="relative py-24 overflow-hidden bg-background border-t border-border">
+    <section className="relative py-16 overflow-hidden bg-background border-t border-border">
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         {/* Glow Effects */}
         <div className="absolute top-[40%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] md:w-[800px] md:h-[800px] bg-primary/10 rounded-full blur-[120px] opacity-70" />
@@ -147,7 +147,7 @@ export const EarthSection = () => {
             transition={{ duration: 0.8 }}
           >
             <p className="font-mono text-xs uppercase tracking-[0.25em] text-primary font-bold">Track • Manage • Grow</p>
-            <h3 className="mt-4 text-3xl md:text-4xl lg:text-5xl font-extrabold text-foreground tracking-tight leading-tight">
+            <h3 className="mt-4 text-3xl md:text-3xl lg:text-3xl font-extrabold text-foreground tracking-tight leading-tight">
               Take control of your finances with the all-new <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent-foreground">Cash Book</span>.
             </h3>
             <p className="mt-5 max-w-xl text-lg text-muted-foreground leading-relaxed">

@@ -124,7 +124,7 @@ export const Testimonials = () => {
   const [expandedCardRow2, setExpandedCardRow2] = useState(null);
 
   return (
-    <section className="py-24 bg-background overflow-hidden relative">
+    <section className="py-16 bg-background overflow-hidden relative">
       <style>
         {`
           @keyframes marquee-left {
@@ -154,7 +154,7 @@ export const Testimonials = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-16">
         <h2 className="text-sm font-bold tracking-widest text-primary uppercase mb-3">Testimonials</h2>
-        <h3 className="text-3xl md:text-5xl font-black text-foreground tracking-tight">
+        <h3 className="text-3xl md:text-3xl font-black text-foreground tracking-tight">
           What they say <span className="text-primary">about us</span>
         </h3>
         <p className="mt-4 text-muted-foreground max-w-2xl mx-auto">

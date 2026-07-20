@@ -1,6 +1,6 @@
-import React from 'react';
-import { Calendar, ArrowRight } from 'lucide-react';
-import { motion } from 'framer-motion';
+import React from "react";
+import { Calendar, ArrowRight } from "lucide-react";
+import { motion } from "framer-motion";
 
 export const Blog = () => {
   const posts = [
@@ -8,32 +8,38 @@ export const Blog = () => {
       title: "5 Strategies to Build an Emergency Fund in 2026",
       category: "Personal Finance",
       date: "Jul 10, 2026",
-      excerpt: "Learn how to consistently save a portion of your income without drastically changing your lifestyle...",
-      image: "https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?auto=format&fit=crop&q=80&w=800"
+      excerpt:
+        "Learn how to consistently save a portion of your income without drastically changing your lifestyle...",
+      image:
+        "https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?auto=format&fit=crop&q=80&w=800",
     },
     {
       title: "How to Digitize Your Khata Book Seamlessly",
       category: "Business",
       date: "Jun 28, 2026",
-      excerpt: "Transitioning from physical ledgers to a digital cash book can save hours of accounting. Here is a step-by-step guide...",
-      image: "https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&q=80&w=800"
+      excerpt:
+        "Transitioning from physical ledgers to a digital cash book can save hours of accounting. Here is a step-by-step guide...",
+      image:
+        "https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&q=80&w=800",
     },
     {
       title: "Understanding Tax Deductions for Freelancers",
       category: "Taxation",
       date: "Jun 15, 2026",
-      excerpt: "Maximize your returns by understanding exactly which expenses you can legally deduct as a freelancer...",
-      image: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&q=80&w=800"
-    }
+      excerpt:
+        "Maximize your returns by understanding exactly which expenses you can legally deduct as a freelancer...",
+      image:
+        "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&q=80&w=800",
+    },
   ];
 
   return (
     <div className="flex flex-col min-h-screen pt-16 bg-background">
-      <section className="py-20 px-4 text-center max-w-3xl mx-auto">
+      <section className="py-12 px-4 text-center max-w-3xl mx-auto">
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-4xl md:text-5xl font-black tracking-tight text-foreground mb-6"
+          className="text-3xl md:text-3xl font-black tracking-tight text-foreground mb-6"
         >
           Insights for <span className="text-primary">Financial Growth</span>
         </motion.h1>
@@ -43,7 +49,8 @@ export const Blog = () => {
           transition={{ delay: 0.1 }}
           className="text-lg text-muted-foreground leading-relaxed"
         >
-          Read the latest articles, guides, and tips from our team of finance experts to stay ahead of your money.
+          Read the latest articles, guides, and tips from our team of finance
+          experts to stay ahead of your money.
         </motion.p>
       </section>
 
@@ -80,7 +87,8 @@ export const Blog = () => {
                     {post.excerpt}
                   </p>
                   <div className="mt-auto flex items-center gap-2 text-sm font-bold text-primary">
-                    Read Article <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    Read Article{" "}
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </div>
                 </div>
               </motion.article>

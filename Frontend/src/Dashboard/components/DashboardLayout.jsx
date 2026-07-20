@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Outlet, Navigate, Link, useNavigate } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { 
@@ -14,11 +14,14 @@ export const DashboardLayout = () => {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   
+  const notificationRef = useRef(null);
+  const userDropdownRef = useRef(null);
+  
   const [notifications, setNotifications] = useState(() => {
     const saved = localStorage.getItem('cashbook_notifications');
     if (saved) return JSON.parse(saved);
     return [
-      { id: 'welcome-1', title: 'Welcome to Cashbook!', message: 'Start tracking your daily expenses and income effortlessly.', time: 'Just now', unread: true }
+      { id: 'welcome-1', title: 'Welcome to Cashbook!', message: 'Start tracking your daily expenses and income effortlessly.', time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}), unread: true }
     ];
   });
   const unreadCount = notifications.filter(n => n.unread).length;
@@ -47,9 +50,20 @@ export const DashboardLayout = () => {
     window.addEventListener('profileUpdated', handleProfileUpdate);
     window.addEventListener('notificationsUpdated', handleNotificationsUpdate);
     
+    const handleClickOutside = (event) => {
+      if (notificationRef.current && !notificationRef.current.contains(event.target)) {
+        setNotificationsOpen(false);
+      }
+      if (userDropdownRef.current && !userDropdownRef.current.contains(event.target)) {
+        setUserDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    
     return () => {
       window.removeEventListener('profileUpdated', handleProfileUpdate);
       window.removeEventListener('notificationsUpdated', handleNotificationsUpdate);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
@@ -157,7 +171,7 @@ export const DashboardLayout = () => {
               className="p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors"
               title="Toggle Theme"
             >
-              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              {theme === 'dark' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
             </button>
 
             {/* Fullscreen Button */}
@@ -170,7 +184,7 @@ export const DashboardLayout = () => {
             </button>
 
             {/* Notification Bell */}
-            <div className="relative">
+            <div className="relative" ref={notificationRef}>
               <button 
                 onClick={() => {
                   setNotificationsOpen(!notificationsOpen);
@@ -233,7 +247,7 @@ export const DashboardLayout = () => {
             <div className="h-5 w-px bg-border/80 mx-1 hidden sm:block" />
 
             {/* User Profile dropdown */}
-            <div className="relative">
+            <div className="relative" ref={userDropdownRef}>
               <button
                 onClick={() => {
                   setUserDropdownOpen(!userDropdownOpen);

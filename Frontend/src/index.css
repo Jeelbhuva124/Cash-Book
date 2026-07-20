@@ -146,6 +146,10 @@
 }
 
 /* ── Base styles ── */
+html {
+  font-size: 14px; /* Scales down all Tailwind rem units to make the app more compact/minimal */
+}
+
 * {
   border-color: var(--color-border);
   font-family: 'Inter', 'Nunito', sans-serif;

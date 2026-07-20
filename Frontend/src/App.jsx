@@ -78,14 +78,14 @@ function App() {
                 <Route path="payment-modes" element={<PaymentModes />} />
                 <Route path="invitations" element={<Invitations />} />
                 <Route path="cashbooks" element={<Cashbooks />} />
-                <Route path="profile" element={<Profile />} />
 
                 <Route path="budgets" element={<Landing />} />
                 <Route path="savings" element={<Savings />} />
                 <Route path="reminders" element={<Reminders />} />
                 <Route path="settings" element={<SettingsPage />} />
-                <Route path="settings/preferences" element={<Preferences />} />
+                <Route path="settings/profile" element={<Profile />} />
                 <Route path="settings/sessions" element={<ActiveSessions />} />
+                <Route path="settings/preferences" element={<Preferences />} />
               </Route>
 
               {/* ── Public Pages (with Header & Footer) ── */}
