@@ -2,10 +2,9 @@ import express from 'express';
 import { 
     sendInvitation, 
     getInvitations, 
-    updateInviteStatus, 
-    updateInvitePermission, 
+    updateInvite, 
     deleteInvite 
-} from '../controllers/inviteController.js';
+} from '../controllers/invitationController.js';
 
 const router = express.Router();
 
@@ -15,13 +14,10 @@ router.get('/', getInvitations);
 // POST new invitation
 router.post('/', sendInvitation);
 
-// PUT update status (Accept / Reject)
-router.put('/:id/status', updateInviteStatus);
-
-// PUT update permissions
-router.put('/:id/permission', updateInvitePermission);
+// PUT update invitation status or permissions
+router.put('/', updateInvite);
 
 // DELETE remove/cancel invitation
-router.delete('/:id', deleteInvite);
+router.delete('/', deleteInvite);
 
 export default router;

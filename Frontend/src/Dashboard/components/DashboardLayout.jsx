@@ -94,6 +94,16 @@ export const DashboardLayout = () => {
     return () => document.removeEventListener('fullscreenchange', handleFsChange);
   }, []);
 
+  useEffect(() => {
+    if (token) {
+      const pendingAcceptId = sessionStorage.getItem('pending_accept_id');
+      if (pendingAcceptId) {
+        sessionStorage.removeItem('pending_accept_id');
+        navigate(`/dashboard/invitations?accept_id=${pendingAcceptId}`);
+      }
+    }
+  }, [token, navigate]);
+
   const handleLogout = () => {
     localStorage.removeItem("user");
     localStorage.removeItem("token");
@@ -101,6 +111,11 @@ export const DashboardLayout = () => {
   };
 
   if (!token) {
+    const queryParams = new URLSearchParams(window.location.search);
+    const acceptId = queryParams.get('accept_id');
+    if (acceptId) {
+      sessionStorage.setItem('pending_accept_id', acceptId);
+    }
     return <Navigate to="/login" replace />;
   }
 
