@@ -13,7 +13,7 @@ const SIDEBAR_ITEMS = [
   { label: 'Category', icon: Tag, path: '/dashboard/categories' },
   { label: 'Subcategory', icon: Layers, path: '/dashboard/subcategories' },
   { label: 'Payment Mode', icon: CreditCard, path: '/dashboard/payment-modes' },
-  { label: 'Cash Book Invitations', icon: Users, path: '/dashboard/invitations', badge: '2' },
+  { label: 'Invitations', icon: Users, path: '/dashboard/invitations' },
   { label: 'Reports', icon: BarChart3, path: '/dashboard/reports' },
   { label: 'History', icon: History, path: '/dashboard/history' },
   { 

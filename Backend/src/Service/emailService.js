@@ -206,12 +206,12 @@ const sendContactMessageEmail = async (name, senderEmail, message) => {
     }
 };
 
-const sendInviteEmail = async (email, inviteeName, inviterName, cashbookName, permissions) => {
+const sendInviteEmail = async (email, inviteeName, inviterName, cashbookName, permissions, inviteId) => {
     const hasSmtpConfig = process.env.SMTP_USER && process.env.SMTP_PASS;
 
     if (!hasSmtpConfig) {
         console.log(`\n==========================================`);
-        console.log(`[DEVELOPMENT] SMTP not configured. Invitation sent to ${email} for Cashbook: ${cashbookName}`);
+        console.log(`[DEVELOPMENT] SMTP not configured. Invitation sent to ${email} for Cashbook: ${cashbookName} (ID: ${inviteId || 'N/A'})`);
         console.log(`==========================================\n`);
         return true;
     }
@@ -244,7 +244,7 @@ const sendInviteEmail = async (email, inviteeName, inviterName, cashbookName, pe
                     <p><strong>${inviterName || 'A user'}</strong> has invited you to collaborate on the Cash Book: <strong>${cashbookName}</strong>.</p>
                     <p>You have been assigned <strong>${permissions}</strong> access.</p>
                     <br/>
-                    <a href="http://localhost:5173/dashboard/invitations" style="background-color: #5a75f6; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">Accept Invitation</a>
+                    <a href="http://localhost:5174/dashboard/invitations?accept_id=${inviteId || ''}" style="background-color: #5a75f6; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">Accept Invitation</a>
                     <br/><br/>
                     <p>Thanks,<br/>The Cash Book Team</p>
                 </div>
