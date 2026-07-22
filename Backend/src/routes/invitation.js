@@ -9,15 +9,15 @@ import {
 const router = express.Router();
 
 // GET all invitations
-router.get('/', getInvitations);
+router.get('/select', getInvitations);
 
 // POST new invitation
-router.post('/', sendInvitation);
+router.post('/insert', sendInvitation);
 
 // PUT update invitation status or permissions
-router.put('/', updateInvite);
+router.put('/update', updateInvite);
 
 // DELETE remove/cancel invitation
-router.delete('/', deleteInvite);
+router.delete('/delete', deleteInvite);
 
 export default router;

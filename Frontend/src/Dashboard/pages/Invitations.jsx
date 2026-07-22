@@ -56,7 +56,7 @@ const Invitations = () => {
     if (!user?.id) return;
     try {
       // Fetch all invitations directly from the base URL
-      const res = await axios.get('http://localhost:5001/api/invitation');
+      const res = await axios.get('http://localhost:5001/api/invitation/select');
       if (res.data.success) {
         const allInvites = res.data.data || [];
         
@@ -81,7 +81,7 @@ const Invitations = () => {
             if (matchingInvite.status === 'Pending') {
               try {
                 // Immediately accept the invitation
-                await axios.put('http://localhost:5001/api/invitation', { 
+                await axios.put('http://localhost:5001/api/invitation/update', { 
                   id: urlAcceptId, 
                   status: 'Accepted' 
                 });
@@ -99,7 +99,7 @@ const Invitations = () => {
           sessionStorage.removeItem('pending_accept_id');
           
           // Re-fetch all invitations to reflect accepted status
-          const updatedRes = await axios.get('http://localhost:5001/api/invitation');
+          const updatedRes = await axios.get('http://localhost:5001/api/invitation/select');
           if (updatedRes.data.success) {
             const updatedInvites = updatedRes.data.data || [];
             setSentInvitations(updatedInvites.filter(i => i.inviter_id === user.id));
@@ -151,7 +151,7 @@ const Invitations = () => {
     try {
       addToast("Sending invitation...", "info");
       
-      await axios.post('http://localhost:5001/api/invitation', {
+      await axios.post('http://localhost:5001/api/invitation/insert', {
         email: inviteEmail.trim(),
         invite_name: inviteName.trim(),
         inviter_email: user?.email_id || '',
@@ -177,7 +177,7 @@ const Invitations = () => {
   // Accept Invitation (PUT Status to Accepted)
   const handleAcceptInvite = async (inviteId) => {
     try {
-      const res = await axios.put('http://localhost:5001/api/invitation', { id: inviteId, status: 'Accepted' });
+      const res = await axios.put('http://localhost:5001/api/invitation/update', { id: inviteId, status: 'Accepted' });
       if (res.data.success) {
         addToast("Invitation accepted successfully!", "success");
         fetchInvitations();
@@ -190,7 +190,7 @@ const Invitations = () => {
   // Reject Invitation (PUT Status to Rejected)
   const handleRejectInvite = async (inviteId) => {
     try {
-       const res = await axios.put('http://localhost:5001/api/invitation', { id: inviteId, status: 'Rejected' });
+       const res = await axios.put('http://localhost:5001/api/invitation/update', { id: inviteId, status: 'Rejected' });
       if (res.data.success) {
         addToast("Invitation declined.", "info");
         fetchInvitations();
@@ -204,7 +204,7 @@ const Invitations = () => {
   const handleUpdatePermission = async () => {
     if (!editingInvite?.id) return;
     try {
-      const res = await axios.put('http://localhost:5001/api/invitation', { 
+      const res = await axios.put('http://localhost:5001/api/invitation/update', { 
         id: editingInvite.id, 
         permissions: editingPermission 
       });
@@ -223,7 +223,7 @@ const Invitations = () => {
   const handleConfirmDelete = async () => {
     if (!deletingInviteId) return;
     try {
-      const res = await axios.delete('http://localhost:5001/api/invitation', { data: { id: deletingInviteId } });
+      const res = await axios.delete('http://localhost:5001/api/invitation/delete', { data: { id: deletingInviteId } });
       if (res.data.success) {
         addToast("Invitation removed successfully", "info");
         setShowDeleteModal(false);
