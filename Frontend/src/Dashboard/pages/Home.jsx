@@ -239,7 +239,7 @@ export default function Home() {
   const activeChalanName = chalans.find(c => c.id === activeChalanId)?.name || "General Cashbook";
 
   return (
-    <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6 text-foreground bg-transparent dark:bg-transparent min-h-screen">
+    <div className="p-6 md:p-8 w-full space-y-6 text-foreground bg-transparent dark:bg-transparent min-h-screen">
       
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -650,3 +650,4 @@ export default function Home() {
     </div>
   );
 }
+

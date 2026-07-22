@@ -136,7 +136,7 @@ export const EarthSection = () => {
         <div className="absolute -right-20 -top-20 h-80 w-80 rounded-full bg-gradient-to-br from-primary/10 to-accent/10 blur-3xl"></div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div className="w-full px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="relative grid items-center gap-12 md:grid-cols-[1.4fr_1fr]">
           
           {/* Left Text Content */}
@@ -201,3 +201,4 @@ export const EarthSection = () => {
     </section>
   );
 };
+

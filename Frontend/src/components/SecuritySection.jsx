@@ -27,7 +27,7 @@ export const SecuritySection = () => {
         ref={containerRef}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
-        className="max-w-7xl mx-auto bg-[#f8fbff] dark:bg-primary/5 rounded-[2rem] border border-border relative overflow-hidden shadow-lg shadow-primary/5 group"
+        className="w-full bg-[#f8fbff] dark:bg-primary/5 rounded-[2rem] border border-border relative overflow-hidden shadow-lg shadow-primary/5 group"
       >
         
         {/* Inner Background Grid Pattern (Base) */}
@@ -178,3 +178,4 @@ export const SecuritySection = () => {
     </section>
   );
 };
+

@@ -117,7 +117,7 @@ export const ActiveSessions = () => {
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto text-foreground">
+    <div className="p-6 w-full text-foreground">
       <div className="mb-8">
         <h1 className="text-2xl font-bold mb-1">Active Session Manager</h1>
         <p className="text-muted-foreground text-sm">Manage Login activity for your account</p>
@@ -246,3 +246,4 @@ export const ActiveSessions = () => {
     </div>
   );
 };
+

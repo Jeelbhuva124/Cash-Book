@@ -78,7 +78,7 @@ const TestimonialCard = ({ data, expandedCard, setExpandedCard }) => {
   return (
     <div className="w-[350px] md:w-[400px] flex-shrink-0 touch-pan-y group p-2">
       <div 
-        className="bg-card border border-border p-6 rounded-2xl h-full flex flex-col relative overflow-hidden shadow-lg shadow-black/20 transition-all duration-300 group-hover:shadow-xl group-hover:shadow-primary/20 group-hover:-translate-y-1 group-hover:border-primary/30"
+        className={`bg-card border border-border p-6 rounded-2xl flex flex-col relative overflow-hidden shadow-lg shadow-black/20 transition-all duration-300 group-hover:shadow-xl group-hover:shadow-primary/20 group-hover:-translate-y-1 group-hover:border-primary/30 h-full`}
       >
         <div className="absolute top-4 right-4 opacity-10">
           <Quote className="w-12 h-12 text-primary" />
@@ -152,7 +152,7 @@ export const Testimonials = () => {
         `}
       </style>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-16">
+      <div className="w-full px-4 sm:px-6 lg:px-8 text-center mb-16">
         <h2 className="text-sm font-bold tracking-widest text-primary uppercase mb-3">Testimonials</h2>
         <h3 className="text-3xl md:text-3xl font-black text-foreground tracking-tight">
           What they say <span className="text-primary">about us</span>
@@ -220,3 +220,4 @@ export const Testimonials = () => {
     </section>
   );
 };
+

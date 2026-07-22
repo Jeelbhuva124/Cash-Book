@@ -99,14 +99,14 @@
 
   /* Info / Warning BG */
   --info: #3b82f6;
-  --info-bg: #1e3a8a;
+  --info-bg: #eff6ff;
   --warning-bg: #422006;
 
   /* Semantic Income / Expense */
   --income: #22c55e;
-  --income-bg: #064e3b;
+  --income-bg: #dcfce7;
   --expense: #ef4444;
-  --expense-bg: #7f1d1d;
+  --expense-bg: #fee2e2;
 }
 
 /* ── Tailwind v4 @theme ── */

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import React, { useState, useEffect, useRef } from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
 import { Link } from "react-router-dom";
 import {
   BookOpen,
@@ -42,12 +42,12 @@ import { ContactSection } from "../components/ContactSection";
 import { EarthSection } from "../components/EarthSection";
 import { SecuritySection } from "../components/SecuritySection";
 
-const FeatureCard = ({ icon: Icon, title, description, borderAccent }) => (
+const FeatureCard = ({ icon: Icon, title, description, borderAccent, points }) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
     whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true }}
-    transition={{ duration: 0.5 }}
+    viewport={{ once: false, amount: 0.2 }}
+    transition={{ duration: 0.7, ease: "easeOut" }}
     className={`bg-card rounded-2xl p-6 border shadow-lg shadow-black/20 hover:shadow-xl hover:shadow-primary/20 hover:-translate-y-0.5 transition-all duration-300 ${
       borderAccent ? "border-expense border-2" : "border-border"
     }`}
@@ -56,9 +56,28 @@ const FeatureCard = ({ icon: Icon, title, description, borderAccent }) => (
       <Icon className="w-6 h-6 text-primary" />
     </div>
     <h3 className="text-lg font-bold text-foreground mb-2">{title}</h3>
-    <p className="text-sm text-muted-foreground leading-relaxed">
+    <p className="text-sm text-muted-foreground leading-relaxed mb-5">
       {description}
     </p>
+    {points && points.length > 0 && (
+      <ul className="space-y-3">
+        {points.map((point, idx) => (
+          <motion.li 
+            key={idx} 
+            initial={{ opacity: 0, x: -15 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: false, amount: 0.2 }}
+            transition={{ duration: 0.5, delay: 0.3 + (idx * 0.12), ease: "easeOut" }}
+            className="flex items-start gap-3 text-sm text-foreground/90 font-medium"
+          >
+            <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+              <Check className="w-3.5 h-3.5 text-primary" strokeWidth={3} />
+            </div>
+            {point}
+          </motion.li>
+        ))}
+      </ul>
+    )}
   </motion.div>
 );
 
@@ -100,7 +119,14 @@ const TrackerCard = ({ icon: Icon, title, desc }) => (
 );
 
 export function LandingPage() {
-  const [activeTestimonial, setActiveTestimonial] = useState(0);
+  const containerRef = useRef(null);
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start center", "end center"],
+  });
+  const scaleY = useTransform(scrollYProgress, [0, 1], [0, 1]);
+
+  const [isScrolled, setIsScrolled] = useState(false);
 
   const features = [
     {
@@ -109,6 +135,7 @@ export function LandingPage() {
       description:
         "Replace your traditional paper logbooks with a robust, searchable digital ledger. Access your accounts instantly from anywhere.",
       borderAccent: false,
+      points: ["Cloud-based auto backup", "No more paper clutter", "Secure anywhere access"],
     },
     {
       icon: BarChart3,
@@ -116,6 +143,7 @@ export function LandingPage() {
       description:
         "Customize entry tables, categories, and tags to fit your specific needs. Personalize headers to match your business workflows.",
       borderAccent: false,
+      points: ["Custom categories & tags", "Personalized table headers", "Flexible data fields"],
     },
     {
       icon: Users,
@@ -123,6 +151,7 @@ export function LandingPage() {
       description:
         "Invite family members, business partners, or accountants to view, edit, and contribute to your books in real time.",
       borderAccent: true, // Red accent highlight
+      points: ["Multi-user access control", "Real-time data sync", "Role-based permissions"],
     },
     {
       icon: Receipt,
@@ -130,6 +159,7 @@ export function LandingPage() {
       description:
         "Record single expenses or bulk transactions in seconds. Speed up your accounting with autocomplete fields.",
       borderAccent: false,
+      points: ["Batch transaction uploads", "Smart autocomplete fields", "One-tap quick entry"],
     },
     {
       icon: TrendingUp,
@@ -137,6 +167,7 @@ export function LandingPage() {
       description:
         "Auto-generate beautiful visual reports, credit summaries, and tax charts. Export data as clean PDF or Excel files.",
       borderAccent: false,
+      points: ["Visual spending charts", "1-click PDF generation", "Clean Excel exporting"],
     },
     {
       icon: PiggyBank,
@@ -144,6 +175,7 @@ export function LandingPage() {
       description:
         "Set monthly budget goals for different categories. Get alerts when you are close to reaching your limits.",
       borderAccent: false,
+      points: ["Monthly spending limits", "Automated budget alerts", "Category-wise tracking"],
     },
   ];
 
@@ -222,7 +254,7 @@ export function LandingPage() {
   return (
     <div className="w-full bg-background min-h-screen text-foreground">
       {/* ── HERO SECTION ── */}
-      <section className="relative pt-10 pb-20 px-4 md:px-8 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <section className="relative pt-10 pb-20 px-4 md:px-8 w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
         {/* Left Content */}
         <div className="space-y-6 max-w-2xl">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-semibold">
@@ -230,7 +262,7 @@ export function LandingPage() {
             <span>Smart Finance Management</span>
           </div>
 
-          <h1 className="text-3xl md:text-3xl lg:text-3xl font-extrabold text-foreground leading-tight">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-foreground leading-tight text-balance">
             Track and manage your finances with{" "}
             <span className="text-primary font-black">Cash Book</span>.
           </h1>
@@ -249,12 +281,7 @@ export function LandingPage() {
               Get Started
               <ArrowRight className="w-4 h-4" />
             </Link>
-            <Link
-              to="/login"
-              className="px-8 py-3.5 bg-card border border-border text-foreground font-semibold rounded-xl hover:bg-muted hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-1 transition-all text-sm md:text-base"
-            >
-              Web Login
-            </Link>
+
           </div>
         </div>
 
@@ -299,11 +326,11 @@ export function LandingPage() {
                   key={i}
                   className={`p-3 rounded-xl ${card.bg} border border-border/50 shadow-lg shadow-black/20 hover:shadow-xl hover:shadow-primary/20 hover:-translate-y-0.5 transition-all duration-300`}
                 >
-                  <p className="text-[10px] text-slate-700 dark:text-white/80 font-medium mb-1">
+                  <p className="text-[10px] text-slate-700 font-medium mb-1">
                     {card.title}
                   </p>
                   <p
-                    className={`text-xs md:text-sm font-bold ${card.color} dark:text-white`}
+                    className={`text-xs md:text-sm font-bold ${card.color}`}
                   >
                     {card.amount}
                   </p>
@@ -361,8 +388,8 @@ export function LandingPage() {
       </section>
 
       {/* ── FEATURES SECTION ("What We Do") ── */}
-      <section className="py-12 px-4 md:px-8 bg-card border-y border-border">
-        <div className="max-w-7xl mx-auto">
+      <section className="py-12 px-4 md:px-8 bg-background border-y border-border" ref={containerRef}>
+        <div className="w-full max-w-5xl mx-auto relative">
           <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
             <span className="text-xs font-bold text-primary tracking-widest uppercase">
               What We Do
@@ -376,16 +403,54 @@ export function LandingPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {features.map((feature, i) => (
-              <FeatureCard key={i} {...feature} />
-            ))}
+          <div className="relative">
+            {/* Central Axis (Static Grey Line) */}
+            <div className="absolute left-1/2 top-8 bottom-8 w-px bg-border hidden md:block transform -translate-x-1/2 rounded-full" />
+
+            {/* Active Progress Line (Green/Primary) */}
+            <motion.div
+              className="absolute left-1/2 top-8 bottom-8 w-px bg-primary hidden md:block transform -translate-x-1/2 origin-top rounded-full z-10 shadow-[0_0_6px_var(--color-primary)]"
+              style={{ scaleY }}
+            />
+
+            <div className="space-y-12 relative z-20">
+              {features.map((feature, i) => {
+                const isEven = i % 2 === 0;
+                return (
+                  <div
+                    key={i}
+                    className="relative flex flex-col md:flex-row items-center justify-between group"
+                  >
+                    {/* Content Container (Card) */}
+                    <div className={`w-full md:w-[48%] relative z-20 ${isEven ? "md:order-1" : "md:order-3"}`}>
+                      <FeatureCard {...feature} />
+                    </div>
+
+                    {/* Empty space for zig-zag alignment */}
+                    <div className={`hidden md:block w-[48%] ${isEven ? "order-3" : "order-1"}`} />
+
+                    {/* Center Node (Dot Effect) */}
+                    <div className="hidden md:flex absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 justify-center z-30">
+                      <div className="w-4 h-4 rounded-full bg-muted border-2 border-background ring-[4px] ring-background flex items-center justify-center overflow-hidden">
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          whileInView={{ scale: 1 }}
+                          viewport={{ once: false, amount: 0.8 }}
+                          transition={{ duration: 0.3 }}
+                          className="w-full h-full bg-primary rounded-full"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
       </section>
 
       {/* ── ABOUT US STORY ── */}
-      <section className="py-12 px-4 md:px-8 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+      <section className="py-12 px-4 md:px-8 w-full grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
         {/* Left Side Illustration */}
         <motion.div
           initial={{ opacity: 0, x: -30 }}
@@ -492,76 +557,11 @@ export function LandingPage() {
         </motion.div>
       </section>
 
-      {/* ── MULTIPLATFORM CARD ── */}
-      <section className="py-10 px-4 md:px-8 max-w-5xl mx-auto">
-        <div className="bg-card border border-border rounded-2xl p-8 md:p-8 shadow-lg shadow-black/20 hover:shadow-xl hover:shadow-primary/20 hover:-translate-y-0.5 transition-all duration-300 relative overflow-hidden">
-          <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
-            {/* Left side download options */}
-            <div className="space-y-6">
-              <span className="text-xs font-bold text-primary tracking-widest uppercase">
-                Multiplatform
-              </span>
-              <h2 className="text-3xl font-extrabold tracking-tight text-foreground">
-                Manage Money Anytime, Anywhere.
-              </h2>
-              <p className="text-muted-foreground text-sm leading-relaxed">
-                Log entries via mobile apps on the go, or use the desktop web
-                version to manage larger books at your desk. Everything stays
-                synced instantly.
-              </p>
-              <div className="flex gap-4">
-                <button className="px-6 py-3 bg-muted text-foreground border border-border font-semibold rounded-xl text-xs flex items-center gap-2 hover:bg-secondary hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-0.5 transition-all">
-                  <Download className="w-4 h-4 text-primary" />
-                  Google Play Store
-                </button>
-                <Link
-                  to="/login"
-                  className="px-6 py-3 bg-primary text-primary-foreground font-semibold rounded-xl text-xs flex items-center gap-2 hover:opacity-95 hover:shadow-lg hover:shadow-primary/30 hover:-translate-y-0.5 transition-all"
-                >
-                  <Globe className="w-4 h-4" />
-                  Web Login
-                </Link>
-              </div>
-            </div>
 
-            {/* Right side bullet items */}
-            <div className="space-y-5">
-              {[
-                {
-                  title: "Real-Time Sync",
-                  desc: "No manual backup required. All logs synchronize instantly to the secure cloud.",
-                },
-                {
-                  title: "Smart PDF & Excel Exports",
-                  desc: "Send complete transaction records directly to your CA or accountant.",
-                },
-                {
-                  title: "Bank-Grade Encryption",
-                  desc: "Data protection is our priority. Financial sheets stay private, encrypted, and isolated.",
-                },
-              ].map((item, i) => (
-                <div key={i} className="flex gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
-                    <Check className="w-4 h-4 text-primary" />
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-foreground">
-                      {item.title}
-                    </h4>
-                    <p className="text-xs text-muted-foreground leading-relaxed mt-0.5">
-                      {item.desc}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* ── CATEGORY TRACKERS ── */}
       <section className="py-16 px-4 md:px-8 bg-muted border-t border-border">
-        <div className="max-w-7xl mx-auto">
+        <div className="w-full">
           <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
             <span className="text-xs font-bold text-primary tracking-widest uppercase">
               Track Anything, Easily
@@ -597,3 +597,4 @@ export function LandingPage() {
     </div>
   );
 }
+

@@ -111,7 +111,7 @@ export const HelpCenter = () => {
 
       {/* Categories Grid */}
       <section className="py-12 px-4 flex-grow">
-        <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <div className="w-full sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-foreground">
               Browse Topics
@@ -185,3 +185,4 @@ export const HelpCenter = () => {
     </div>
   );
 };
+
