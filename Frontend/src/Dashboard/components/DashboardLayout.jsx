@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Outlet, Navigate, Link, useNavigate } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
-import { 
-  Menu, Search, Play, Moon, Sun, Maximize2, Minimize2, 
-  Bell, User, ChevronDown, LogOut, PanelLeft 
+import {
+  Menu, Search, Play, Moon, Sun, Maximize2, Minimize2,
+  Bell, User, ChevronDown, LogOut, PanelLeft
 } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 
@@ -13,15 +13,15 @@ export const DashboardLayout = () => {
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  
+
   const notificationRef = useRef(null);
   const userDropdownRef = useRef(null);
-  
+
   const [notifications, setNotifications] = useState(() => {
     const saved = localStorage.getItem('cashbook_notifications');
     if (saved) return JSON.parse(saved);
     return [
-      { id: 'welcome-1', title: 'Welcome to Cashbook!', message: 'Start tracking your daily expenses and income effortlessly.', time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}), unread: true }
+      { id: 'welcome-1', title: 'Welcome to Cashbook!', message: 'Start tracking your daily expenses and income effortlessly.', time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), unread: true }
     ];
   });
   const unreadCount = notifications.filter(n => n.unread).length;
@@ -46,10 +46,10 @@ export const DashboardLayout = () => {
     const handleNotificationsUpdate = (e) => {
       if (e.detail) setNotifications(e.detail);
     };
-    
+
     window.addEventListener('profileUpdated', handleProfileUpdate);
     window.addEventListener('notificationsUpdated', handleNotificationsUpdate);
-    
+
     const handleClickOutside = (event) => {
       if (notificationRef.current && !notificationRef.current.contains(event.target)) {
         setNotificationsOpen(false);
@@ -59,7 +59,7 @@ export const DashboardLayout = () => {
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    
+
     return () => {
       window.removeEventListener('profileUpdated', handleProfileUpdate);
       window.removeEventListener('notificationsUpdated', handleNotificationsUpdate);
@@ -78,8 +78,8 @@ export const DashboardLayout = () => {
     localStorage.setItem('cashbook_notifications', JSON.stringify([]));
   };
 
-  const username = profileData?.firstName 
-    ? `${profileData.firstName} ${profileData.lastName || ''}`.trim() 
+  const username = profileData?.firstName
+    ? `${profileData.firstName} ${profileData.lastName || ''}`.trim()
     : (profileData?.username || "Guest User");
   const email = profileData?.email || profileData?.email_id || "";
   const uppercaseName = username.toUpperCase();
@@ -139,10 +139,10 @@ export const DashboardLayout = () => {
       <Sidebar mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} isCollapsed={isCollapsed} />
 
       <div className="flex-grow flex flex-col min-w-0 overflow-hidden relative bg-transparent dark:bg-transparent">
-        
+
         {/* Unified Top Navbar Header */}
         <header className="flex items-center justify-between px-6 py-3 bg-transparent dark:bg-card sticky top-0 z-20 h-[64px]">
-          
+
           {/* Left Area: Sidebar toggle and Brand logo */}
           <div className="flex items-center gap-4">
             <button
@@ -200,7 +200,7 @@ export const DashboardLayout = () => {
 
             {/* Notification Bell */}
             <div className="relative" ref={notificationRef}>
-              <button 
+              <button
                 onClick={() => {
                   setNotificationsOpen(!notificationsOpen);
                   if (userDropdownOpen) setUserDropdownOpen(false);
@@ -218,7 +218,7 @@ export const DashboardLayout = () => {
                   <div className="p-4 border-b border-border flex items-center justify-between bg-muted/10">
                     <h3 className="font-bold text-foreground text-sm">Notifications</h3>
                     {unreadCount > 0 && (
-                      <button 
+                      <button
                         onClick={handleMarkAllRead}
                         className="text-xs text-primary hover:underline font-semibold"
                       >
@@ -246,7 +246,7 @@ export const DashboardLayout = () => {
                   </div>
                   {notifications.length > 0 && (
                     <div className="p-2 text-center border-t border-border bg-muted/10">
-                      <button 
+                      <button
                         onClick={handleClearNotifications}
                         className="text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors p-2"
                       >
@@ -299,7 +299,7 @@ export const DashboardLayout = () => {
                       </div>
                     </div>
                   </div>
-                  <Link 
+                  <Link
                     to="/dashboard/profile"
                     onClick={() => setUserDropdownOpen(false)}
                     className="flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors"

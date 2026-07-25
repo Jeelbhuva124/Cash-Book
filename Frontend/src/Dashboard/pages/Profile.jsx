@@ -47,31 +47,31 @@ const Profile = () => {
       // Otherwise, load initial details if they logged in
       const savedUser = JSON.parse(localStorage.getItem('user'));
       if (savedUser) {
-         const nameParts = (savedUser.username || '').split(' ');
-         currentUser = {
-           ...currentUser,
-           firstName: nameParts[0] || currentUser.firstName,
-           lastName: nameParts.slice(1).join(' ') || currentUser.lastName,
-           email: savedUser.email_id || currentUser.email,
-         };
+        const nameParts = (savedUser.username || '').split(' ');
+        currentUser = {
+          ...currentUser,
+          firstName: nameParts[0] || currentUser.firstName,
+          lastName: nameParts.slice(1).join(' ') || currentUser.lastName,
+          email: savedUser.email_id || currentUser.email,
+        };
       }
 
       // Automatically sync their real location from their active session
       const currentSessionId = localStorage.getItem('current_session_id');
       const sessions = JSON.parse(localStorage.getItem('active_sessions') || '[]');
       const currentSession = sessions.find(s => s.id === currentSessionId);
-      
+
       if (currentSession && currentSession.location && currentSession.location !== 'Unknown Location') {
         const parts = currentSession.location.split(',');
         if (parts.length >= 2) {
-           currentUser.city = parts[0].trim();
-           currentUser.country = parts[1].trim();
+          currentUser.city = parts[0].trim();
+          currentUser.country = parts[1].trim();
         } else if (parts.length === 1) {
-           currentUser.city = parts[0].trim();
-           // If they fallback to a timezone city like 'Kolkata', infer India
-           if (['kolkata', 'mumbai', 'delhi', 'bangalore'].includes(parts[0].trim().toLowerCase())) {
-             currentUser.country = 'India';
-           }
+          currentUser.city = parts[0].trim();
+          // If they fallback to a timezone city like 'Kolkata', infer India
+          if (['kolkata', 'mumbai', 'delhi', 'bangalore'].includes(parts[0].trim().toLowerCase())) {
+            currentUser.country = 'India';
+          }
         }
       }
     }
@@ -79,12 +79,12 @@ const Profile = () => {
     // Enforce Indian Phone Format if country is India
     if (currentUser.country && currentUser.country.toLowerCase().includes('india')) {
       if (!currentUser.phone.includes('+91')) {
-         // Replace the mock Indonesia number with an Indian mock number
-         if (currentUser.phone.includes('+62')) {
-           currentUser.phone = '(+91) 98765-43210';
-         } else {
-           currentUser.phone = '(+91) ' + currentUser.phone.replace(/[^0-9-\s]/g, '').trim();
-         }
+        // Replace the mock Indonesia number with an Indian mock number
+        if (currentUser.phone.includes('+62')) {
+          currentUser.phone = '(+91) 98765-43210';
+        } else {
+          currentUser.phone = '(+91) ' + currentUser.phone.replace(/[^0-9-\s]/g, '').trim();
+        }
       }
     }
 
@@ -106,14 +106,14 @@ const Profile = () => {
 
   const handleSavePersonal = () => {
     let updatedUser = { ...user, ...personalForm };
-    
+
     // Auto-format phone if they are from India
     if (updatedUser.country && updatedUser.country.toLowerCase().includes('india') && updatedUser.phone) {
-       if (!updatedUser.phone.includes('+91')) {
-         updatedUser.phone = '(+91) ' + updatedUser.phone.replace(/[^0-9-\s]/g, '').trim();
-       }
+      if (!updatedUser.phone.includes('+91')) {
+        updatedUser.phone = '(+91) ' + updatedUser.phone.replace(/[^0-9-\s]/g, '').trim();
+      }
     }
-    
+
     setUser(updatedUser);
     localStorage.setItem('profile_data', JSON.stringify(updatedUser));
     window.dispatchEvent(new Event('profileUpdated'));
@@ -136,19 +136,19 @@ const Profile = () => {
 
   const handleSaveAddress = () => {
     let updatedUser = { ...user, ...addressForm };
-    
+
     // Auto-format phone if they change their country to India
     if (updatedUser.country && updatedUser.country.toLowerCase().includes('india') && updatedUser.phone) {
-       if (!updatedUser.phone.includes('+91')) {
-         // Only prepend +91 if it's missing, optionally stripping out other country codes if needed
-         if (updatedUser.phone.includes('+62')) {
-           updatedUser.phone = '(+91) 98765-43210';
-         } else {
-           updatedUser.phone = '(+91) ' + updatedUser.phone.replace(/[^0-9-\s]/g, '').trim();
-         }
-       }
+      if (!updatedUser.phone.includes('+91')) {
+        // Only prepend +91 if it's missing, optionally stripping out other country codes if needed
+        if (updatedUser.phone.includes('+62')) {
+          updatedUser.phone = '(+91) 98765-43210';
+        } else {
+          updatedUser.phone = '(+91) ' + updatedUser.phone.replace(/[^0-9-\s]/g, '').trim();
+        }
+      }
     }
-    
+
     setUser(updatedUser);
     localStorage.setItem('profile_data', JSON.stringify(updatedUser));
     window.dispatchEvent(new Event('profileUpdated'));
@@ -164,30 +164,30 @@ const Profile = () => {
   return (
     <div className="max-w-[1000px] mx-auto p-4 md:p-8 w-full bg-background/50 min-h-[calc(100vh-80px)]">
       <h1 className="text-xl font-bold text-primary mb-6">My Profile</h1>
-      
+
       {/* Top Profile Card */}
       <div className="bg-card shadow-sm border border-border/60 rounded-2xl p-6 mb-6 flex items-center gap-6">
         <div className="relative">
           <div className="w-[100px] h-[100px] rounded-full overflow-hidden border-2 border-border/30 bg-muted">
-            <img 
-              src={user.avatar} 
-              alt="Profile" 
+            <img
+              src={user.avatar}
+              alt="Profile"
               className="w-full h-full object-cover"
             />
           </div>
-          <button 
+          <button
             onClick={() => fileInputRef.current?.click()}
             className="absolute bottom-1 right-0 bg-card border border-border shadow-sm p-1.5 rounded-full text-primary hover:bg-muted transition-colors z-10 flex items-center justify-center cursor-pointer"
             title="Update Profile Picture"
           >
             <Camera className="w-3.5 h-3.5" />
           </button>
-          <input 
-            type="file" 
+          <input
+            type="file"
             ref={fileInputRef}
             onChange={handleImageChange}
-            accept="image/*" 
-            className="hidden" 
+            accept="image/*"
+            className="hidden"
           />
         </div>
         <div className="flex flex-col justify-center">
@@ -202,7 +202,7 @@ const Profile = () => {
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-[17px] font-bold text-primary">Personal Information</h3>
           {!isEditingPersonal ? (
-            <button 
+            <button
               onClick={handleEditPersonal}
               className="flex items-center gap-1.5 bg-[#ef7a15] hover:bg-[#d66b10] text-white px-4 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition-colors"
             >
@@ -210,13 +210,13 @@ const Profile = () => {
             </button>
           ) : (
             <div className="flex gap-2">
-              <button 
+              <button
                 onClick={() => setIsEditingPersonal(false)}
                 className="flex items-center gap-1.5 bg-muted hover:bg-muted/80 text-foreground px-4 py-1.5 rounded-lg text-xs font-semibold transition-colors"
               >
                 Cancel <X className="w-3 h-3" />
               </button>
-              <button 
+              <button
                 onClick={handleSavePersonal}
                 className="flex items-center gap-1.5 bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition-colors"
               >
@@ -226,7 +226,7 @@ const Profile = () => {
           )}
         </div>
         <hr className="border-border/60 mb-6" />
-        
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-y-7 gap-x-6">
           <div>
             <p className="text-[13px] text-muted-foreground font-medium mb-1.5">First Name</p>
@@ -288,7 +288,7 @@ const Profile = () => {
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-[17px] font-bold text-primary">Address</h3>
           {!isEditingAddress ? (
-            <button 
+            <button
               onClick={handleEditAddress}
               className="flex items-center gap-1.5 bg-transparent border border-border hover:bg-muted text-foreground/80 px-4 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition-colors"
             >
@@ -296,13 +296,13 @@ const Profile = () => {
             </button>
           ) : (
             <div className="flex gap-2">
-              <button 
+              <button
                 onClick={() => setIsEditingAddress(false)}
                 className="flex items-center gap-1.5 bg-muted hover:bg-muted/80 text-foreground px-4 py-1.5 rounded-lg text-xs font-semibold transition-colors"
               >
                 Cancel <X className="w-3 h-3" />
               </button>
-              <button 
+              <button
                 onClick={handleSaveAddress}
                 className="flex items-center gap-1.5 bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition-colors"
               >
@@ -312,7 +312,7 @@ const Profile = () => {
           )}
         </div>
         <hr className="border-border/60 mb-6" />
-        
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-y-7 gap-x-6">
           <div>
             <p className="text-[13px] text-muted-foreground font-medium mb-1.5">Country</p>

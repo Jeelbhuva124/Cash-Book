@@ -8,26 +8,8 @@ import {
 } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
 import Dropdown from '../components/Dropdown';
+import ConfirmModal from '../components/ConfirmModal';
 
-// Standard categories matching Landing Page trackers
-const DEFAULT_CATEGORIES = [
-  { id: '1', name: "Grocery", color: "#3b82f6" },
-  { id: '2', name: "Fuel & Transport", color: "#10b981" },
-  { id: '3', name: "Travel", color: "#f59e0b" },
-  { id: '4', name: "Shopping", color: "#ec4899" },
-  { id: '5', name: "Electricity & Utilities", color: "#8b5cf6" },
-  { id: '6', name: "Medical & Healthcare", color: "#ef4444" },
-  { id: '7', name: "Home Maintenance", color: "#6b7280" },
-  { id: '8', name: "Business & Work", color: "#06b6d4" },
-  { id: '9', name: "Savings & Invests", color: "#10b981" }
-];
-
-const DEFAULT_PAYMENT_MODES = [
-  { id: '1', name: "Cash", type: "Cash" },
-  { id: '2', name: "Bank Transfer", type: "Bank" },
-  { id: '3', name: "GPay / UPI", type: "UPI" },
-  { id: '4', name: "Credit Card", type: "Card" }
-];
 
 export default function Home() {
   const { addToast } = useToast();
@@ -38,6 +20,14 @@ export default function Home() {
   const [paymentModes, setPaymentModes] = useState([]);
   const [chalans, setChalans] = useState([]);
   const [activeChalanId, setActiveChalanId] = useState('1');
+
+  // Custom Confirmation Modal State
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {}
+  });
 
   // Form states
   const [title, setTitle] = useState('');
@@ -67,46 +57,186 @@ export default function Home() {
       .catch(() => setClientIp('Unknown IP'));
   }, []);
 
+  const loadCategoriesAndModes = async (chalanId) => {
+    if (!chalanId) return;
+    const userEmail = user?.email_id?.toLowerCase() || '';
+
+    // Fetch Categories
+    try {
+      const res = await fetch('http://localhost:5001/api/category/select');
+      const data = await res.json();
+      if (data.success && data.data) {
+        const filtered = data.data.filter(cat => 
+          cat.user_email?.toLowerCase() === userEmail &&
+          cat.chalan_id === chalanId &&
+          cat.active
+        );
+        const mapped = filtered.map(c => ({
+          id: c.id,
+          name: c.category_name,
+          active: c.active
+        }));
+        setCategories(mapped);
+        if (mapped.length > 0) {
+          setCategory(mapped[0].name);
+        } else {
+          setCategory('');
+        }
+      }
+    } catch (err) {
+      console.error("Failed to load categories from API:", err);
+    }
+
+    // Fetch Payment Modes
+    try {
+      const res = await fetch('http://localhost:5001/api/payment-mode/select');
+      const data = await res.json();
+      if (data.success && data.data) {
+        const filtered = data.data.filter(pm => 
+          pm.user_email?.toLowerCase() === userEmail &&
+          pm.chalan_id === chalanId &&
+          pm.active
+        );
+        const mapped = filtered.map(p => ({
+          id: p.id,
+          name: p.payment_mode,
+          active: p.active
+        }));
+        setPaymentModes(mapped);
+        if (mapped.length > 0) {
+          setPaymentMode(mapped[0].name);
+        } else {
+          setPaymentMode('');
+        }
+      }
+    } catch (err) {
+      console.error("Failed to load payment modes from API:", err);
+    }
+  };
+
+  const handleAddNewCategory = async (catName) => {
+    if (!selectedChalanId) {
+      addToast("Please select a cashbook first", "warning");
+      return;
+    }
+    const payload = {
+      category_name: catName,
+      active: true,
+      chalan_id: selectedChalanId,
+      created_by: user?.username || 'Guest',
+      updated_by: user?.username || 'Guest',
+      user_email: user?.email_id || ''
+    };
+
+    try {
+      const response = await fetch('http://localhost:5001/api/category/insert', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json();
+      if (data.success && data.data) {
+        addToast(`Category "${catName}" created and selected!`, "success");
+        const newCat = {
+          id: data.data.id,
+          name: data.data.category_name,
+          active: data.data.active
+        };
+        setCategories(prev => [newCat, ...prev]);
+        setCategory(data.data.category_name);
+      } else {
+        addToast(data.message || "Failed to add category", "error");
+      }
+    } catch (err) {
+      console.error("Quick Add Category error:", err);
+      addToast("Failed to add category to database", "error");
+    }
+  };
+
+  const handleAddNewPaymentMode = async (modeName) => {
+    if (!selectedChalanId) {
+      addToast("Please select a cashbook first", "warning");
+      return;
+    }
+    const payload = {
+      payment_mode: modeName,
+      active: true,
+      chalan_id: selectedChalanId,
+      created_by: user?.username || 'Guest',
+      updated_by: user?.username || 'Guest',
+      user_email: user?.email_id || ''
+    };
+
+    try {
+      const response = await fetch('http://localhost:5001/api/payment-mode/insert', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json();
+      if (data.success && data.data) {
+        addToast(`Payment option "${modeName}" created and selected!`, "success");
+        const newPm = {
+          id: data.data.id,
+          name: data.data.payment_mode,
+          active: data.data.active
+        };
+        setPaymentModes(prev => [newPm, ...prev]);
+        setPaymentMode(data.data.payment_mode);
+      } else {
+        addToast(data.message || "Failed to add payment option", "error");
+      }
+    } catch (err) {
+      console.error("Quick Add Payment Option error:", err);
+      addToast("Failed to add payment option to database", "error");
+    }
+  };
+
+  const loadTransactions = async () => {
+    try {
+      const response = await fetch('http://localhost:5001/api/transaction/select');
+      const data = await response.json();
+      if (data.success && data.data) {
+        const mapped = data.data.map(tx => ({
+          id: tx.id,
+          title: tx.title,
+          type: tx.type,
+          amount: tx.amount,
+          date: tx.date,
+          time: tx.time,
+          chalanId: tx.chalan_id,
+          category: tx.category,
+          subcategory: tx.subcategory,
+          paymentMode: tx.payment_mode,
+          remark: tx.remark,
+          createdBy: tx.created_by,
+          user_email: tx.user_email
+        }));
+        const userEmail = user?.email_id?.toLowerCase() || '';
+        const userTxs = mapped.filter(t => t.user_email?.toLowerCase() === userEmail);
+        setTransactions(userTxs);
+      }
+    } catch (err) {
+      console.error("Failed to load transactions on Home:", err);
+    }
+  };
+
   useEffect(() => {
-    // 1. Determine active chalan ID (from router state, then fallback to placeholder '')
+    // 1. Determine active chalan ID
     const stateId = location.state?.selectedCashbookId;
     let initialId = '';
     
     if (stateId) {
       initialId = stateId;
-      localStorage.setItem(activeChalanKey, stateId); // Keep local storage in sync for other components if needed
+      localStorage.setItem(activeChalanKey, stateId);
     } else {
-      // If we didn't arrive here by clicking a cashbook, FORCE the default placeholder
-      // by clearing it.
       localStorage.removeItem(activeChalanKey);
     }
     
     setActiveChalanId(initialId);
     setSelectedChalanId(initialId);
 
-    // 2. Load categories
-    const savedCats = localStorage.getItem(categoriesStorageKey);
-    let loadedCats = DEFAULT_CATEGORIES;
-    if (savedCats) {
-      try { loadedCats = JSON.parse(savedCats); } catch (e) {}
-    } else {
-      localStorage.setItem(categoriesStorageKey, JSON.stringify(DEFAULT_CATEGORIES));
-    }
-    setCategories(loadedCats);
-    if (loadedCats.length > 0) setCategory(loadedCats[0].name);
-
-    // 3. Load payment modes
-    const savedModes = localStorage.getItem(modesStorageKey);
-    let loadedModes = DEFAULT_PAYMENT_MODES;
-    if (savedModes) {
-      try { loadedModes = JSON.parse(savedModes); } catch (e) {}
-    } else {
-      localStorage.setItem(modesStorageKey, JSON.stringify(DEFAULT_PAYMENT_MODES));
-    }
-    setPaymentModes(loadedModes);
-    if (loadedModes.length > 0) setPaymentMode(loadedModes[0].name);
-
-    // 4. Load chalans
+    // 2. Load chalans
     const savedChalans = localStorage.getItem(chalansStorageKey);
     let loadedChalans = [];
     if (savedChalans) {
@@ -114,77 +244,107 @@ export default function Home() {
     }
     setChalans(loadedChalans);
 
-    // 5. Load transactions
-    const savedTxs = localStorage.getItem(txsStorageKey);
-    if (savedTxs) {
-      try {
-        setTransactions(JSON.parse(savedTxs));
-      } catch (e) {
-        console.error(e);
-      }
-    } else {
-      // Seed default transactions
-      const initialSeed = [
-        { id: '1', title: 'Salary Credit', type: 'income', category: 'Business & Work', paymentMode: 'Bank Transfer', amount: 45000, date: new Date().toISOString().split('T')[0], chalanId: '1' },
-        { id: '2', title: 'Supermarket Groceries', type: 'expense', category: 'Grocery', paymentMode: 'Cash', amount: 2340, date: new Date().toISOString().split('T')[0], chalanId: '1' },
-        { id: '3', title: 'Petrol refuel', type: 'expense', category: 'Fuel & Transport', paymentMode: 'GPay / UPI', amount: 1200, date: new Date().toISOString().split('T')[0], chalanId: '1' },
-        { id: '4', title: 'Freelance Design Payment', type: 'income', category: 'Business & Work', paymentMode: 'GPay / UPI', amount: 12500, date: new Date().toISOString().split('T')[0], chalanId: '1' }
-      ];
-      setTransactions(initialSeed);
-      localStorage.setItem(txsStorageKey, JSON.stringify(initialSeed));
-    }
-  }, [txsStorageKey, categoriesStorageKey, modesStorageKey, chalansStorageKey, activeChalanKey]);
+    // 3. Load transactions and categories/modes from database
+    loadTransactions();
+    loadCategoriesAndModes(initialId || '1');
+  }, [location.state]);
 
-  // Save transactions helper
-  const saveTransactions = (newTxs) => {
-    setTransactions(newTxs);
-    localStorage.setItem(txsStorageKey, JSON.stringify(newTxs));
-  };
-
-  // Add transaction
-  const handleAddTransaction = (e) => {
+  // Add transaction to backend database
+  const handleAddTransaction = async (e) => {
     e.preventDefault();
     if (!title.trim() || !amount || parseFloat(amount) <= 0) {
       addToast("Please fill valid fields", "warning");
       return;
     }
 
-    const newTx = {
-      id: Date.now().toString(),
+    const payload = {
       title: title.trim(),
       type,
-      category,
-      paymentMode,
       amount: parseFloat(amount),
       date,
-      chalanId: selectedChalanId,
-      location: clientIp
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }),
+      chalan_id: selectedChalanId || '1',
+      category,
+      subcategory: '',
+      payment_mode: paymentMode,
+      remark: 'Null',
+      created_by: user?.username || 'Guest',
+      user_email: user?.email_id || ''
     };
 
-    const updated = [newTx, ...transactions];
-    saveTransactions(updated);
-    
-    // Automatically switch dashboard view to the cashbook where entry was added
-    if (selectedChalanId !== activeChalanId) {
-      setActiveChalanId(selectedChalanId);
-      localStorage.setItem(activeChalanKey, selectedChalanId);
-    }
-    
-    addToast("Transaction recorded successfully!", "success");
+    try {
+      const response = await fetch('http://localhost:5001/api/transaction/insert', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json();
 
-    // Reset Form
-    setTitle('');
-    setAmount('');
-    if (categories.length > 0) setCategory(categories[0].name);
-    if (paymentModes.length > 0) setPaymentMode(paymentModes[0].name);
-    setShowAddForm(false);
+      if (data.success && data.data) {
+        const savedTx = {
+          id: data.data.id,
+          title: data.data.title,
+          type: data.data.type,
+          amount: data.data.amount,
+          date: data.data.date,
+          time: data.data.time,
+          chalanId: data.data.chalan_id,
+          category: data.data.category,
+          subcategory: data.data.subcategory,
+          paymentMode: data.data.payment_mode,
+          remark: data.data.remark,
+          createdBy: data.data.created_by,
+          user_email: data.data.user_email
+        };
+
+        setTransactions([savedTx, ...transactions]);
+        addToast("Transaction recorded successfully!", "success");
+        
+        // Reset Form
+        setTitle('');
+        setAmount('');
+        setShowAddForm(false);
+        
+        // Automatically switch dashboard view to the cashbook where entry was added
+        if (selectedChalanId !== activeChalanId) {
+          setActiveChalanId(selectedChalanId);
+          localStorage.setItem(activeChalanKey, selectedChalanId);
+        }
+      } else {
+        addToast(data.message || "Failed to record transaction", "error");
+      }
+    } catch (err) {
+      console.error("Save transaction error:", err);
+      addToast("Failed to save transaction to database", "error");
+    }
   };
 
-  // Delete transaction
+  // Delete transaction from backend database
   const handleDeleteTransaction = (id) => {
-    const updated = transactions.filter(t => t.id !== id);
-    saveTransactions(updated);
-    addToast("Transaction deleted.", "info");
+    setConfirmModal({
+      isOpen: true,
+      title: "Delete Transaction",
+      message: "Are you sure you want to delete this transaction? This action cannot be undone.",
+      onConfirm: async () => {
+        try {
+          const response = await fetch('http://localhost:5001/api/transaction/delete', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id })
+          });
+          const data = await response.json();
+          if (data.success) {
+            setTransactions(transactions.filter(t => t.id !== id));
+            addToast("Transaction deleted successfully", "success");
+          } else {
+            addToast(data.message || "Failed to delete transaction", "error");
+          }
+        } catch (err) {
+          console.error("Delete transaction error:", err);
+          addToast("Failed to delete transaction from database", "error");
+        }
+      }
+    });
   };
 
   // ── Metrics calculations scoped to active chalan ──
@@ -539,7 +699,7 @@ export default function Home() {
                     }`}
                   >
                     <ArrowDown className="w-3.5 h-3.5" />
-                    Outflow (Expense)
+                    Expense
                   </button>
                   <button
                     type="button"
@@ -551,7 +711,7 @@ export default function Home() {
                     }`}
                   >
                     <ArrowUp className="w-3.5 h-3.5" />
-                    Inflow (Income)
+                    Income
                   </button>
                 </div>
 
@@ -560,7 +720,10 @@ export default function Home() {
                   <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide">Select Cashbook</label>
                   <Dropdown
                     value={selectedChalanId}
-                    onChange={(e) => setSelectedChalanId(e.target.value)}
+                    onChange={(e) => {
+                      setSelectedChalanId(e.target.value);
+                      loadCategoriesAndModes(e.target.value);
+                    }}
                     required
                   >
                     <option value="" disabled>Select Your Cashbook</option>
@@ -615,6 +778,7 @@ export default function Home() {
                     <Dropdown
                       value={category}
                       onChange={(e) => setCategory(e.target.value)}
+                      onAddNew={handleAddNewCategory}
                     >
                       {categories.map(c => (
                         <option key={c.id} value={c.name}>{c.name}</option>
@@ -626,6 +790,7 @@ export default function Home() {
                     <Dropdown
                       value={paymentMode}
                       onChange={(e) => setPaymentMode(e.target.value)}
+                      onAddNew={handleAddNewPaymentMode}
                     >
                       {paymentModes.map(pm => (
                         <option key={pm.id} value={pm.name}>{pm.name}</option>
@@ -647,6 +812,14 @@ export default function Home() {
           </div>
         )}
       </AnimatePresence>
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+      />
+
     </div>
   );
 }

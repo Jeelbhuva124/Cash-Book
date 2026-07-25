@@ -88,9 +88,33 @@ export default function Cashbooks() {
       }
     }
 
-    const savedTxs = localStorage.getItem(txsStorageKey);
-    if (savedTxs) {
-      try { setTransactions(JSON.parse(savedTxs)); } catch (e) {}
+    try {
+      const responseTxs = await fetch('http://localhost:5001/api/transaction/select', { signal });
+      const dataTxs = await responseTxs.json();
+      if (dataTxs.success && dataTxs.data) {
+        const userEmail = user?.email_id?.toLowerCase() || '';
+        const mappedTxs = dataTxs.data.map(tx => ({
+          id: tx.id,
+          title: tx.title,
+          type: tx.type,
+          amount: tx.amount,
+          date: tx.date,
+          time: tx.time,
+          chalanId: tx.chalan_id,
+          category: tx.category,
+          subcategory: tx.subcategory,
+          paymentMode: tx.payment_mode,
+          remark: tx.remark,
+          createdBy: tx.created_by,
+          user_email: tx.user_email
+        }));
+        const filteredTxs = mappedTxs.filter(tx => tx.user_email?.toLowerCase() === userEmail);
+        setTransactions(filteredTxs);
+      }
+    } catch (err) {
+      if (err.name !== 'AbortError') {
+        console.error("Failed to load transactions for cashbooks:", err);
+      }
     }
   };
 
@@ -189,7 +213,7 @@ export default function Cashbooks() {
   };
 
   return (
-    <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6 text-foreground bg-[#f4f6fc] dark:bg-background min-h-screen">
+    <div className="p-6 md:p-8 w-full space-y-6 text-foreground bg-transparent dark:bg-transparent min-h-screen">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
@@ -259,7 +283,11 @@ export default function Cashbooks() {
                 const formattedDate = formatUpdatedDate(book.createdAt);
 
                 return (
-                  <tr key={book.id} className="hover:bg-muted/10 transition-colors group bg-white dark:bg-card">
+                  <tr 
+                    key={book.id} 
+                    onClick={() => handleSelectCashbook(book.id)}
+                    className="cursor-pointer hover:bg-muted/10 transition-colors group bg-white dark:bg-card"
+                  >
                     <td className="px-6 py-4 w-[45%] align-middle">
                       <div className="flex items-center gap-3">
                         <div 
@@ -300,13 +328,19 @@ export default function Cashbooks() {
                     <td className="px-6 py-4 w-[13%] text-center align-middle">
                       <div className="flex items-center justify-center gap-2">
                         <button 
-                          onClick={() => handleSelectCashbook(book.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSelectCashbook(book.id);
+                          }}
                           className="p-1.5 rounded-lg border border-border/80 bg-[#f8fafc] text-muted-foreground hover:text-primary hover:bg-[#2563eb]/10 transition-colors"
                           title="View Log"
                         >
                           <Eye className="w-3.5 h-3.5" />
                         </button>
                         <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                          }}
                           className="p-1.5 rounded-lg border border-border/80 bg-[#f8fafc] text-muted-foreground hover:text-primary hover:bg-[#4f46e5]/10 transition-colors"
                           title="Edit"
                         >
@@ -324,12 +358,19 @@ export default function Cashbooks() {
                             <Trash2 className="w-3.5 h-3.5 text-expense" />
                           </button>
                         ) : (
-                          <button disabled className="p-1.5 rounded-lg border border-border/40 text-muted-foreground/30 cursor-not-allowed bg-muted/10">
+                          <button 
+                            onClick={(e) => e.stopPropagation()}
+                            disabled 
+                            className="p-1.5 rounded-lg border border-border/40 text-muted-foreground/30 cursor-not-allowed bg-muted/10"
+                          >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         )}
                         <button 
-                          onClick={() => handleSelectCashbook(book.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSelectCashbook(book.id);
+                          }}
                           className="p-1.5 rounded-lg border border-border/80 bg-[#f8fafc] text-muted-foreground hover:bg-[#f97316]/10 hover:text-[#f97316] transition-colors"
                           title="Enter Cashbook"
                         >
