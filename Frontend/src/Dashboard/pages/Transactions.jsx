@@ -2,44 +2,61 @@ import React, { useState, useEffect } from 'react';
 import { formatCurrency } from '../../utils/currencyFormatter';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Receipt, Search, Filter, ArrowLeft, Wallet, ArrowUp, ArrowDown, Plus, Trash2, X, CheckCircle2, Pencil } from 'lucide-react';
+import { 
+  Receipt, Search, Filter, ArrowLeft, Wallet, ArrowUp, ArrowDown, 
+  Plus, Trash2, X, CheckCircle2, Pencil, ChevronsUpDown, Upload 
+} from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
 import Dropdown from '../components/Dropdown';
+import ConfirmModal from '../components/ConfirmModal';
 
-// Standard categories matching Landing Page trackers
-const DEFAULT_CATEGORIES = [
-  { id: '1', name: "Grocery", color: "#3b82f6" },
-  { id: '2', name: "Fuel & Transport", color: "#10b981" },
-  { id: '3', name: "Travel", color: "#f59e0b" },
-  { id: '4', name: "Shopping", color: "#ec4899" },
-  { id: '5', name: "Electricity & Utilities", color: "#8b5cf6" },
-  { id: '6', name: "Medical & Healthcare", color: "#ef4444" },
-  { id: '7', name: "Home Maintenance", color: "#6b7280" },
-  { id: '8', name: "Business & Work", color: "#06b6d4" },
-  { id: '9', name: "Savings & Invests", color: "#10b981" }
-];
 
-const DEFAULT_PAYMENT_MODES = [
-  { id: '1', name: "Cash", type: "Cash" },
-  { id: '2', name: "Bank Transfer", type: "Bank" },
-  { id: '3', name: "GPay / UPI", type: "UPI" },
-  { id: '4', name: "Credit Card", type: "Card" }
-];
+const formatDate = (dateStr) => {
+  if (!dateStr) return '';
+  try {
+    const parts = dateStr.split('-');
+    if (parts.length === 3) {
+      return `${parts[2]}-${parts[1]}-${parts[0]}`; // YYYY-MM-DD to DD-MM-YYYY
+    }
+    return dateStr;
+  } catch (e) {
+    return dateStr;
+  }
+};
+
+const formatTime = (txId) => {
+  try {
+    const timestamp = parseInt(txId);
+    if (isNaN(timestamp)) return '';
+    const d = new Date(timestamp);
+    let hours = d.getHours();
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    const seconds = String(d.getSeconds()).padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12;
+    return `${String(hours).padStart(2, '0')}:${minutes}:${seconds} ${ampm}`;
+  } catch (e) {
+    return '';
+  }
+};
 
 export default function Transactions() {
   const { addToast } = useToast();
   const location = useLocation();
   const navigate = useNavigate();
   const [transactions, setTransactions] = useState([]);
-  const [search, setSearch] = useState('');
-  const [cashbookName, setCashbookName] = useState('');
+  const [cashbookName, setCashbookName] = useState('All Logs');
+  const [cashbookDesc, setCashbookDesc] = useState('Detailed history of all your transactions.');
   
   // Add Entry Modal States
   const [showAddForm, setShowAddForm] = useState(false);
   const [title, setTitle] = useState('');
   const [type, setType] = useState('expense');
   const [category, setCategory] = useState('');
+  const [subcategory, setSubcategory] = useState('');
   const [paymentMode, setPaymentMode] = useState('');
+  const [remark, setRemark] = useState('');
   const [amount, setAmount] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedChalanId, setSelectedChalanId] = useState('1');
@@ -48,76 +65,308 @@ export default function Transactions() {
   const [paymentModes, setPaymentModes] = useState([]);
   const [editTxId, setEditTxId] = useState(null);
 
+  // Column level filters state
+  const [searchFilters, setSearchFilters] = useState({
+    no: '',
+    type: '',
+    date: '',
+    time: '',
+    amount: '',
+    balance: '',
+    category: '',
+    subcategory: '',
+    paymentMode: '',
+    remark: '',
+    createdBy: ''
+  });
+
+  // Sorting configurations state
+  const [sortConfig, setSortConfig] = useState({ key: '', direction: '' });
+
+  // Checked Rows Selection state
+  const [selectedIds, setSelectedIds] = useState([]);
+
+  // Custom Confirmation Modal State
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {}
+  });
+
+  // Import CSV states
+  const [showImportForm, setShowImportForm] = useState(false);
+  const [importPreview, setImportPreview] = useState([]);
+
+  // Get current logged-in user details
+  const userRaw = localStorage.getItem("user");
+  const user = userRaw ? JSON.parse(userRaw) : null;
+  const username = user?.username || 'Guest';
+
+  const loadCategoriesAndModes = async (chalanId) => {
+    if (!chalanId) return;
+    const userEmail = user?.email_id?.toLowerCase() || '';
+
+    // Fetch Categories
+    try {
+      const res = await fetch('http://localhost:5001/api/category/select');
+      const data = await res.json();
+      if (data.success && data.data) {
+        const filtered = data.data.filter(cat => 
+          cat.user_email?.toLowerCase() === userEmail &&
+          cat.chalan_id === chalanId &&
+          cat.active
+        );
+        const mapped = filtered.map(c => ({
+          id: c.id,
+          name: c.category_name,
+          active: c.active
+        }));
+        setCategories(mapped);
+        if (mapped.length > 0) {
+          setCategory(mapped[0].name);
+        } else {
+          setCategory('');
+        }
+      }
+    } catch (err) {
+      console.error("Failed to load categories from API:", err);
+    }
+
+    // Fetch Payment Modes
+    try {
+      const res = await fetch('http://localhost:5001/api/payment-mode/select');
+      const data = await res.json();
+      if (data.success && data.data) {
+        const filtered = data.data.filter(pm => 
+          pm.user_email?.toLowerCase() === userEmail &&
+          pm.chalan_id === chalanId &&
+          pm.active
+        );
+        const mapped = filtered.map(p => ({
+          id: p.id,
+          name: p.payment_mode,
+          active: p.active
+        }));
+        setPaymentModes(mapped);
+        if (mapped.length > 0) {
+          setPaymentMode(mapped[0].name);
+        } else {
+          setPaymentMode('');
+        }
+      }
+    } catch (err) {
+      console.error("Failed to load payment modes from API:", err);
+    }
+  };
+
+  const handleAddNewCategory = async (catName) => {
+    if (!selectedChalanId) {
+      addToast("Please select a cashbook first", "warning");
+      return;
+    }
+    const payload = {
+      category_name: catName,
+      active: true,
+      chalan_id: selectedChalanId,
+      created_by: username,
+      updated_by: username,
+      user_email: user?.email_id || ''
+    };
+
+    try {
+      const response = await fetch('http://localhost:5001/api/category/insert', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json();
+      if (data.success && data.data) {
+        addToast(`Category "${catName}" created and selected!`, "success");
+        const newCat = {
+          id: data.data.id,
+          name: data.data.category_name,
+          active: data.data.active
+        };
+        setCategories(prev => [newCat, ...prev]);
+        setCategory(data.data.category_name);
+      } else {
+        addToast(data.message || "Failed to add category", "error");
+      }
+    } catch (err) {
+      console.error("Quick Add Category error:", err);
+      addToast("Failed to add category to database", "error");
+    }
+  };
+
+  const handleAddNewPaymentMode = async (modeName) => {
+    if (!selectedChalanId) {
+      addToast("Please select a cashbook first", "warning");
+      return;
+    }
+    const payload = {
+      payment_mode: modeName,
+      active: true,
+      chalan_id: selectedChalanId,
+      created_by: username,
+      updated_by: username,
+      user_email: user?.email_id || ''
+    };
+
+    try {
+      const response = await fetch('http://localhost:5001/api/payment-mode/insert', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json();
+      if (data.success && data.data) {
+        addToast(`Payment option "${modeName}" created and selected!`, "success");
+        const newPm = {
+          id: data.data.id,
+          name: data.data.payment_mode,
+          active: data.data.active
+        };
+        setPaymentModes(prev => [newPm, ...prev]);
+        setPaymentMode(data.data.payment_mode);
+      } else {
+        addToast(data.message || "Failed to add payment option", "error");
+      }
+    } catch (err) {
+      console.error("Quick Add Payment Option error:", err);
+      addToast("Failed to add payment option to database", "error");
+    }
+  };
+
   useEffect(() => {
     const userRaw = localStorage.getItem("user");
     const user = userRaw ? JSON.parse(userRaw) : null;
-    const txsStorageKey = `cashbook_txs_${user?.email_id || 'guest'}`;
     const chalansStorageKey = `cashbook_chalans_${user?.email_id || 'guest'}`;
 
-    const modesStorageKey = `cashbook_payment_modes_${user?.email_id || 'guest'}`;
-    const categoriesStorageKey = `cashbook_categories_${user?.email_id || 'guest'}`;
-
-    // Load categories
-    const savedCats = localStorage.getItem(categoriesStorageKey);
-    let loadedCats = DEFAULT_CATEGORIES;
-    if (savedCats) {
-      try { loadedCats = JSON.parse(savedCats); } catch (e) {}
-    } else {
-      localStorage.setItem(categoriesStorageKey, JSON.stringify(DEFAULT_CATEGORIES));
-    }
-    setCategories(loadedCats);
-    if (loadedCats.length > 0) setCategory(loadedCats[0].name);
-
-    // Load payment modes
-    const savedModes = localStorage.getItem(modesStorageKey);
-    let loadedModes = DEFAULT_PAYMENT_MODES;
-    if (savedModes) {
-      try { loadedModes = JSON.parse(savedModes); } catch (e) {}
-    } else {
-      localStorage.setItem(modesStorageKey, JSON.stringify(DEFAULT_PAYMENT_MODES));
-    }
-    setPaymentModes(loadedModes);
-    if (loadedModes.length > 0) setPaymentMode(loadedModes[0].name);
-
-    // Load chalans to find name
+    // Load chalans
     let loadedChalans = [];
     const savedChalans = localStorage.getItem(chalansStorageKey);
     if (savedChalans) {
-      try { loadedChalans = JSON.parse(savedChalans); } catch (e) { }
+      try { loadedChalans = JSON.parse(savedChalans); } catch (e) {}
     }
     setChalans(loadedChalans);
 
     const stateId = location.state?.selectedCashbookId;
+    let chalanId = '1';
     if (stateId) {
       const found = loadedChalans.find(c => c.id === stateId);
-      if (found) setCashbookName(found.name);
-      else if (stateId === '1') setCashbookName("General Cashbook");
+      if (found) {
+        setCashbookName(found.name);
+        setCashbookDesc(found.description || `Default ${found.name} cashbook`);
+      } else if (stateId === '1') {
+        setCashbookName("General Cashbook");
+        setCashbookDesc("Default General Cashbook");
+      }
       setSelectedChalanId(stateId);
+      chalanId = stateId;
+    } else {
+      setCashbookName("General Cashbook");
+      setCashbookDesc("Default General Cashbook");
+      setSelectedChalanId('1');
+      chalanId = '1';
     }
 
-    const saved = localStorage.getItem(txsStorageKey);
-    if (saved) {
-      let loadedTxs = JSON.parse(saved);
-      if (stateId) {
-        loadedTxs = loadedTxs.filter(tx => tx.chalanId === stateId || (stateId === '1' && !tx.chalanId));
-      }
-      setTransactions(loadedTxs);
-    }
+    loadTransactions();
+    loadCategoriesAndModes(chalanId);
   }, [location.state]);
 
-  const handleDelete = (txId) => {
-    if(!window.confirm("Are you sure you want to delete this transaction?")) return;
-    const userRaw = localStorage.getItem("user");
-    const user = userRaw ? JSON.parse(userRaw) : null;
-    const txsStorageKey = `cashbook_txs_${user?.email_id || 'guest'}`;
-    const saved = localStorage.getItem(txsStorageKey);
-    if (saved) {
-      let loadedTxs = JSON.parse(saved);
-      loadedTxs = loadedTxs.filter(t => t.id !== txId);
-      localStorage.setItem(txsStorageKey, JSON.stringify(loadedTxs));
-      setTransactions(transactions.filter(t => t.id !== txId));
-      addToast("Transaction deleted", "success");
+  const loadTransactions = async () => {
+    try {
+      const response = await fetch('http://localhost:5001/api/transaction/select');
+      const data = await response.json();
+      
+      if (data.success && data.data) {
+        // Map backend properties (snake_case) to frontend (camelCase)
+        const mapped = data.data.map(tx => ({
+          id: tx.id,
+          title: tx.title,
+          type: tx.type,
+          amount: tx.amount,
+          date: tx.date,
+          time: tx.time,
+          chalanId: tx.chalan_id,
+          category: tx.category,
+          subcategory: tx.subcategory,
+          paymentMode: tx.payment_mode,
+          remark: tx.remark,
+          createdBy: tx.created_by,
+          user_email: tx.user_email
+        }));
+
+        // Client side filter by logged-in user's email
+        const userEmail = user?.email_id?.toLowerCase() || '';
+        const userTxs = mapped.filter(t => t.user_email?.toLowerCase() === userEmail);
+        setTransactions(userTxs);
+      }
+    } catch (err) {
+      console.error("Failed to load transactions from backend:", err);
+      addToast("Failed to fetch transactions from database", "error");
     }
+  };
+
+  const handleDelete = (txId) => {
+    setConfirmModal({
+      isOpen: true,
+      title: "Delete Transaction",
+      message: "Are you sure you want to delete this transaction? This action cannot be undone.",
+      onConfirm: async () => {
+        try {
+          const response = await fetch('http://localhost:5001/api/transaction/delete', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: txId })
+          });
+          const data = await response.json();
+          
+          if (data.success) {
+            setTransactions(transactions.filter(t => t.id !== txId));
+            setSelectedIds(selectedIds.filter(id => id !== txId));
+            addToast("Transaction deleted successfully", "success");
+          } else {
+            addToast(data.message || "Failed to delete transaction", "error");
+          }
+        } catch (err) {
+          console.error("Delete call failed:", err);
+          addToast("Failed to delete transaction from database", "error");
+        }
+      }
+    });
+  };
+
+  const handleDeleteSelected = () => {
+    if (selectedIds.length === 0) return;
+    
+    setConfirmModal({
+      isOpen: true,
+      title: "Delete Selected Transactions",
+      message: `Are you sure you want to delete the ${selectedIds.length} selected transaction(s)? This action cannot be undone.`,
+      onConfirm: async () => {
+        try {
+          const response = await fetch('http://localhost:5001/api/transaction/delete', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ids: selectedIds })
+          });
+          const data = await response.json();
+
+          if (data.success) {
+            setTransactions(transactions.filter(t => !selectedIds.includes(t.id)));
+            setSelectedIds([]);
+            addToast(`${selectedIds.length} transactions deleted successfully`, "success");
+          } else {
+            addToast(data.message || "Failed to delete transactions", "error");
+          }
+        } catch (err) {
+          console.error("Bulk delete call failed:", err);
+          addToast("Failed to delete transactions from database", "error");
+        }
+      }
+    });
   };
 
   const handleOpenAddForm = () => {
@@ -126,6 +375,10 @@ export default function Transactions() {
     setAmount('');
     setDate(new Date().toISOString().split('T')[0]);
     setType('expense');
+    setSubcategory('');
+    setRemark('');
+    if (categories.length > 0) setCategory(categories[0].name);
+    if (paymentModes.length > 0) setPaymentMode(paymentModes[0].name);
     setShowAddForm(true);
   };
 
@@ -137,132 +390,456 @@ export default function Transactions() {
     setPaymentMode(tx.paymentMode);
     setAmount(tx.amount.toString());
     setDate(tx.date);
+    setSubcategory(tx.subcategory || '');
+    setRemark(tx.remark === 'Null' ? '' : (tx.remark || ''));
     setSelectedChalanId(tx.chalanId || '1');
     setShowAddForm(true);
   };
 
-  const handleAddTransaction = (e) => {
+  const handleAddTransaction = async (e) => {
     e.preventDefault();
     if (!title.trim() || !amount || parseFloat(amount) <= 0) {
       addToast("Please fill valid fields", "warning");
       return;
     }
-    const userRaw = localStorage.getItem("user");
-    const user = userRaw ? JSON.parse(userRaw) : null;
-    const txsStorageKey = `cashbook_txs_${user?.email_id || 'guest'}`;
-    
-    const newTx = {
-      id: editTxId ? editTxId : Date.now().toString(),
+
+    const isEdit = !!editTxId;
+    const url = isEdit 
+      ? 'http://localhost:5001/api/transaction/update' 
+      : 'http://localhost:5001/api/transaction/insert';
+    const method = isEdit ? 'PUT' : 'POST';
+
+    const payload = {
       title: title.trim(),
       type,
-      category,
-      paymentMode,
       amount: parseFloat(amount),
       date,
-      chalanId: selectedChalanId
+      time: !isEdit 
+        ? new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })
+        : (transactions.find(t => t.id === editTxId)?.time || formatTime(editTxId)),
+      chalan_id: selectedChalanId,
+      category,
+      subcategory: subcategory.trim(),
+      payment_mode: paymentMode,
+      remark: remark.trim() || 'Null',
+      created_by: username,
+      user_email: user?.email_id || ''
     };
 
-    let allTxs = [];
-    const saved = localStorage.getItem(txsStorageKey);
-    if (saved) {
-      allTxs = JSON.parse(saved);
+    if (isEdit) {
+      payload.id = editTxId;
     }
-    
-    if (editTxId) {
-      const updatedTxs = allTxs.map(t => t.id === editTxId ? newTx : t);
-      localStorage.setItem(txsStorageKey, JSON.stringify(updatedTxs));
-      setTransactions(transactions.map(t => t.id === editTxId ? newTx : t));
-      addToast("Transaction updated successfully", "success");
-    } else {
-      const updatedTxs = [newTx, ...allTxs];
-      localStorage.setItem(txsStorageKey, JSON.stringify(updatedTxs));
-      
-      const stateId = location.state?.selectedCashbookId;
-      if (!stateId || newTx.chalanId === stateId || (stateId === '1' && !newTx.chalanId)) {
-        setTransactions([newTx, ...transactions]);
+
+    try {
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json();
+
+      if (data.success && data.data) {
+        const savedTx = {
+          id: data.data.id,
+          title: data.data.title,
+          type: data.data.type,
+          amount: data.data.amount,
+          date: data.data.date,
+          time: data.data.time,
+          chalanId: data.data.chalan_id,
+          category: data.data.category,
+          subcategory: data.data.subcategory,
+          paymentMode: data.data.payment_mode,
+          remark: data.data.remark,
+          createdBy: data.data.created_by,
+          user_email: data.data.user_email
+        };
+
+        if (isEdit) {
+          setTransactions(transactions.map(t => t.id === editTxId ? savedTx : t));
+          addToast("Transaction updated successfully", "success");
+        } else {
+          setTransactions([savedTx, ...transactions]);
+          addToast("Transaction recorded successfully", "success");
+        }
+        setShowAddForm(false);
+        setTitle('');
+        setAmount('');
+        setSubcategory('');
+        setRemark('');
+        setEditTxId(null);
+      } else {
+        addToast(data.message || "Failed to record transaction", "error");
       }
-      addToast("Transaction added successfully", "success");
+    } catch (err) {
+      console.error("Save transaction error:", err);
+      addToast("Failed to save transaction to database", "error");
     }
-    
-    setShowAddForm(false);
-    setTitle('');
-    setAmount('');
-    setEditTxId(null);
   };
 
-  const filtered = transactions.filter(t =>
-    t.title.toLowerCase().includes(search.toLowerCase()) ||
-    t.category.toLowerCase().includes(search.toLowerCase())
-  );
+  const handleFilterChange = (key, val) => {
+    setSearchFilters(prev => ({
+      ...prev,
+      [key]: val
+    }));
+  };
 
-  const totalCashIn = filtered
+  const handleSort = (key) => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    } else if (sortConfig.key === key && sortConfig.direction === 'desc') {
+      direction = '';
+      key = '';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const getSortIcon = (key) => {
+    if (sortConfig.key !== key) {
+      return <ChevronsUpDown className="w-3 h-3 text-muted-foreground/30 inline ml-0.5" />;
+    }
+    if (sortConfig.direction === 'asc') {
+      return <ArrowUp className="w-3 h-3 text-primary inline ml-0.5" />;
+    }
+    return <ArrowDown className="w-3 h-3 text-primary inline ml-0.5" />;
+  };
+
+  // CSV Importer Logics
+  const parseCSV = (text) => {
+    const lines = text.split('\n');
+    if (lines.length <= 1) return [];
+    
+    const parsed = [];
+    let startIdx = 0;
+    
+    // Check if line 0 is a header row
+    const headerLine = lines[0].toLowerCase();
+    if (headerLine.includes('title') || headerLine.includes('type') || headerLine.includes('amount')) {
+      startIdx = 1;
+    }
+    
+    for (let i = startIdx; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+      
+      const cols = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.replace(/^"|"$/g, '').trim());
+      
+      if (cols.length < 3) continue;
+      
+      const title = cols[0] || 'Imported Entry';
+      const type = (cols[1] || 'expense').toLowerCase() === 'income' ? 'income' : 'expense';
+      const amount = parseFloat(cols[2]) || 0;
+      const date = cols[3] || new Date().toISOString().split('T')[0];
+      const category = cols[4] || 'Grocery';
+      const subcategory = cols[5] || '';
+      const paymentMode = cols[6] || 'Cash';
+      const remark = cols[7] || 'Null';
+      
+      parsed.push({
+        title,
+        type,
+        amount,
+        date,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }),
+        chalan_id: selectedChalanId || '1',
+        category,
+        subcategory,
+        payment_mode: paymentMode,
+        remark,
+        created_by: username,
+        user_email: user?.email_id || ''
+      });
+    }
+    return parsed;
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target.result;
+      const parsed = parseCSV(text);
+      // Map preview properties for preview table before uploading
+      const mappedPreview = parsed.map(tx => ({
+        ...tx,
+        paymentMode: tx.payment_mode,
+        createdBy: tx.created_by
+      }));
+      setImportPreview(mappedPreview);
+    };
+    reader.readAsText(file);
+  };
+
+  const handleConfirmImport = async () => {
+    if (importPreview.length === 0) {
+      addToast("No transactions found to import", "warning");
+      return;
+    }
+
+    // Prepare payload in snake_case
+    const payload = importPreview.map(tx => ({
+      title: tx.title,
+      type: tx.type,
+      amount: tx.amount,
+      date: tx.date,
+      time: tx.time,
+      chalan_id: selectedChalanId || '1',
+      category: tx.category,
+      subcategory: tx.subcategory,
+      payment_mode: tx.paymentMode,
+      remark: tx.remark,
+      created_by: username,
+      user_email: user?.email_id || ''
+    }));
+
+    try {
+      const response = await fetch('http://localhost:5001/api/transaction/insert', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json();
+
+      if (data.success && data.data) {
+        const mapped = data.data.map(tx => ({
+          id: tx.id,
+          title: tx.title,
+          type: tx.type,
+          amount: tx.amount,
+          date: tx.date,
+          time: tx.time,
+          chalanId: tx.chalan_id,
+          category: tx.category,
+          subcategory: tx.subcategory,
+          paymentMode: tx.payment_mode,
+          remark: tx.remark,
+          createdBy: tx.created_by,
+          user_email: tx.user_email
+        }));
+
+        setTransactions([...mapped, ...transactions]);
+        setShowImportForm(false);
+        setImportPreview([]);
+        addToast(`Successfully imported ${mapped.length} transaction(s)!`, "success");
+      } else {
+        addToast(data.message || "Failed to import transactions", "error");
+      }
+    } catch (err) {
+      console.error("Bulk import failed:", err);
+      addToast("Failed to save imported transactions to database", "error");
+    }
+  };
+
+  // Filter transactions for active cashbook
+  const rawActiveTxs = selectedChalanId === ''
+    ? transactions
+    : transactions.filter(tx => 
+        tx.chalanId === selectedChalanId || (selectedChalanId === '1' && !tx.chalanId)
+      );
+
+  // Chronological order for calculating running balance
+  const chronologicalTxs = [...rawActiveTxs].sort((a, b) => {
+    if (a.date !== b.date) {
+      return a.date.localeCompare(b.date);
+    }
+    const idA = parseInt(a.id);
+    const idB = parseInt(b.id);
+    if (!isNaN(idA) && !isNaN(idB)) {
+      return idA - idB;
+    }
+    return a.id.localeCompare(b.id);
+  });
+
+  let balanceAccumulator = 0;
+  const txsWithBalance = chronologicalTxs.map(tx => {
+    if (tx.type === 'income') {
+      balanceAccumulator += tx.amount;
+    } else {
+      balanceAccumulator -= tx.amount;
+    }
+    return {
+      ...tx,
+      runningBalance: balanceAccumulator
+    };
+  });
+
+  const totalCashIn = txsWithBalance
     .filter(t => t.type === 'income')
     .reduce((sum, t) => sum + t.amount, 0);
 
-  const totalCashOut = filtered
+  const totalCashOut = txsWithBalance
     .filter(t => t.type === 'expense')
     .reduce((sum, t) => sum + t.amount, 0);
-    
+
   const totalBalance = totalCashIn - totalCashOut;
 
+  // Reverse list to display newest first
+  const displayTxs = [...txsWithBalance].reverse();
+
+  // Apply column-level searching filters
+  const filteredTxs = displayTxs.filter((tx, index) => {
+    const rowNo = (displayTxs.length - index).toString();
+    if (searchFilters.no && !rowNo.includes(searchFilters.no)) return false;
+
+    const typeLabel = tx.type === 'income' ? 'Cash In' : 'Cash Out';
+    if (searchFilters.type && !typeLabel.toLowerCase().includes(searchFilters.type.toLowerCase())) return false;
+
+    const dateFormatted = formatDate(tx.date);
+    if (searchFilters.date && !dateFormatted.toLowerCase().includes(searchFilters.date.toLowerCase())) return false;
+
+    const timeFormatted = tx.time || formatTime(tx.id);
+    if (searchFilters.time && !timeFormatted.toLowerCase().includes(searchFilters.time.toLowerCase())) return false;
+
+    if (searchFilters.amount && !tx.amount.toString().includes(searchFilters.amount)) return false;
+
+    if (searchFilters.balance && !tx.runningBalance.toString().includes(searchFilters.balance)) return false;
+
+    if (searchFilters.category && !tx.category.toLowerCase().includes(searchFilters.category.toLowerCase())) return false;
+
+    const subcat = tx.subcategory || '';
+    if (searchFilters.subcategory && !subcat.toLowerCase().includes(searchFilters.subcategory.toLowerCase())) return false;
+
+    const pm = tx.paymentMode || 'Cash';
+    if (searchFilters.paymentMode && !pm.toLowerCase().includes(searchFilters.paymentMode.toLowerCase())) return false;
+
+    const remark = tx.remark || 'Null';
+    if (searchFilters.remark && !remark.toLowerCase().includes(searchFilters.remark.toLowerCase())) return false;
+
+    const cb = tx.createdBy || 'Guest';
+    if (searchFilters.createdBy && !cb.toLowerCase().includes(searchFilters.createdBy.toLowerCase())) return false;
+
+    return true;
+  });
+
+  // Apply Sort parameters
+  const sortedTxs = [...filteredTxs];
+  if (sortConfig.key) {
+    sortedTxs.sort((a, b) => {
+      let valA, valB;
+      
+      switch (sortConfig.key) {
+        case 'no':
+          valA = displayTxs.length - displayTxs.indexOf(a);
+          valB = displayTxs.length - displayTxs.indexOf(b);
+          break;
+        case 'type':
+          valA = a.type === 'income' ? 'Cash In' : 'Cash Out';
+          valB = b.type === 'income' ? 'Cash In' : 'Cash Out';
+          break;
+        case 'date':
+          valA = a.date;
+          valB = b.date;
+          break;
+        case 'time':
+          valA = a.time || formatTime(a.id);
+          valB = b.time || formatTime(b.id);
+          break;
+        case 'amount':
+          valA = a.amount;
+          valB = b.amount;
+          break;
+        case 'balance':
+          valA = a.runningBalance;
+          valB = b.runningBalance;
+          break;
+        case 'category':
+          valA = a.category || '';
+          valB = b.category || '';
+          break;
+        case 'subcategory':
+          valA = a.subcategory || '';
+          valB = b.subcategory || '';
+          break;
+        case 'paymentMode':
+          valA = a.paymentMode || 'Cash';
+          valB = b.paymentMode || 'Cash';
+          break;
+        case 'remark':
+          valA = a.remark || 'Null';
+          valB = b.remark || 'Null';
+          break;
+        case 'createdBy':
+          valA = a.createdBy || 'Guest';
+          valB = b.createdBy || 'Guest';
+          break;
+        default:
+          valA = a.id;
+          valB = b.id;
+      }
+      
+      if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
+      if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }
+
   return (
-    <div className="p-6 md:p-10 max-w-6xl mx-auto space-y-6 bg-background min-h-screen text-foreground">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div className="flex flex-col gap-1.5">
+    <div className="p-6 md:p-8 w-full space-y-6 bg-transparent dark:bg-transparent min-h-screen text-foreground">
+      
+      {/* ── TOP-FIXED HEADER LAYOUT ── */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white dark:bg-card border border-border/80 rounded-2xl p-4 shadow-sm">
+        <div className="flex items-center gap-3">
           <button 
             onClick={() => navigate('/dashboard/cashbooks')}
-            className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-primary transition-colors w-fit mb-1"
+            className="p-2.5 bg-[#f8fafc] dark:bg-[#15181f] border border-border rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-colors flex items-center justify-center shrink-0 shadow-sm"
+            title="Back to Cashbooks"
           >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            Back to Cashbooks
+            <ArrowLeft className="w-5 h-5" />
           </button>
-          <h1 className="text-3xl font-extrabold flex items-center gap-2">
-            <Receipt className="w-8 h-8 text-primary" />
-            {cashbookName ? `${cashbookName} Logs` : 'All Logs'}
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">Detailed history of all your transactions.</p>
+          <div className="flex flex-col">
+            <h1 className="text-xl md:text-2xl font-bold tracking-tight text-[#1e293b] dark:text-foreground">
+              {cashbookName}
+            </h1>
+            <p className="text-xs text-muted-foreground mt-0.5 font-medium">
+              {cashbookDesc}
+            </p>
+          </div>
         </div>
 
-        <div className="flex items-center gap-3 w-full md:w-auto">
-          <div className="relative flex-1 md:flex-none md:w-64">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Search logs..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-card border border-border rounded-xl text-sm focus:outline-none focus:border-primary shadow-sm"
-            />
-          </div>
+        <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
+          <button 
+            onClick={() => setShowImportForm(true)}
+            className="flex items-center gap-1.5 px-4 py-2 border border-border bg-[#f8fafc] dark:bg-[#15181f] text-foreground font-semibold rounded-xl text-xs hover:bg-muted transition-colors shadow-sm"
+          >
+            <Upload className="w-3.5 h-3.5 text-primary" />
+            Import Transaction
+          </button>
           <button 
             onClick={handleOpenAddForm}
-            className="p-2.5 bg-primary text-primary-foreground rounded-xl shadow-sm hover:bg-primary/90 transition-colors shrink-0"
-            title="Add New Entry"
+            className="flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground font-semibold rounded-xl text-xs hover:opacity-95 transition-all shadow-sm"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-3.5 h-3.5" />
+            Add Transaction
           </button>
         </div>
       </div>
 
+      {/* ── DYNAMIC METRICS CARDS ── */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        {/* Card 1: Total Balance */}
+        {/* Total Balance */}
         <div className="bg-white dark:bg-card border border-border/80 rounded-2xl p-5 shadow-sm flex items-center justify-between">
           <div className="space-y-1">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total Balance</p>
-            <p className="text-2xl font-bold text-foreground">
-              {formatCurrency(totalBalance )}
+            <p className={`text-2xl font-bold tracking-tight ${totalBalance < 0 ? 'text-[#ef4444]' : 'text-foreground'}`}>
+              {formatCurrency(totalBalance)}
             </p>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+            totalBalance < 0 
+              ? 'bg-rose-50 dark:bg-rose-950/30 text-[#ef4444]' 
+              : 'bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400'
+          }`}>
             <Wallet className="w-5 h-5" />
           </div>
         </div>
 
-        {/* Card 2: Total Cash In */}
+        {/* Total Cash In */}
         <div className="bg-white dark:bg-card border border-border/80 rounded-2xl p-5 shadow-sm flex items-center justify-between">
           <div className="space-y-1">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total Cash In</p>
-            <p className="text-2xl font-bold text-foreground">
+            <p className="text-2xl font-bold tracking-tight text-foreground">
               {formatCurrency(totalCashIn)}
             </p>
           </div>
@@ -271,86 +848,306 @@ export default function Transactions() {
           </div>
         </div>
 
-        {/* Card 3: Total Cash Out */}
+        {/* Total Cash Out */}
         <div className="bg-white dark:bg-card border border-border/80 rounded-2xl p-5 shadow-sm flex items-center justify-between">
           <div className="space-y-1">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total Cash Out</p>
-            <p className="text-2xl font-bold text-expense">
+            <p className="text-2xl font-bold tracking-tight text-[#ef4444]">
               {formatCurrency(totalCashOut)}
             </p>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/30 text-expense flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/30 text-[#ef4444] flex items-center justify-center">
             <ArrowDown className="w-5 h-5" />
           </div>
         </div>
       </div>
 
-      <div className="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
-        <div className="overflow-x-auto w-full">
-          <table className="w-full text-left border-collapse">
+      {/* ── TRANSACTION LEDGER ── */}
+      <div className="bg-white dark:bg-card border border-border/80 rounded-2xl shadow-sm p-6 space-y-4">
+        
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <h2 className="font-bold text-sm text-foreground flex items-center gap-2">
+            Transaction History 
+            <span className="text-muted-foreground font-normal">• {sortedTxs.length} Records</span>
+          </h2>
+          
+          {selectedIds.length > 0 && (
+            <button 
+              onClick={handleDeleteSelected}
+              className="flex items-center gap-1.5 px-3 py-1.5 border border-[#ef4444]/40 text-[#ef4444] rounded-lg text-xs font-bold bg-[#ef4444]/5 hover:bg-[#ef4444]/10 transition-colors shadow-sm"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              Delete Selected ({selectedIds.length})
+            </button>
+          )}
+        </div>
+        
+        {/* Select All bar */}
+        <div className="flex items-center gap-2 select-none py-1">
+          <input
+            type="checkbox"
+            id="selectAllHeader"
+            checked={sortedTxs.length > 0 && selectedIds.length === sortedTxs.length}
+            onChange={(e) => {
+              if (e.target.checked) {
+                setSelectedIds(sortedTxs.map(t => t.id));
+              } else {
+                setSelectedIds([]);
+              }
+            }}
+            className="w-4 h-4 rounded text-primary focus:ring-primary border-border cursor-pointer"
+          />
+          <label htmlFor="selectAllHeader" className="text-xs font-semibold text-muted-foreground cursor-pointer">
+            Select All
+          </label>
+        </div>
+
+        {/* Ledger Table Container */}
+        <div className="overflow-x-auto w-full border border-border/60 rounded-xl bg-card">
+          <table className="w-full text-left border-collapse table-fixed min-w-[1600px]">
             <thead>
-              <tr className="bg-muted/70 border-b border-border text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                <th className="px-6 py-4">Title</th>
-                <th className="px-6 py-4">Category</th>
-                <th className="px-6 py-4">Payment Method</th>
-                <th className="px-6 py-4">Date & Time</th>
-                <th className="px-6 py-4 text-right">Amount</th>
-                <th className="px-6 py-4 text-center">Actions</th>
+              {/* Header Titles with Sort Toggles */}
+              <tr className="bg-muted/30 border-b border-border text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                <th className="px-4 py-3.5 w-[50px] text-center"></th>
+                <th className="px-4 py-3.5 w-[70px] cursor-pointer" onClick={() => handleSort('no')}>
+                  <div className="flex items-center gap-1">
+                    No {getSortIcon('no')}
+                  </div>
+                </th>
+                <th className="px-4 py-3.5 w-[110px] cursor-pointer" onClick={() => handleSort('type')}>
+                  <div className="flex items-center gap-1">
+                    Type {getSortIcon('type')}
+                  </div>
+                </th>
+                <th className="px-4 py-3.5 w-[130px] cursor-pointer" onClick={() => handleSort('date')}>
+                  <div className="flex items-center gap-1">
+                    Date {getSortIcon('date')}
+                  </div>
+                </th>
+                <th className="px-4 py-3.5 w-[130px] cursor-pointer" onClick={() => handleSort('time')}>
+                  <div className="flex items-center gap-1">
+                    Time {getSortIcon('time')}
+                  </div>
+                </th>
+                <th className="px-4 py-3.5 w-[130px] cursor-pointer" onClick={() => handleSort('amount')}>
+                  <div className="flex items-center gap-1">
+                    Amount {getSortIcon('amount')}
+                  </div>
+                </th>
+                <th className="px-4 py-3.5 w-[130px] cursor-pointer" onClick={() => handleSort('balance')}>
+                  <div className="flex items-center gap-1">
+                    Balance {getSortIcon('balance')}
+                  </div>
+                </th>
+                <th className="px-4 py-3.5 w-[160px] cursor-pointer" onClick={() => handleSort('category')}>
+                  <div className="flex items-center gap-1">
+                    Category {getSortIcon('category')}
+                  </div>
+                </th>
+                <th className="px-4 py-3.5 w-[160px] cursor-pointer" onClick={() => handleSort('subcategory')}>
+                  <div className="flex items-center gap-1">
+                    Subcategory {getSortIcon('subcategory')}
+                  </div>
+                </th>
+                <th className="px-4 py-3.5 w-[160px] cursor-pointer" onClick={() => handleSort('paymentMode')}>
+                  <div className="flex items-center gap-1">
+                    Payment Mode {getSortIcon('paymentMode')}
+                  </div>
+                </th>
+                <th className="px-4 py-3.5 w-[160px] cursor-pointer" onClick={() => handleSort('remark')}>
+                  <div className="flex items-center gap-1">
+                    Remark {getSortIcon('remark')}
+                  </div>
+                </th>
+                <th className="px-4 py-3.5 w-[200px] cursor-pointer" onClick={() => handleSort('createdBy')}>
+                  <div className="flex items-center gap-1">
+                    Created By {getSortIcon('createdBy')}
+                  </div>
+                </th>
+                <th className="px-4 py-3.5 w-[100px] text-center">Actions</th>
+              </tr>
+              
+              {/* Header Column Filters Row */}
+              <tr className="bg-muted/10 border-b border-border/40">
+                <th className="px-4 py-2"></th>
+                <th className="px-4 py-2">
+                  <input
+                    type="text"
+                    placeholder="Search."
+                    value={searchFilters.no}
+                    onChange={(e) => handleFilterChange('no', e.target.value)}
+                    className="w-full px-2 py-1 text-xs border border-border bg-white dark:bg-card rounded-lg focus:outline-none focus:border-primary font-normal"
+                  />
+                </th>
+                <th className="px-4 py-2">
+                  <input
+                    type="text"
+                    placeholder="Search."
+                    value={searchFilters.type}
+                    onChange={(e) => handleFilterChange('type', e.target.value)}
+                    className="w-full px-2 py-1 text-xs border border-border bg-white dark:bg-card rounded-lg focus:outline-none focus:border-primary font-normal"
+                  />
+                </th>
+                <th className="px-4 py-2">
+                  <input
+                    type="text"
+                    placeholder="Search."
+                    value={searchFilters.date}
+                    onChange={(e) => handleFilterChange('date', e.target.value)}
+                    className="w-full px-2 py-1 text-xs border border-border bg-white dark:bg-card rounded-lg focus:outline-none focus:border-primary font-normal"
+                  />
+                </th>
+                <th className="px-4 py-2">
+                  <input
+                    type="text"
+                    placeholder="Search."
+                    value={searchFilters.time}
+                    onChange={(e) => handleFilterChange('time', e.target.value)}
+                    className="w-full px-2 py-1 text-xs border border-border bg-white dark:bg-card rounded-lg focus:outline-none focus:border-primary font-normal"
+                  />
+                </th>
+                <th className="px-4 py-2">
+                  <input
+                    type="text"
+                    placeholder="Search."
+                    value={searchFilters.amount}
+                    onChange={(e) => handleFilterChange('amount', e.target.value)}
+                    className="w-full px-2 py-1 text-xs border border-border bg-white dark:bg-card rounded-lg focus:outline-none focus:border-primary font-normal"
+                  />
+                </th>
+                <th className="px-4 py-2">
+                  <input
+                    type="text"
+                    placeholder="Search."
+                    value={searchFilters.balance}
+                    onChange={(e) => handleFilterChange('balance', e.target.value)}
+                    className="w-full px-2 py-1 text-xs border border-border bg-white dark:bg-card rounded-lg focus:outline-none focus:border-primary font-normal"
+                  />
+                </th>
+                <th className="px-4 py-2">
+                  <input
+                    type="text"
+                    placeholder="Search."
+                    value={searchFilters.category}
+                    onChange={(e) => handleFilterChange('category', e.target.value)}
+                    className="w-full px-2 py-1 text-xs border border-border bg-white dark:bg-card rounded-lg focus:outline-none focus:border-primary font-normal"
+                  />
+                </th>
+                <th className="px-4 py-2">
+                  <input
+                    type="text"
+                    placeholder="Search."
+                    value={searchFilters.subcategory}
+                    onChange={(e) => handleFilterChange('subcategory', e.target.value)}
+                    className="w-full px-2 py-1 text-xs border border-border bg-white dark:bg-card rounded-lg focus:outline-none focus:border-primary font-normal"
+                  />
+                </th>
+                <th className="px-4 py-2">
+                  <input
+                    type="text"
+                    placeholder="Search."
+                    value={searchFilters.paymentMode}
+                    onChange={(e) => handleFilterChange('paymentMode', e.target.value)}
+                    className="w-full px-2 py-1 text-xs border border-border bg-white dark:bg-card rounded-lg focus:outline-none focus:border-primary font-normal"
+                  />
+                </th>
+                <th className="px-4 py-2">
+                  <input
+                    type="text"
+                    placeholder="Search."
+                    value={searchFilters.remark}
+                    onChange={(e) => handleFilterChange('remark', e.target.value)}
+                    className="w-full px-2 py-1 text-xs border border-border bg-white dark:bg-card rounded-lg focus:outline-none focus:border-primary font-normal"
+                  />
+                </th>
+                <th className="px-4 py-2">
+                  <input
+                    type="text"
+                    placeholder="Search."
+                    value={searchFilters.createdBy}
+                    onChange={(e) => handleFilterChange('createdBy', e.target.value)}
+                    className="w-full px-2 py-1 text-xs border border-border bg-white dark:bg-card rounded-lg focus:outline-none focus:border-primary font-normal"
+                  />
+                </th>
+                <th className="px-4 py-2"></th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border/80">
-              {filtered.map((tx) => (
-                <tr key={tx.id} className="hover:bg-muted/40 transition-colors text-sm">
-                  <td className="px-6 py-4 font-bold">
-                    <div className="flex items-center gap-3">
-                      <span className={`w-2 h-2 rounded-full ${tx.type === 'income' ? 'bg-income' : 'bg-expense'}`} />
-                      {tx.title}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="inline-block px-2.5 py-1 rounded-full bg-muted text-muted-foreground text-[10px] font-bold">
-                      {tx.category}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="inline-block px-2.5 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-bold">
-                      {tx.paymentMode || 'N/A'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-muted-foreground font-medium">
-                    <div className="flex flex-col">
-                      <span>{tx.date}</span>
-                      <span className="text-xs opacity-70">
-                        {new Date(parseInt(tx.id)).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            
+            <tbody className="divide-y divide-border/60">
+              {sortedTxs.map((tx, idx) => {
+                const rowNo = displayTxs.length - displayTxs.indexOf(tx);
+                const isSelected = selectedIds.includes(tx.id);
+                
+                return (
+                  <tr key={tx.id} className={`hover:bg-muted/30 transition-colors text-xs font-semibold text-foreground ${isSelected ? 'bg-primary/5' : ''}`}>
+                    <td className="px-4 py-3.5 text-center">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedIds([...selectedIds, tx.id]);
+                          } else {
+                            setSelectedIds(selectedIds.filter(id => id !== tx.id));
+                          }
+                        }}
+                        className="w-4 h-4 rounded text-primary focus:ring-primary border-border cursor-pointer"
+                      />
+                    </td>
+                    <td className="px-4 py-3.5 text-muted-foreground">{rowNo}</td>
+                    <td className="px-4 py-3.5">
+                      <span className={tx.type === 'income' ? 'text-[#10b981]' : 'text-[#ef4444]'}>
+                        {tx.type === 'income' ? 'Cash In' : 'Cash Out'}
                       </span>
-                    </div>
-                  </td>
-                  <td className={`px-6 py-4 text-right font-black ${tx.type === 'income' ? 'text-income' : 'text-expense'}`}>
-                    {tx.type  === 'income' ? '+' : ''}{formatCurrency(tx.type  === 'income' ? tx.amount : -tx.amount)}
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    <div className="flex items-center justify-center gap-2">
-                      <button 
-                        onClick={() => handleEditClick(tx)}
-                        className="p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors inline-flex"
-                        title="Edit Entry"
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </button>
-                      <button 
-                        onClick={() => handleDelete(tx.id)}
-                        className="p-1.5 text-muted-foreground hover:text-expense hover:bg-expense-bg/30 rounded-lg transition-colors inline-flex"
-                        title="Remove Entry"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {filtered.length === 0 && (
+                    </td>
+                    <td className="px-4 py-3.5">{formatDate(tx.date)}</td>
+                    <td className="px-4 py-3.5">{tx.time}</td>
+                    <td className={`px-4 py-3.5 font-bold ${tx.type === 'income' ? 'text-[#10b981]' : 'text-[#ef4444]'}`}>
+                      {tx.type === 'income' ? '+' : ''}{formatCurrency(tx.type === 'income' ? tx.amount : -tx.amount)}
+                    </td>
+                    <td className={`px-4 py-3.5 font-bold ${tx.runningBalance < 0 ? 'text-[#ef4444]' : 'text-[#10b981]'}`}>
+                      {formatCurrency(tx.runningBalance)}
+                    </td>
+                    <td className="px-4 py-3.5">
+                      <span className="inline-block px-2.5 py-1 rounded-full bg-muted text-muted-foreground text-[10px] font-bold">
+                        {tx.category}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3.5 text-muted-foreground">{tx.subcategory || "-"}</td>
+                    <td className="px-4 py-3.5">
+                      <span className="inline-block px-2 py-0.5 rounded border border-border text-[10px] font-bold text-muted-foreground bg-muted/20">
+                        {tx.paymentMode || 'Cash'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3.5 text-muted-foreground">{tx.remark || 'Null'}</td>
+                    <td className="px-4 py-3.5 text-muted-foreground truncate max-w-[150px]" title={tx.createdBy || 'Guest'}>
+                      {tx.createdBy || 'Guest'}
+                    </td>
+                    <td className="px-4 py-3.5 text-center">
+                      <div className="flex items-center justify-center gap-1.5">
+                        <button 
+                          onClick={() => handleEditClick(tx)}
+                          className="p-1 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded transition-colors"
+                          title="Edit Entry"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(tx.id)}
+                          className="p-1 text-muted-foreground hover:text-[#ef4444] hover:bg-[#ef4444]/10 rounded transition-colors"
+                          title="Remove Entry"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+              
+              {sortedTxs.length === 0 && (
                 <tr>
-                  <td colSpan="6" className="px-6 py-12 text-center text-muted-foreground font-medium">
+                  <td colSpan="13" className="px-6 py-12 text-center text-muted-foreground font-medium">
                     No logs found matching your search.
                   </td>
                 </tr>
@@ -360,7 +1157,7 @@ export default function Transactions() {
         </div>
       </div>
 
-      {/* ── QUICK TRANSACTION ENTRY MODAL ── */}
+      {/* ── TRANSACTION ENTRY MODAL ── */}
       <AnimatePresence>
         {showAddForm && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -376,7 +1173,7 @@ export default function Transactions() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="relative bg-white dark:bg-card border border-border rounded-2xl shadow-sm p-6 w-full max-w-[460px] z-10 space-y-6 text-foreground"
+              className="relative bg-white dark:bg-card border border-border rounded-2xl shadow-xl p-6 w-full max-w-[460px] z-10 space-y-6 text-foreground"
             >
               <div className="flex justify-between items-center">
                 <h3 className="font-bold text-lg flex items-center gap-2">
@@ -403,19 +1200,19 @@ export default function Transactions() {
                     }`}
                   >
                     <ArrowDown className="w-3.5 h-3.5" />
-                    Outflow (Expense)
+                    Expense
                   </button>
                   <button
                     type="button"
                     onClick={() => setType('income')}
                     className={`py-2 rounded-lg font-bold text-xs transition-all flex items-center justify-center gap-1.5 ${
                       type === 'income'
-                        ? 'bg-white dark:bg-[#1a2475] text-emerald-600 dark:text-white shadow-sm'
+                        ? 'bg-white dark:bg-[#1a2475] text-[#10b981] dark:text-white shadow-sm'
                         : 'text-muted-foreground hover:text-foreground'
                     }`}
                   >
                     <ArrowUp className="w-3.5 h-3.5" />
-                    Inflow (Income)
+                    Income
                   </button>
                 </div>
 
@@ -423,7 +1220,10 @@ export default function Transactions() {
                   <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide">Select Cashbook</label>
                   <Dropdown
                     value={selectedChalanId}
-                    onChange={(e) => setSelectedChalanId(e.target.value)}
+                    onChange={(e) => {
+                      setSelectedChalanId(e.target.value);
+                      loadCategoriesAndModes(e.target.value);
+                    }}
                     required
                   >
                     <option value="" disabled>Select Your Cashbook</option>
@@ -475,6 +1275,7 @@ export default function Transactions() {
                     <Dropdown
                       value={category}
                       onChange={(e) => setCategory(e.target.value)}
+                      onAddNew={handleAddNewCategory}
                     >
                       {categories.map(c => (
                          <option key={c.id} value={c.name}>{c.name}</option>
@@ -482,15 +1283,39 @@ export default function Transactions() {
                     </Dropdown>
                   </div>
                   <div className="space-y-1">
+                    <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide">Subcategory</label>
+                    <input
+                      type="text"
+                      value={subcategory}
+                      onChange={(e) => setSubcategory(e.target.value)}
+                      placeholder="e.g. rent', dinner"
+                      className="w-full px-4 py-2.5 rounded-xl border border-border focus:outline-none focus:border-primary text-sm font-medium text-foreground bg-white dark:bg-card"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
                     <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide">Payment Mode</label>
                     <Dropdown
                       value={paymentMode}
                       onChange={(e) => setPaymentMode(e.target.value)}
+                      onAddNew={handleAddNewPaymentMode}
                     >
                       {paymentModes.map(pm => (
                         <option key={pm.id} value={pm.name}>{pm.name}</option>
                       ))}
                     </Dropdown>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide">Remark</label>
+                    <input
+                      type="text"
+                      value={remark}
+                      onChange={(e) => setRemark(e.target.value)}
+                      placeholder="Remarks..."
+                      className="w-full px-4 py-2.5 rounded-xl border border-border focus:outline-none focus:border-primary text-sm font-medium text-foreground bg-white dark:bg-card"
+                    />
                   </div>
                 </div>
 
@@ -506,6 +1331,157 @@ export default function Transactions() {
           </div>
         )}
       </AnimatePresence>
+
+      {/* ── CSV TRANSACTIONS IMPORT MODAL ── */}
+      <AnimatePresence>
+        {showImportForm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => {
+                setShowImportForm(false);
+                setImportPreview([]);
+              }}
+              className="absolute inset-0 bg-black/30 backdrop-blur-sm"
+            />
+
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="relative bg-white dark:bg-card border border-border rounded-2xl shadow-xl p-6 w-full max-w-[650px] z-10 space-y-6 text-foreground"
+            >
+              <div className="flex justify-between items-center">
+                <h3 className="font-bold text-lg flex items-center gap-2">
+                  <Upload className="w-5 h-5 text-primary" />
+                  Import Transactions from CSV
+                </h3>
+                <button
+                  onClick={() => {
+                    setShowImportForm(false);
+                    setImportPreview([]);
+                  }}
+                  className="p-1 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Upload a CSV file containing transactions. The columns should be formatted in the following order:
+                  <br />
+                  <code className="block mt-1.5 p-2 bg-muted border border-border rounded-lg font-mono text-[10px] text-foreground">
+                    Title, Type (income/expense), Amount, Date (YYYY-MM-DD), Category, Subcategory, Payment Mode, Remark
+                  </code>
+                </p>
+
+                <div className="flex flex-col items-center justify-center border-2 border-dashed border-border/80 rounded-xl p-8 bg-muted/10 hover:bg-muted/20 transition-colors">
+                  <input
+                    type="file"
+                    accept=".csv"
+                    onChange={handleFileChange}
+                    className="hidden"
+                    id="csvFileInput"
+                  />
+                  <label htmlFor="csvFileInput" className="cursor-pointer flex flex-col items-center gap-2 text-center w-full">
+                    <Upload className="w-8 h-8 text-muted-foreground" />
+                    <span className="text-sm font-semibold text-primary">Click to select CSV File</span>
+                    <span className="text-xs text-muted-foreground text-center">Only standard .csv files are supported</span>
+                  </label>
+                </div>
+
+                {importPreview.length > 0 && (
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <h4 className="font-bold text-xs text-foreground uppercase tracking-wide">
+                        Previewing {importPreview.length} Entries
+                      </h4>
+                    </div>
+
+                    <div className="max-h-[220px] overflow-y-auto border border-border rounded-xl">
+                      <table className="w-full text-left border-collapse text-[11px] table-auto">
+                        <thead>
+                          <tr className="bg-muted border-b border-border text-muted-foreground font-bold uppercase">
+                            <th className="px-3 py-2">Title</th>
+                            <th className="px-3 py-2">Type</th>
+                            <th className="px-3 py-2">Amount</th>
+                            <th className="px-3 py-2">Category</th>
+                            <th className="px-3 py-2">Subcategory</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border">
+                          {importPreview.slice(0, 5).map((tx, idx) => (
+                            <tr key={idx} className="hover:bg-muted/30">
+                              <td className="px-3 py-2 font-semibold text-foreground truncate max-w-[120px]">{tx.title}</td>
+                              <td className="px-3 py-2">
+                                <span className={tx.type === 'income' ? 'text-[#10b981]' : 'text-[#ef4444]'}>
+                                  {tx.type === 'income' ? 'Cash In' : 'Cash Out'}
+                                </span>
+                              </td>
+                              <td className="px-3 py-2 font-bold">{formatCurrency(tx.amount)}</td>
+                              <td className="px-3 py-2">{tx.category}</td>
+                              <td className="px-3 py-2 text-muted-foreground">{tx.subcategory || '-'}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                      {importPreview.length > 5 && (
+                        <p className="text-[10px] text-muted-foreground text-center py-2 border-t border-border bg-muted/10 font-medium">
+                          And {importPreview.length - 5} more transactions...
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex items-center justify-end gap-3 mt-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowImportForm(false);
+                      setImportPreview([]);
+                    }}
+                    className="px-4 py-2 border border-border rounded-xl text-xs font-semibold hover:bg-muted transition-colors text-foreground"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    disabled={importPreview.length === 0}
+                    onClick={handleConfirmImport}
+                    className="px-4 py-2 bg-primary text-primary-foreground font-semibold rounded-xl text-xs hover:opacity-95 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                  >
+                    Confirm Import
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Floating Action Button (FAB) for Quick Entry */}
+      <div className="fixed bottom-6 right-6 z-40">
+        <button 
+          onClick={handleOpenAddForm}
+          className="flex items-center justify-center w-12 h-12 bg-primary text-primary-foreground rounded-full shadow-lg hover:shadow-xl active:scale-95 hover:opacity-95 transition-all cursor-pointer"
+          title="Quick Entry"
+        >
+          <Plus className="w-6 h-6" />
+        </button>
+      </div>
+
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+      />
+
     </div>
   );
 }
