@@ -15,8 +15,8 @@ export function ToastProvider({ children }) {
     (message, type = 'info', duration = 3500) => {
       const id = genId();
       setToasts((prev) => [...prev, { id, message, type }]);
-      
-      // Automatically log success and info toasts as persistent notifications
+
+      // Log notifications persistently
       if (type === 'success' || type === 'info') {
         try {
           const stored = localStorage.getItem('cashbook_notifications');
@@ -31,12 +31,12 @@ export function ToastProvider({ children }) {
             id,
             title,
             message,
-            time: 'Just now',
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             unread: true,
             timestamp: Date.now()
           };
           
-          const updated = [newNotif, ...currentNotifications].slice(0, 50); // Keep last 50
+          const updated = [newNotif, ...currentNotifications].slice(0, 50);
           localStorage.setItem('cashbook_notifications', JSON.stringify(updated));
           window.dispatchEvent(new CustomEvent('notificationsUpdated', { detail: updated }));
         } catch (e) {
@@ -49,8 +49,15 @@ export function ToastProvider({ children }) {
     [removeToast]
   );
 
+  const toastHelpers = {
+    success: (msg, duration) => addToast(msg, 'success', duration),
+    error: (msg, duration) => addToast(msg, 'error', duration),
+    warning: (msg, duration) => addToast(msg, 'warning', duration),
+    info: (msg, duration) => addToast(msg, 'info', duration),
+  };
+
   return (
-    <ToastContext.Provider value={{ toasts, addToast, removeToast }}>
+    <ToastContext.Provider value={{ toasts, addToast, removeToast, toast: toastHelpers }}>
       {children}
     </ToastContext.Provider>
   );

@@ -3,7 +3,7 @@ import { Outlet, Navigate, Link, useNavigate } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { 
   Menu, Search, Play, Moon, Sun, Maximize2, Minimize2, 
-  Bell, User, ChevronDown, LogOut, PanelLeft 
+  Bell, User, ChevronDown, LogOut, PanelLeft, CheckCheck
 } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 
@@ -220,9 +220,10 @@ export const DashboardLayout = () => {
                     {unreadCount > 0 && (
                       <button 
                         onClick={handleMarkAllRead}
-                        className="text-xs text-primary hover:underline font-semibold"
+                        className="px-2.5 py-1 text-xs font-semibold text-primary bg-primary/10 hover:bg-primary/20 rounded-lg transition-all hover:scale-105 active:scale-95 flex items-center gap-1 border border-primary/20 cursor-pointer"
                       >
-                        Mark all as read
+                        <CheckCheck className="w-3.5 h-3.5" />
+                        <span>Mark all as read</span>
                       </button>
                     )}
                   </div>
@@ -237,7 +238,9 @@ export const DashboardLayout = () => {
                         <div key={n.id} className={`p-4 border-b border-border/50 hover:bg-muted/20 transition-colors cursor-pointer ${n.unread ? 'bg-primary/5' : ''}`}>
                           <div className="flex justify-between items-start mb-1">
                             <p className={`text-sm ${n.unread ? 'font-bold text-foreground' : 'font-medium text-foreground/80'}`}>{n.title}</p>
-                            <span className="text-[10px] text-muted-foreground whitespace-nowrap ml-2 mt-0.5">{n.time}</span>
+                            <span className="text-[10px] text-muted-foreground whitespace-nowrap ml-2 mt-0.5">
+                              {(n.time && n.time !== 'Just now') ? n.time : (n.timestamp ? new Date(n.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }))}
+                            </span>
                           </div>
                           <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">{n.message}</p>
                         </div>

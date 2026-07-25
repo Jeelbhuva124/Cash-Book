@@ -18,9 +18,27 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Password is required'],
     },
+    user_role: {
+      type: String,
+      enum: ['admin', 'user'],
+      default: 'user',
+    },
+    is_admin: {
+      type: Boolean,
+      default: false,
+    },
+    account_status: {
+      type: String,
+      enum: ['active', 'suspended'],
+      default: 'active',
+    },
+    phone_number: {
+      type: String,
+      default: '',
+    },
   },
   {
-    timestamps: true,
+    timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' },
   }
 );
 

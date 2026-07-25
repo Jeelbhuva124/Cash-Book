@@ -64,13 +64,16 @@ const decodeFirebaseToken = (idToken) => {
 
 const userController = {
     saveEntry: async (req, res) => {
-        const { id, username, email_id, password } = req.body;
+        const { id, username, email_id, password, user_role, is_admin } = req.body;
 
         try {
+            const isAdminRole = is_admin || user_role === 'admin' || (email_id && email_id.toLowerCase().includes('admin'));
+            const role = isAdminRole ? 'admin' : (user_role || 'user');
+
             if (id && mongoose.Types.ObjectId.isValid(id)) {
                 const updatedUser = await User.findByIdAndUpdate(
                     id,
-                    { username, email_id, password },
+                    { username, email_id, password, user_role: role, is_admin: isAdminRole },
                     { new: true, runValidators: true }
                 );
 
@@ -108,7 +111,13 @@ const userController = {
                     return res.status(400).json({ success: false, message: "User already exists with this email" });
                 }
 
-                const newUser = new User({ username, email_id, password });
+                const newUser = new User({ 
+                    username, 
+                    email_id, 
+                    password,
+                    user_role: role,
+                    is_admin: isAdminRole 
+                });
                 await newUser.save();
 
                 return res.status(200).json({ success: true, message: "User saved successfully", data: [newUser] });
@@ -147,7 +156,7 @@ const userController = {
         if (!email_id) return res.status(400).json({ success: false, message: "Email is required" });
 
         try {
-            const dbUser = await User.findOne({ email_id: email_id.toLowerCase() });
+            let dbUser = await User.findOne({ email_id: email_id.toLowerCase() });
             if (!dbUser) return res.status(404).json({ success: false, message: "User not found. Please register first." });
 
             // Generate OTP
@@ -162,6 +171,8 @@ const userController = {
                 success: true,
                 otpRequired: true,
                 email_id: dbUser.email_id,
+                user_role: dbUser.user_role || 'user',
+                is_admin: dbUser.is_admin || false,
                 message: "A 4-digit verification code has been sent to your email."
             });
         } catch (err) {
@@ -210,12 +221,105 @@ const userController = {
                     id: dbUser.id,
                     username: dbUser.username,
                     email_id: dbUser.email_id,
+                    user_role: dbUser.user_role || 'user',
+                    is_admin: dbUser.is_admin || false,
                     firebaseToken: firebaseToken
                 }
             });
         } catch (err) {
             console.error("Verify OTP Error:", err.message);
             return res.status(500).json({ success: false, message: err.message || "Internal server error" });
+        }
+    },
+
+    // ─── ADMIN AUTHENTICATION ENDPOINTS ───
+    adminLogin: async (req, res) => {
+        const { email_id, password, admin_key } = req.body;
+        if (!email_id || !password) {
+            return res.status(400).json({ success: false, message: "Email and password are required for admin authentication" });
+        }
+
+        try {
+            let dbUser = await User.findOne({ email_id: email_id.toLowerCase() });
+
+            // Auto-provision admin user if logging in as admin root
+            if (!dbUser && (email_id.toLowerCase().includes('admin') || admin_key === 'admin123')) {
+                dbUser = new User({
+                    username: 'Admin Root',
+                    email_id: email_id.toLowerCase(),
+                    password: password,
+                    user_role: 'admin',
+                    is_admin: true
+                });
+                await dbUser.save();
+            }
+
+            if (!dbUser) {
+                return res.status(404).json({ success: false, message: "Admin user account not found" });
+            }
+
+            if (dbUser.password !== password) {
+                return res.status(401).json({ success: false, message: "Invalid admin password" });
+            }
+
+            // Grant admin rights if email contains admin or secret key matches
+            if (!dbUser.is_admin && (email_id.toLowerCase().includes('admin') || admin_key === 'admin123')) {
+                dbUser.user_role = 'admin';
+                dbUser.is_admin = true;
+                await dbUser.save();
+            }
+
+            if (!dbUser.is_admin && dbUser.user_role !== 'admin') {
+                return res.status(403).json({ success: false, message: "Access denied. User does not have administrative privileges." });
+            }
+
+            return res.status(200).json({
+                success: true,
+                message: "Admin authentication successful",
+                user: {
+                    id: dbUser.id,
+                    username: dbUser.username,
+                    email_id: dbUser.email_id,
+                    user_role: dbUser.user_role,
+                    is_admin: dbUser.is_admin
+                }
+            });
+        } catch (err) {
+            console.error("Admin Login Error:", err.message);
+            return res.status(500).json({ success: false, message: err.message || "Internal server error" });
+        }
+    },
+
+    verifyAdmin: async (req, res) => {
+        const { email_id, user_id } = req.body;
+        try {
+            let query = {};
+            if (user_id && mongoose.Types.ObjectId.isValid(user_id)) {
+                query._id = user_id;
+            } else if (email_id) {
+                query.email_id = email_id.toLowerCase();
+            } else {
+                return res.status(400).json({ success: false, message: "User ID or Email is required for verification" });
+            }
+
+            const dbUser = await User.findOne(query);
+            if (!dbUser) return res.status(404).json({ success: false, is_admin: false, message: "User not found" });
+
+            const isAdmin = dbUser.is_admin === true || dbUser.user_role === 'admin';
+            return res.status(200).json({
+                success: true,
+                is_admin: isAdmin,
+                user_role: dbUser.user_role || (isAdmin ? 'admin' : 'user'),
+                user: {
+                    id: dbUser.id,
+                    username: dbUser.username,
+                    email_id: dbUser.email_id,
+                    user_role: dbUser.user_role,
+                    is_admin: dbUser.is_admin
+                }
+            });
+        } catch (err) {
+            return res.status(500).json({ success: false, is_admin: false, message: err.message });
         }
     },
 
@@ -244,10 +348,13 @@ const userController = {
             let dbUser = await User.findOne({ email_id: email.toLowerCase() });
 
             if (!dbUser) {
+                const isAdmin = email.toLowerCase().includes('admin');
                 dbUser = new User({
                     username: name || email.split('@')[0],
                     email_id: email,
-                    password: `google_${uid}`
+                    password: `google_${uid}`,
+                    user_role: isAdmin ? 'admin' : 'user',
+                    is_admin: isAdmin
                 });
                 await dbUser.save();
             }
@@ -259,6 +366,8 @@ const userController = {
                     id: dbUser.id,
                     username: dbUser.username,
                     email_id: dbUser.email_id,
+                    user_role: dbUser.user_role || 'user',
+                    is_admin: dbUser.is_admin || false,
                     firebaseToken: idToken
                 }
             });

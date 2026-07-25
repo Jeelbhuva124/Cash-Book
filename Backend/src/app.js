@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import userRouter from './routes/user.js';
+import adminRouter from './routes/admin.js';
 import contactRouter from './routes/contact.js';
 import invitationRouter from './routes/invitation.js';
 import cashbookRouter from './routes/cashbook.js';
@@ -13,7 +14,9 @@ app.use(cors());
 app.use(express.json());
 
 // Route Mapping
+app.use('/api/user', userRouter);
 app.use('/api/users', userRouter);
+app.use('/api/admin', adminRouter);
 app.use('/api/contact', contactRouter);
 app.use('/api/invitation', invitationRouter);
 app.use('/api/cashbook', cashbookRouter);

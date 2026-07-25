@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
 import { Link } from "react-router-dom";
 import {
   BookOpen,
@@ -36,6 +36,7 @@ import {
   Plane,
   Home as HomeIcon,
   Briefcase,
+  RotateCcw,
 } from "lucide-react";
 import { Testimonials } from "../components/Testimonials";
 import { ContactSection } from "../components/ContactSection";
@@ -81,31 +82,6 @@ const FeatureCard = ({ icon: Icon, title, description, borderAccent, points }) =
   </motion.div>
 );
 
-const TestimonialCard = ({ name, role, avatar, rating, text }) => (
-  <div className="bg-card border border-border rounded-2xl p-6 shadow-lg shadow-black/20 hover:shadow-xl hover:shadow-primary/20 hover:-translate-y-0.5 transition-all duration-300 flex flex-col gap-4">
-    <div className="flex items-center gap-1">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <Star
-          key={i}
-          className={`w-4 h-4 ${i < rating ? "text-warning fill-warning" : "text-muted-foreground/30"}`}
-        />
-      ))}
-    </div>
-    <p className="text-sm text-muted-foreground italic leading-relaxed flex-1">
-      "{text}"
-    </p>
-    <div className="flex items-center gap-3">
-      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
-        {avatar}
-      </div>
-      <div>
-        <p className="text-sm font-semibold text-foreground">{name}</p>
-        <p className="text-xs text-muted-foreground">{role}</p>
-      </div>
-    </div>
-  </div>
-);
-
 const TrackerCard = ({ icon: Icon, title, desc }) => (
   <div className="bg-card border border-border rounded-xl p-5 shadow-lg shadow-black/20 hover:shadow-xl hover:shadow-primary/20 hover:-translate-y-0.5 transition-all duration-300 flex gap-4">
     <div className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
@@ -126,7 +102,20 @@ export function LandingPage() {
   });
   const scaleY = useTransform(scrollYProgress, [0, 1], [0, 1]);
 
-  const [isScrolled, setIsScrolled] = useState(false);
+  // Only show intro loader on initial website open
+  const [showIntroLoader, setShowIntroLoader] = useState(() => {
+    return !sessionStorage.getItem("hasSeenIntroAnimation");
+  });
+
+  useEffect(() => {
+    if (showIntroLoader) {
+      sessionStorage.setItem("hasSeenIntroAnimation", "true");
+      const timer = setTimeout(() => {
+        setShowIntroLoader(false);
+      }, 1800);
+      return () => clearTimeout(timer);
+    }
+  }, [showIntroLoader]);
 
   const features = [
     {
@@ -150,7 +139,7 @@ export function LandingPage() {
       title: "Seamless Collaboration",
       description:
         "Invite family members, business partners, or accountants to view, edit, and contribute to your books in real time.",
-      borderAccent: true, // Red accent highlight
+      borderAccent: true,
       points: ["Multi-user access control", "Real-time data sync", "Role-based permissions"],
     },
     {
@@ -176,30 +165,6 @@ export function LandingPage() {
         "Set monthly budget goals for different categories. Get alerts when you are close to reaching your limits.",
       borderAccent: false,
       points: ["Monthly spending limits", "Automated budget alerts", "Category-wise tracking"],
-    },
-  ];
-
-  const testimonials = [
-    {
-      name: "Rahul Sharma",
-      role: "Retail Shop Owner, Delhi",
-      avatar: "RS",
-      rating: 5,
-      text: "Cash Book has completely replaced my old notebook. Tracking customer credit and daily shop expenses is now a breeze. Extremely simple and clean UI.",
-    },
-    {
-      name: "Priya Patel",
-      role: "Freelance Developer, Bangalore",
-      avatar: "PP",
-      rating: 5,
-      text: "I love the multi-platform sync. I track small business expenses on the web and household bills on my phone. The Excel export option is perfect for my accountant.",
-    },
-    {
-      name: "Arjun Verma",
-      role: "Agency Founder, Mumbai",
-      avatar: "AV",
-      rating: 5,
-      text: "The collaboration feature is phenomenal. My team enters office expense requests, and I approve them in real-time. Absolute game changer.",
     },
   ];
 
@@ -252,8 +217,58 @@ export function LandingPage() {
   ];
 
   return (
-    <div className="w-full bg-background min-h-screen text-foreground">
-      {/* ── HERO SECTION ── */}
+    <div className="w-full bg-background min-h-screen text-foreground overflow-x-hidden">
+
+      {/* ── INTRO REVEAL LOADER WITH CASH BOOK LOGO ── */}
+      <AnimatePresence>
+        {showIntroLoader && (
+          <motion.div
+            key="cashbook-loader"
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0, scale: 1.06, filter: "blur(12px)" }}
+            transition={{ duration: 0.8, ease: [0.76, 0, 0.24, 1] }}
+            className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white dark:bg-slate-950 text-slate-900 dark:text-white overflow-hidden"
+          >
+            {/* Crisp Background Logo Watermark */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden z-0">
+              <motion.img
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: [0.8, 1.2, 1.1], opacity: 0.15 }}
+                transition={{ duration: 1.5, ease: "easeOut" }}
+                src="/logo.png"
+                alt="Cash Book Background Logo"
+                className="w-[320px] h-[320px] sm:w-[480px] sm:h-[480px] object-contain blur-[3px] filter select-none pointer-events-none"
+              />
+            </div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1.2, ease: "easeOut" }}
+              className="relative z-10 flex flex-col items-center gap-4 text-center px-4"
+            >
+              <motion.img 
+                initial={{ opacity: 0, scale: 0.96 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 1, ease: "easeOut" }}
+                src="/logo.png" 
+                alt="Cash Book Logo" 
+                className="w-28 h-28 sm:w-32 sm:h-32 object-contain filter drop-shadow-xl" 
+              />
+              <div className="space-y-1">
+                <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+                  Cash Book
+                </h2>
+                <p className="text-xs font-semibold text-primary uppercase tracking-widest">
+                  Smart Finance Management
+                </p>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── HERO SECTION (RESTORED CASH BOOK HERO) ── */}
       <section className="relative pt-10 pb-20 px-4 md:px-8 w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
         {/* Left Content */}
         <div className="space-y-6 max-w-2xl">
@@ -282,6 +297,12 @@ export function LandingPage() {
               <ArrowRight className="w-4 h-4" />
             </Link>
 
+            <Link
+              to="/login"
+              className="px-8 py-3.5 bg-muted text-foreground border border-border font-semibold rounded-xl hover:bg-card hover:-translate-y-1 transition-all text-sm md:text-base flex items-center gap-2"
+            >
+              Login
+            </Link>
           </div>
         </div>
 
@@ -295,8 +316,11 @@ export function LandingPage() {
                 <span className="w-3 h-3 rounded-full bg-warning" />
                 <span className="w-3 h-3 rounded-full bg-income" />
               </div>
-              <div className="h-6 px-4 bg-muted rounded-full flex items-center justify-center text-[10px] font-bold text-muted-foreground tracking-widest uppercase">
-                Cash Book
+              <div className="flex items-center gap-2">
+                <img src="/logo.png" alt="Cash Book Logo" className="w-5 h-5 object-contain" />
+                <span className="h-6 px-3 bg-muted rounded-full flex items-center justify-center text-[10px] font-bold text-muted-foreground tracking-widest uppercase">
+                  Cash Book
+                </span>
               </div>
             </div>
 
@@ -388,7 +412,7 @@ export function LandingPage() {
       </section>
 
       {/* ── FEATURES SECTION ("What We Do") ── */}
-      <section className="py-12 px-4 md:px-8 bg-background border-y border-border" ref={containerRef}>
+      <section className="py-16 px-4 md:px-8 bg-background border-y border-border" ref={containerRef}>
         <div className="w-full max-w-5xl mx-auto relative">
           <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
             <span className="text-xs font-bold text-primary tracking-widest uppercase">
@@ -450,7 +474,7 @@ export function LandingPage() {
       </section>
 
       {/* ── ABOUT US STORY ── */}
-      <section className="py-12 px-4 md:px-8 w-full grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+      <section className="py-16 px-4 md:px-8 w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
         {/* Left Side Illustration */}
         <motion.div
           initial={{ opacity: 0, x: -30 }}
@@ -502,7 +526,7 @@ export function LandingPage() {
           <p className="text-muted-foreground leading-relaxed">
             Cash Book started with a simple belief: tracking where your money
             goes shouldn't require complex spreadsheet skills or a finance
-            degree. We designed this platform to offerKirana stores,
+            degree. We designed this platform to offer Kirana stores,
             freelancers, families, and growing businesses a frictionless way to
             manage ledger logs digital accounts.
           </p>
@@ -557,11 +581,9 @@ export function LandingPage() {
         </motion.div>
       </section>
 
-
-
       {/* ── CATEGORY TRACKERS ── */}
       <section className="py-16 px-4 md:px-8 bg-muted border-t border-border">
-        <div className="w-full">
+        <div className="w-full max-w-6xl mx-auto">
           <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
             <span className="text-xs font-bold text-primary tracking-widest uppercase">
               Track Anything, Easily
@@ -583,10 +605,10 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* ── SECURITY SECTION (SNEPITECH CLONE) ── */}
+      {/* ── SECURITY SECTION ── */}
       <SecuritySection />
 
-      {/* ── EARTH SECTION (SNEPITECH CLONE) ── */}
+      {/* ── EARTH SECTION ── */}
       <EarthSection />
 
       {/* ── CLIENT TESTIMONIALS ── */}
@@ -597,4 +619,3 @@ export function LandingPage() {
     </div>
   );
 }
-

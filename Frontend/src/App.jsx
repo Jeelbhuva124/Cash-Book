@@ -43,6 +43,17 @@ import { Preferences } from './Dashboard/pages/Preferences';
 import { ActiveSessions } from './Dashboard/pages/ActiveSessions';
 import { DashboardLayout } from './Dashboard/components/DashboardLayout';
 
+// ─── Admin Panel Pages & Auth ──────────────────────────────
+import { AdminLayout } from './AdminPanel/components/AdminLayout';
+import { AdminProtectedRoute } from './AdminPanel/components/AdminProtectedRoute';
+import { AdminLogin } from './AdminPanel/pages/AdminLogin';
+import { AdminRegister } from './AdminPanel/pages/AdminRegister';
+import { AdminDashboard } from './AdminPanel/pages/AdminDashboard';
+import { UserManagement } from './AdminPanel/pages/UserManagement';
+import { CashbookManagement } from './AdminPanel/pages/CashbookManagement';
+import { SystemAnalytics } from './AdminPanel/pages/SystemAnalytics';
+import { AdminSettings } from './AdminPanel/pages/AdminSettings';
+
 // ─── Auth Pages ───────────────────────────────────────────
 import SignIn from './Auth/SignIn';
 import SignUp from './Auth/SignUp';
@@ -61,6 +72,22 @@ function App() {
               {/* ── Auth Pages ── */}
               <Route path="/login" element={<SignIn />} />
               <Route path="/signup" element={<SignUp />} />
+
+              {/* ── Admin Auth Routes ── */}
+              <Route path="/admin/login" element={<AdminLogin />} />
+              <Route path="/admin/register" element={<AdminRegister />} />
+
+              {/* ── Admin Panel Protected Routes ── */}
+              <Route element={<AdminProtectedRoute />}>
+                <Route path="/admin" element={<AdminLayout />}>
+                  <Route index element={<AdminDashboard />} />
+                  <Route path="dashboard" element={<AdminDashboard />} />
+                  <Route path="users" element={<UserManagement />} />
+                  <Route path="cashbooks" element={<CashbookManagement />} />
+                  <Route path="analytics" element={<SystemAnalytics />} />
+                  <Route path="settings" element={<AdminSettings />} />
+                </Route>
+              </Route>
 
               {/* ── AI Dashboard ── */}
               <Route path="/dashboard" element={<DashboardLayout />}>
