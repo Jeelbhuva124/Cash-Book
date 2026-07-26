@@ -138,6 +138,8 @@ const SidebarContent = ({ onClose, isCollapsed }) => {
   const handleLogout = () => {
     localStorage.removeItem("user");
     localStorage.removeItem("token");
+    localStorage.removeItem("profile_data");
+    window.dispatchEvent(new Event("profileUpdated"));
     navigate("/login");
   };
 

@@ -98,9 +98,11 @@ export default function SignIn() {
         } else {
           const username = response.user?.username || "User";
           addToast(`Welcome back, ${username}! 👋`, "success");
+          localStorage.removeItem("profile_data");
           localStorage.setItem("user", JSON.stringify(response.user));
           const token = response.token || response.user?.token || response.user?.firebaseToken || "auth-session";
           localStorage.setItem("token", token);
+          window.dispatchEvent(new Event("profileUpdated"));
           await recordNewSession();
           navigate("/dashboard");
         }
@@ -133,9 +135,11 @@ export default function SignIn() {
       if (response.success) {
         const username = response.user?.username || "User";
         addToast(`Welcome back, ${username}! 👋`, "success");
+        localStorage.removeItem("profile_data");
         localStorage.setItem("user", JSON.stringify(response.user));
         const token = response.token || response.user?.token || response.user?.firebaseToken || "auth-session";
         localStorage.setItem("token", token);
+        window.dispatchEvent(new Event("profileUpdated"));
         await recordNewSession();
         navigate("/dashboard");
       } else {
@@ -184,8 +188,10 @@ export default function SignIn() {
       if (response.success) {
         const username = response.user?.username || result.user.displayName || "User";
         addToast(`Welcome, ${username}! 🎉`, "success");
+        localStorage.removeItem("profile_data");
         localStorage.setItem("user", JSON.stringify(response.user));
         localStorage.setItem("token", response.user.firebaseToken);
+        window.dispatchEvent(new Event("profileUpdated"));
         await recordNewSession();
         navigate("/dashboard");
       } else {

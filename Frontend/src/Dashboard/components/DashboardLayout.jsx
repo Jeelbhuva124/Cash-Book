@@ -1,15 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Outlet, Navigate, Link, useNavigate } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
-<<<<<<< .mine
 import { 
   Menu, Search, Play, Moon, Sun, Maximize2, Minimize2, 
   Bell, User, ChevronDown, LogOut, PanelLeft, CheckCheck
-=======
-import {
-  Menu, Search, Play, Moon, Sun, Maximize2, Minimize2,
-  Bell, User, ChevronDown, LogOut, PanelLeft
->>>>>>> .theirs
 } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 
@@ -38,16 +32,43 @@ export const DashboardLayout = () => {
 
   // Load user profile from state to allow reactivity
   const [profileData, setProfileData] = useState(() => {
-    const saved = localStorage.getItem('profile_data');
-    if (saved) return JSON.parse(saved);
     const userRaw = localStorage.getItem("user");
-    return userRaw ? JSON.parse(userRaw) : null;
+    const userObj = userRaw ? JSON.parse(userRaw) : null;
+    const saved = localStorage.getItem('profile_data');
+    if (saved && userObj) {
+      try {
+        const parsedSaved = JSON.parse(saved);
+        const savedEmail = (parsedSaved.email_id || parsedSaved.email || '').toLowerCase();
+        const currentEmail = (userObj.email_id || userObj.email || '').toLowerCase();
+        if (savedEmail && currentEmail && savedEmail === currentEmail) {
+          return parsedSaved;
+        } else {
+          localStorage.removeItem('profile_data');
+        }
+      } catch (e) {
+        localStorage.removeItem('profile_data');
+      }
+    }
+    return userObj;
   });
 
   useEffect(() => {
     const handleProfileUpdate = () => {
+      const userRaw = localStorage.getItem("user");
+      const userObj = userRaw ? JSON.parse(userRaw) : null;
       const saved = localStorage.getItem('profile_data');
-      if (saved) setProfileData(JSON.parse(saved));
+      if (saved && userObj) {
+        try {
+          const parsedSaved = JSON.parse(saved);
+          const savedEmail = (parsedSaved.email_id || parsedSaved.email || '').toLowerCase();
+          const currentEmail = (userObj.email_id || userObj.email || '').toLowerCase();
+          if (savedEmail && currentEmail && savedEmail === currentEmail) {
+            setProfileData(parsedSaved);
+            return;
+          }
+        } catch (e) {}
+      }
+      setProfileData(userObj);
     };
     const handleNotificationsUpdate = (e) => {
       if (e.detail) setNotifications(e.detail);
@@ -82,6 +103,14 @@ export const DashboardLayout = () => {
   const handleClearNotifications = () => {
     setNotifications([]);
     localStorage.setItem('cashbook_notifications', JSON.stringify([]));
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    localStorage.removeItem("profile_data");
+    window.dispatchEvent(new Event("profileUpdated"));
+    navigate("/login");
   };
 
   const username = profileData?.firstName
@@ -123,12 +152,6 @@ export const DashboardLayout = () => {
       }
     }
   }, [token, navigate]);
-
-  const handleLogout = () => {
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
-    navigate("/login");
-  };
 
   if (!token) {
     const queryParams = new URLSearchParams(window.location.search);

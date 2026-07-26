@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { formatCurrency } from '../../utils/currencyFormatter';
 import { useNavigate } from 'react-router-dom';
-import { Book, Plus, X, Trash2, Edit, Eye, ArrowRight, Palette, AlignLeft, ChevronsUpDown } from 'lucide-react';
+import { Book, Plus, X, Trash2, Edit, Eye, ArrowRight, Palette, AlignLeft, ChevronsUpDown, Users } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '../../context/ToastContext';
 
@@ -40,7 +40,9 @@ export default function Cashbooks() {
   const navigate = useNavigate();
   const [cashbooks, setCashbooks] = useState([]);
   const [transactions, setTransactions] = useState([]);
+  const [allInvitations, setAllInvitations] = useState([]);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [editingCashbookId, setEditingCashbookId] = useState(null);
   const [cashbookName, setCashbookName] = useState('');
   const [description, setDescription] = useState('');
   const [hexCode, setHexCode] = useState('#8B5CF6');
@@ -61,38 +63,74 @@ export default function Cashbooks() {
   }, []);
 
   const loadCashbooks = async (signal) => {
+    const userEmail = user?.email_id?.toLowerCase() || '';
+    let ownCashbooks = [];
+    let sharedCashbooks = [];
+
+    // 1. Fetch own cashbooks
     try {
       const response = await fetch('http://localhost:5001/api/cashbook/select', { signal });
       const data = await response.json();
       
       if (data.success && data.data) {
-        const userEmail = user?.email_id?.toLowerCase() || '';
-        
-        // Filter records on client-side as per project rules (no GET query params)
         const filteredData = data.data.filter(cb => cb.user_email?.toLowerCase() === userEmail);
-        
-        const mapped = filteredData.map(cb => ({
+        ownCashbooks = filteredData.map(cb => ({
           id: cb.id,
           name: cb.cashbook_name,
           description: cb.description || '',
           hex_code: cb.hex_code || '#8B5CF6',
-          createdAt: cb.createdAt || new Date().toISOString()
+          createdAt: cb.createdAt || new Date().toISOString(),
+          isShared: false
         }));
-        setCashbooks(mapped);
-        localStorage.setItem(storageKey, JSON.stringify(mapped));
       }
     } catch (err) {
       if (err.name !== 'AbortError') {
         console.error("Backend API select failed:", err);
-        setCashbooks([]);
       }
     }
 
+    // 2. Fetch accepted invitations to include shared cashbooks
+    try {
+      const responseInv = await fetch('http://localhost:5001/api/invitation/select', { signal });
+      const dataInv = await responseInv.json();
+
+      if (dataInv.success && Array.isArray(dataInv.data)) {
+        setAllInvitations(dataInv.data);
+        const accepted = dataInv.data.filter(i => 
+          i.email?.toLowerCase() === userEmail && i.status === 'Accepted'
+        );
+
+        sharedCashbooks = accepted.map(inv => ({
+          id: inv.id,
+          name: inv.cashbook_name,
+          description: `Shared by ${inv.inviter_email}`,
+          hex_code: '#10B981',
+          createdAt: inv.createdAt || new Date().toISOString(),
+          isShared: true,
+          sharedBy: inv.inviter_email,
+          permission: inv.permissions || 'Edit'
+        }));
+      }
+    } catch (err) {
+      console.error("Failed to fetch accepted invitations for cashbooks:", err);
+    }
+
+    // Merge own and shared cashbooks
+    const combined = [...ownCashbooks];
+    sharedCashbooks.forEach(scb => {
+      if (!combined.some(cb => cb.name.toLowerCase() === scb.name.toLowerCase())) {
+        combined.push(scb);
+      }
+    });
+
+    setCashbooks(combined);
+    localStorage.setItem(storageKey, JSON.stringify(combined));
+
+    // Fetch transactions for accessible cashbooks
     try {
       const responseTxs = await fetch('http://localhost:5001/api/transaction/select', { signal });
       const dataTxs = await responseTxs.json();
       if (dataTxs.success && dataTxs.data) {
-        const userEmail = user?.email_id?.toLowerCase() || '';
         const mappedTxs = dataTxs.data.map(tx => ({
           id: tx.id,
           title: tx.title,
@@ -108,7 +146,9 @@ export default function Cashbooks() {
           createdBy: tx.created_by,
           user_email: tx.user_email
         }));
-        const filteredTxs = mappedTxs.filter(tx => tx.user_email?.toLowerCase() === userEmail);
+
+        const allowedEmails = new Set([userEmail, ...sharedCashbooks.map(s => s.sharedBy.toLowerCase())]);
+        const filteredTxs = mappedTxs.filter(tx => allowedEmails.has(tx.user_email?.toLowerCase()));
         setTransactions(filteredTxs);
       }
     } catch (err) {
@@ -118,7 +158,32 @@ export default function Cashbooks() {
     }
   };
 
-  const handleAddCashbook = async (e) => {
+  const getCashbookMemberCount = (bookName) => {
+    if (!bookName) return 1;
+    const acceptedForBook = allInvitations.filter(inv => 
+      inv.cashbook_name?.toLowerCase() === bookName.toLowerCase() && 
+      inv.status === 'Accepted'
+    );
+    return 1 + acceptedForBook.length;
+  };
+
+  const handleOpenAddModal = () => {
+    setEditingCashbookId(null);
+    setCashbookName('');
+    setDescription('');
+    setHexCode('#8B5CF6');
+    setShowAddModal(true);
+  };
+
+  const handleEditClick = (book) => {
+    setEditingCashbookId(book.id);
+    setCashbookName(book.name);
+    setDescription(book.description || '');
+    setHexCode(book.hex_code || '#8B5CF6');
+    setShowAddModal(true);
+  };
+
+  const handleSubmitCashbook = async (e) => {
     e.preventDefault();
     if (!cashbookName.trim()) {
       addToast("Please enter a cashbook name", "warning");
@@ -126,48 +191,90 @@ export default function Cashbooks() {
     }
 
     setLoading(true);
+    const isEdit = !!editingCashbookId;
 
-    const payload = {
-      cashbook_name: cashbookName.trim(),
-      description: description.trim(),
-      hex_code: hexCode,
-      user_email: user?.email_id || '',
-      user_id: user?.id || ''
-    };
+    if (isEdit) {
+      const payload = {
+        id: editingCashbookId,
+        cashbook_name: cashbookName.trim(),
+        description: description.trim(),
+        hex_code: hexCode
+      };
 
-    try {
-      const response = await fetch('http://localhost:5001/api/cashbook/insert', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      const data = await response.json();
+      try {
+        const response = await fetch('http://localhost:5001/api/cashbook/update', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await response.json();
 
-      if (data.success && data.data) {
-        const created = {
-          id: data.data.id,
-          name: data.data.cashbook_name,
-          description: data.data.description,
-          hex_code: data.data.hex_code,
-          createdAt: data.data.createdAt || new Date().toISOString()
-        };
-
-        const updated = [created, ...cashbooks];
-        setCashbooks(updated);
-        localStorage.setItem(storageKey, JSON.stringify(updated));
-        addToast("Cashbook created successfully!", "success");
-      } else {
-        createLocalBook();
+        if (data.success && data.data) {
+          const updated = cashbooks.map(b => 
+            b.id === editingCashbookId
+              ? { ...b, name: cashbookName.trim(), description: description.trim(), hex_code: hexCode }
+              : b
+          );
+          setCashbooks(updated);
+          localStorage.setItem(storageKey, JSON.stringify(updated));
+          addToast("Cashbook updated successfully!", "success");
+        } else {
+          updateLocalBook();
+        }
+      } catch (err) {
+        console.warn("Backend update failed, keeping local copy:", err);
+        updateLocalBook();
+      } finally {
+        setLoading(false);
+        setCashbookName('');
+        setDescription('');
+        setHexCode('#8B5CF6');
+        setEditingCashbookId(null);
+        setShowAddModal(false);
       }
-    } catch (err) {
-      console.warn("Backend save failed, keeping local copy:", err);
-      createLocalBook();
-    } finally {
-      setLoading(false);
-      setCashbookName('');
-      setDescription('');
-      setHexCode('#8B5CF6');
-      setShowAddModal(false);
+    } else {
+      const payload = {
+        cashbook_name: cashbookName.trim(),
+        description: description.trim(),
+        hex_code: hexCode,
+        user_email: user?.email_id || '',
+        user_id: user?.id || ''
+      };
+
+      try {
+        const response = await fetch('http://localhost:5001/api/cashbook/insert', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+
+        if (data.success && data.data) {
+          const created = {
+            id: data.data.id,
+            name: data.data.cashbook_name,
+            description: data.data.description,
+            hex_code: data.data.hex_code,
+            createdAt: data.data.createdAt || new Date().toISOString()
+          };
+
+          const updated = [created, ...cashbooks];
+          setCashbooks(updated);
+          localStorage.setItem(storageKey, JSON.stringify(updated));
+          addToast("Cashbook created successfully!", "success");
+        } else {
+          createLocalBook();
+        }
+      } catch (err) {
+        console.warn("Backend save failed, keeping local copy:", err);
+        createLocalBook();
+      } finally {
+        setLoading(false);
+        setCashbookName('');
+        setDescription('');
+        setHexCode('#8B5CF6');
+        setShowAddModal(false);
+      }
     }
   };
 
@@ -184,6 +291,17 @@ export default function Cashbooks() {
     setCashbooks(updated);
     localStorage.setItem(storageKey, JSON.stringify(updated));
     addToast("Cashbook created locally!", "success");
+  };
+
+  const updateLocalBook = () => {
+    const updated = cashbooks.map(b => 
+      b.id === editingCashbookId
+        ? { ...b, name: cashbookName.trim(), description: description.trim(), hex_code: hexCode }
+        : b
+    );
+    setCashbooks(updated);
+    localStorage.setItem(storageKey, JSON.stringify(updated));
+    addToast("Cashbook updated locally!", "info");
   };
 
   const handleDelete = async (id) => {
@@ -227,7 +345,7 @@ export default function Cashbooks() {
         
         <div className="flex items-center gap-3">
           <button 
-            onClick={() => setShowAddModal(true)}
+            onClick={handleOpenAddModal}
             className="flex items-center gap-1.5 px-4 py-2.5 bg-primary text-primary-foreground font-semibold rounded-xl text-sm hover:opacity-95 transition-all shadow-sm"
           >
             <Plus className="w-4 h-4" />
@@ -237,15 +355,15 @@ export default function Cashbooks() {
       </div>
 
       {/* Cashbooks View (List only - Styled matching target layout) */}
-      <div className="bg-white dark:bg-card border border-border/80 rounded-2xl shadow-sm mt-6 overflow-hidden">
-        <div className="p-4 border-b border-border/40 bg-muted/20">
-          <h2 className="font-bold text-sm text-foreground">Cashbook List • <span className="text-muted-foreground font-normal">{cashbooks.length} Records</span></h2>
+      <div className="bg-white dark:bg-[#121827] border border-border/80 dark:border-slate-800 rounded-2xl mt-6 overflow-hidden">
+        <div className="p-4 border-b border-border/40 dark:border-slate-800 bg-muted/20 dark:bg-slate-900/60">
+          <h2 className="font-bold text-sm text-foreground dark:text-slate-100">Cashbook List • <span className="text-muted-foreground dark:text-slate-400 font-normal">{cashbooks.length} Records</span></h2>
         </div>
         
         <div className="overflow-x-auto w-full">
           <table className="w-full text-left border-collapse table-fixed">
             <thead>
-              <tr className="border-b border-border/40 text-[13px] font-semibold text-muted-foreground bg-muted/10">
+              <tr className="border-b border-border/40 dark:border-slate-800 text-[13px] font-semibold text-muted-foreground dark:text-slate-400 bg-muted/10 dark:bg-slate-950/40">
                 <th className="px-6 py-4 font-medium w-[45%]">
                   <div className="flex items-center gap-1 select-none">
                     Cashbook Name
@@ -273,7 +391,7 @@ export default function Cashbooks() {
                 <th className="px-6 py-4 text-center font-medium w-[13%]">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border/40">
+            <tbody className="divide-y divide-border/40 dark:divide-slate-800">
               {cashbooks.map(book => {
                 const bookTxs = transactions.filter(tx => tx.chalanId === book.id || (book.id === '1' && !tx.chalanId));
                 const totalCredit = bookTxs.filter(tx => tx.type === 'income').reduce((sum, tx) => sum + tx.amount, 0);
@@ -286,7 +404,7 @@ export default function Cashbooks() {
                   <tr 
                     key={book.id} 
                     onClick={() => handleSelectCashbook(book.id)}
-                    className="cursor-pointer hover:bg-muted/10 transition-colors group bg-white dark:bg-card"
+                    className="cursor-pointer hover:bg-muted/10 dark:hover:bg-slate-800/40 transition-colors group bg-white dark:bg-[#121827]"
                   >
                     <td className="px-6 py-4 w-[45%] align-middle">
                       <div className="flex items-center gap-3">
@@ -296,32 +414,41 @@ export default function Cashbooks() {
                         />
                         <div className="min-w-0">
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="font-bold text-sm text-[#1e293b] dark:text-foreground">
+                            <span className="font-bold text-sm text-[#1e293b] dark:text-slate-100">
                               {book.name}
                             </span>
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+                              <Users className="w-3 h-3" />
+                              {getCashbookMemberCount(book.name)} {getCashbookMemberCount(book.name) === 1 ? 'User' : 'Users'}
+                            </span>
+                            {book.isShared && (
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-[#10b981] dark:text-emerald-400 border border-emerald-500/20">
+                                Shared by {book.sharedBy} ({book.permission})
+                              </span>
+                            )}
                             <span className="w-1 h-1 rounded-full bg-muted-foreground/40 shrink-0" />
-                            <span className="text-[11px] text-muted-foreground whitespace-nowrap">
+                            <span className="text-[11px] text-muted-foreground dark:text-slate-400 whitespace-nowrap">
                               Updated about {formattedDate}
                             </span>
                           </div>
-                          <p className="text-[11px] text-muted-foreground mt-0.5 truncate max-w-[400px]">
+                          <p className="text-[11px] text-muted-foreground dark:text-slate-400 mt-0.5 truncate max-w-[400px]">
                             {book.description || `Default ${book.name} cashbook`}
                           </p>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 w-[15%] align-middle">
-                      <span className="inline-flex px-4 py-1.5 rounded-full border border-border/80 text-[13px] font-semibold text-foreground tracking-wide whitespace-nowrap">
+                      <span className="inline-flex px-4 py-1.5 rounded-full border border-emerald-500/30 text-[13px] font-semibold text-[#10b981] dark:text-emerald-400 tracking-wide whitespace-nowrap bg-emerald-500/10">
                         {formatCurrency(totalCredit)}
                       </span>
                     </td>
                     <td className="px-6 py-4 w-[15%] align-middle">
-                      <span className="inline-flex px-4 py-1.5 rounded-full border border-[#ef4444]/60 text-[#ef4444] text-[13px] font-semibold tracking-wide whitespace-nowrap">
+                      <span className="inline-flex px-4 py-1.5 rounded-full border border-rose-500/30 text-[#ef4444] dark:text-rose-400 text-[13px] font-semibold tracking-wide whitespace-nowrap bg-rose-500/10">
                         {formatCurrency(totalDebit)}
                       </span>
                     </td>
                     <td className="px-6 py-4 w-[12%] align-middle">
-                      <span className="font-bold text-[15px] text-[#10b981] tracking-wide whitespace-nowrap">
+                      <span className={`font-bold text-[15px] tracking-wide whitespace-nowrap ${currentBalance < 0 ? 'text-[#ef4444] dark:text-rose-400' : 'text-[#10b981] dark:text-emerald-400'}`}>
                         {formatCurrency(currentBalance)}
                       </span>
                     </td>
@@ -332,7 +459,7 @@ export default function Cashbooks() {
                             e.stopPropagation();
                             handleSelectCashbook(book.id);
                           }}
-                          className="p-1.5 rounded-lg border border-border/80 bg-[#f8fafc] text-muted-foreground hover:text-primary hover:bg-[#2563eb]/10 transition-colors"
+                          className="p-1.5 rounded-lg border border-border/80 dark:border-slate-700 bg-[#f8fafc] dark:bg-slate-800 text-muted-foreground dark:text-slate-300 hover:text-primary dark:hover:text-indigo-400 hover:bg-[#2563eb]/10 transition-colors"
                           title="View Log"
                         >
                           <Eye className="w-3.5 h-3.5" />
@@ -340,9 +467,10 @@ export default function Cashbooks() {
                         <button 
                           onClick={(e) => {
                             e.stopPropagation();
+                            handleEditClick(book);
                           }}
-                          className="p-1.5 rounded-lg border border-border/80 bg-[#f8fafc] text-muted-foreground hover:text-primary hover:bg-[#4f46e5]/10 transition-colors"
-                          title="Edit"
+                          className="p-1.5 rounded-lg border border-border/80 dark:border-slate-700 bg-[#f8fafc] dark:bg-slate-800 text-muted-foreground dark:text-slate-300 hover:text-primary dark:hover:text-indigo-400 hover:bg-[#4f46e5]/10 transition-colors"
+                          title="Edit Cashbook"
                         >
                           <Edit className="w-3.5 h-3.5" />
                         </button>
@@ -386,7 +514,7 @@ export default function Cashbooks() {
         </div>
       </div>
 
-      {/* Add Modal */}
+      {/* Add / Edit Modal */}
       <AnimatePresence>
         {showAddModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -407,7 +535,7 @@ export default function Cashbooks() {
               <div className="flex justify-between items-center">
                 <h3 className="font-bold text-lg flex items-center gap-2 text-foreground">
                   <Book className="w-5 h-5 text-primary" />
-                  Create Cashbook
+                  {editingCashbookId ? 'Edit Cashbook' : 'Create Cashbook'}
                 </h3>
                 <button
                   onClick={() => setShowAddModal(false)}
@@ -417,7 +545,7 @@ export default function Cashbooks() {
                 </button>
               </div>
 
-              <form onSubmit={handleAddCashbook} className="space-y-4">
+              <form onSubmit={handleSubmitCashbook} className="space-y-4">
                 {/* Cashbook Name */}
                 <div className="space-y-1">
                   <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide">
@@ -482,8 +610,15 @@ export default function Cashbooks() {
                   disabled={loading}
                   className="w-full py-2.5 rounded-xl font-bold text-sm bg-primary text-primary-foreground hover:opacity-95 transition-opacity flex items-center justify-center gap-2 mt-2"
                 >
-                  <Plus className="w-4 h-4" />
-                  {loading ? 'Creating...' : 'Create Cashbook'}
+                  {editingCashbookId ? (
+                    <Edit className="w-4 h-4" />
+                  ) : (
+                    <Plus className="w-4 h-4" />
+                  )}
+                  {loading
+                    ? (editingCashbookId ? 'Updating...' : 'Creating...')
+                    : (editingCashbookId ? 'Save Changes' : 'Create Cashbook')
+                  }
                 </button>
               </form>
             </motion.div>

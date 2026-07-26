@@ -40,8 +40,6 @@ const adminController = {
         user.is_admin = true;
         await user.save();
       }
-        await user.save();
-      }
 
       if (!user.is_admin && user.user_role !== 'admin') {
         return res.status(403).json({ success: false, message: "Access denied. Administrative rights required." });

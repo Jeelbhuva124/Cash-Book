@@ -81,6 +81,22 @@ export const updateInviteStatus = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Invitation not found' });
         }
 
+        if (status === 'Accepted') {
+            const inviterEmail = updatedInvite.inviterEmail || updatedInvite.inviter_email;
+            const acceptorEmail = updatedInvite.email;
+            const acceptorName = updatedInvite.inviteName || updatedInvite.invite_name || acceptorEmail;
+            const cashbookName = updatedInvite.cashbookName || updatedInvite.cashbook_name;
+            const perms = updatedInvite.permissions;
+
+            if (inviterEmail) {
+                try {
+                    await emailService.sendInviteAcceptedEmail(inviterEmail, acceptorEmail, acceptorName, cashbookName, perms);
+                } catch (emailErr) {
+                    console.error('Failed to send acceptance email to inviter Gmail:', emailErr);
+                }
+            }
+        }
+
         return res.status(200).json({ 
             success: true, 
             message: `Invitation status updated to ${status}`, 
