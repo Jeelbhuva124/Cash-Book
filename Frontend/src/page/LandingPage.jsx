@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { ScrambleText } from "../components/ScrambleText";
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
 import { Link } from "react-router-dom";
 import {
@@ -36,6 +37,7 @@ import {
   Plane,
   Home as HomeIcon,
   Briefcase,
+  ShoppingBag,
   RotateCcw,
   ArrowUpRight,
   ArrowDownLeft,
@@ -50,9 +52,9 @@ const FeatureCard = ({ icon: Icon, title, description, borderAccent, points }) =
     initial={{ opacity: 0, y: 20 }}
     whileInView={{ opacity: 1, y: 0 }}
     viewport={{ once: false, amount: 0.2 }}
-    transition={{ duration: 0.7, ease: "easeOut" }}
-    className={`bg-card rounded-2xl p-6 border shadow-lg shadow-black/20 hover:shadow-xl hover:shadow-primary/20 hover:-translate-y-0.5 transition-all duration-300 ${
-      borderAccent ? "border-expense border-2" : "border-border"
+    transition={{ type: "spring", stiffness: 100, damping: 15 }}
+    className={`bg-card/80 backdrop-blur-md rounded-2xl p-6 border shadow-lg shadow-black/20 hover:shadow-xl hover:shadow-primary/20 hover:-translate-y-1 active:scale-[0.98] transition-all duration-300 ${
+      borderAccent ? "border-expense border-2" : "border-border/50"
     }`}
   >
     <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center mb-4">
@@ -70,7 +72,7 @@ const FeatureCard = ({ icon: Icon, title, description, borderAccent, points }) =
             initial={{ opacity: 0, x: -15 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: false, amount: 0.2 }}
-            transition={{ duration: 0.5, delay: 0.3 + (idx * 0.12), ease: "easeOut" }}
+            transition={{ type: "spring", stiffness: 100, damping: 15, delay: 0.1 + (idx * 0.1) }}
             className="flex items-start gap-3 text-sm text-foreground/90 font-medium"
           >
             <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
@@ -89,9 +91,9 @@ const TrackerCard = ({ icon: Icon, title, desc, tag, color, index }) => (
     initial={{ opacity: 0, y: 20 }}
     whileInView={{ opacity: 1, y: 0 }}
     viewport={{ once: false, amount: 0.15 }}
-    transition={{ duration: 0.45, delay: index * 0.05, ease: "easeOut" }}
+    transition={{ type: "spring", stiffness: 100, damping: 15, delay: index * 0.1 }}
     whileHover={{ y: -4 }}
-    className="group relative bg-card/90 backdrop-blur-sm border border-border/80 hover:border-primary/40 rounded-2xl p-5 shadow-md hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 flex flex-col justify-between overflow-hidden"
+    className="group relative bg-card/80 backdrop-blur-md border border-border/50 hover:border-primary/40 rounded-2xl p-5 shadow-md hover:shadow-xl hover:shadow-primary/10 active:scale-[0.98] transition-all duration-300 flex flex-col justify-between overflow-hidden cursor-pointer"
   >
     {/* Subtle Background Glow on Hover */}
     <div className="absolute -right-8 -bottom-8 w-24 h-24 bg-primary/5 rounded-full blur-2xl group-hover:bg-primary/15 transition-all duration-500 pointer-events-none" />
@@ -118,7 +120,7 @@ const TrackerCard = ({ icon: Icon, title, desc, tag, color, index }) => (
   </motion.div>
 );
 
-const HeroMockupAnimation = () => {
+const HeroMockupAnimation = ({ baseDelay = 0 }) => {
   const [activeTxIndex, setActiveTxIndex] = useState(0);
 
   const transactions = [
@@ -201,14 +203,14 @@ const HeroMockupAnimation = () => {
           <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-slate-800/60 border border-slate-700/50 backdrop-blur-md">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
             <span className="text-[10px] uppercase font-bold tracking-widest text-slate-300">
-              Total Inbound ₹45,500
+              <ScrambleText text="Total Inbound ₹45,500" delay={baseDelay + 200} />
             </span>
           </div>
 
           <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-slate-800/60 border border-slate-700/50 backdrop-blur-md">
             <span className="w-2 h-2 rounded-full bg-sky-400 animate-pulse" />
             <span className="text-[10px] uppercase font-bold tracking-widest text-slate-300">
-              Live Sync Active
+              <ScrambleText text="Live Sync Active" delay={baseDelay + 400} />
             </span>
           </div>
         </div>
@@ -238,7 +240,7 @@ const HeroMockupAnimation = () => {
             <div className="flex items-center gap-2 bg-slate-800/80 backdrop-blur-md px-3 py-1 rounded-full border border-slate-700/60">
               <img src="/logo.png" alt="Cash Book" className="w-4 h-4 object-contain" />
               <span className="text-[10px] font-bold text-slate-200 tracking-widest uppercase">
-                CASH BOOK
+                <ScrambleText text="CASH BOOK" delay={baseDelay + 600} />
               </span>
             </div>
           </div>
@@ -247,34 +249,34 @@ const HeroMockupAnimation = () => {
           <div className="grid grid-cols-3 gap-2.5 py-1 relative z-10">
             <div className="p-2.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-wider">Income</span>
+                <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-wider"><ScrambleText text="Income" delay={baseDelay + 800} flipboard={true} /></span>
                 <ArrowUpRight className="w-3 h-3 text-emerald-400" />
               </div>
-              <p className="text-xs sm:text-sm font-extrabold text-emerald-400">₹45,500</p>
+              <p className="text-xs sm:text-sm font-extrabold text-emerald-400 mt-1"><ScrambleText text="₹45,500" delay={baseDelay + 1000} flipboard={true} /></p>
             </div>
 
             <div className="p-2.5 rounded-xl bg-rose-500/15 border border-rose-500/30">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-[9px] font-bold text-rose-400 uppercase tracking-wider">Expense</span>
+                <span className="text-[9px] font-bold text-rose-400 uppercase tracking-wider"><ScrambleText text="Expense" delay={baseDelay + 1200} flipboard={true} /></span>
                 <ArrowDownLeft className="w-3 h-3 text-rose-400" />
               </div>
-              <p className="text-xs sm:text-sm font-extrabold text-rose-400">₹18,240</p>
+              <p className="text-xs sm:text-sm font-extrabold text-rose-400 mt-1"><ScrambleText text="₹18,240" delay={baseDelay + 1400} flipboard={true} /></p>
             </div>
 
             <div className="p-2.5 rounded-xl bg-sky-500/15 border border-sky-500/30">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-[9px] font-bold text-sky-400 uppercase tracking-wider">Net Cash</span>
+                <span className="text-[9px] font-bold text-sky-400 uppercase tracking-wider"><ScrambleText text="Net Cash" delay={baseDelay + 1600} flipboard={true} /></span>
                 <Wallet className="w-3.5 h-3.5 text-sky-400" />
               </div>
-              <p className="text-xs sm:text-sm font-extrabold text-sky-400">₹27,260</p>
+              <p className="text-xs sm:text-sm font-extrabold text-sky-400 mt-1"><ScrambleText text="₹27,260" delay={baseDelay + 1800} flipboard={true} /></p>
             </div>
           </div>
 
           {/* Animated Analytics Wave Chart (Ultra Smooth Liquid Wave) */}
           <div className="p-3 rounded-xl bg-slate-800/40 border border-slate-700/40 relative z-10 overflow-hidden">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] font-semibold text-slate-400">Real-time Analytics Feed</span>
-              <span className="text-[9px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 shadow-sm">+14.2% Growth</span>
+              <span className="text-[10px] font-semibold text-slate-400"><ScrambleText text="Real-time Analytics Feed" delay={2000} /></span>
+              <span className="text-[9px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 shadow-sm"><ScrambleText text="+14.2% Growth" delay={2200} /></span>
             </div>
             <div className="h-10 w-full relative">
               <svg className="w-full h-full overflow-hidden" viewBox="0 0 400 60" preserveAspectRatio="none">
@@ -305,11 +307,11 @@ const HeroMockupAnimation = () => {
             <div className="flex items-center justify-between">
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
                 <Zap className="w-3 h-3 text-primary" />
-                Recent Activity
+                <ScrambleText text="Recent Activity" delay={2400} />
               </p>
               <span className="text-[9px] text-emerald-400 flex items-center gap-1 font-semibold">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                Live Sync
+                <ScrambleText text="Live Sync" delay={2600} />
               </span>
             </div>
 
@@ -338,14 +340,14 @@ const HeroMockupAnimation = () => {
                       </div>
                       <div>
                         <p className="text-xs font-bold text-white flex items-center gap-1">
-                          {row.title}
+                          <ScrambleText text={row.title} delay={2800 + baseDelay + (i * 200)} />
                           {isActive && <span className="w-1.5 h-1.5 rounded-full bg-primary animate-ping" />}
                         </p>
-                        <p className="text-[9px] text-slate-400">{row.category} • {row.time}</p>
+                        <p className="text-[9px] text-slate-400"><ScrambleText text={`${row.category} • ${row.time}`} delay={2900 + baseDelay + (i * 200)} /></p>
                       </div>
                     </div>
                     <span className={`text-xs font-extrabold ${row.type === "income" ? "text-emerald-400" : "text-rose-400"}`}>
-                      {row.amt}
+                      <ScrambleText text={row.amt} delay={3000 + (i * 200)} />
                     </span>
                   </motion.div>
                 );
@@ -370,6 +372,8 @@ export function LandingPage() {
   const [showIntroLoader, setShowIntroLoader] = useState(() => {
     return !sessionStorage.getItem("hasSeenIntroAnimation");
   });
+
+  const baseDelay = showIntroLoader ? 2500 : 0;
 
   useEffect(() => {
     if (showIntroLoader) {
@@ -455,7 +459,7 @@ export function LandingPage() {
       color: "from-sky-500/15 to-blue-500/15 text-sky-600 dark:text-sky-400 border-sky-500/20",
     },
     {
-      icon: Sparkles,
+      icon: ShoppingBag,
       title: "Shopping Ledger",
       desc: "Monitor clothing, electronics, gifts, and personal luxury spends.",
       tag: "Lifestyle",
@@ -519,6 +523,7 @@ export function LandingPage() {
                 transition={{ duration: 1.5, ease: "easeOut" }}
                 src="/logo.png"
                 alt="Cash Book Background Logo"
+                loading="lazy"
                 className="w-[320px] h-[320px] sm:w-[480px] sm:h-[480px] object-contain blur-[3px] filter select-none pointer-events-none"
               />
             </div>
@@ -574,7 +579,8 @@ export function LandingPage() {
           <div className="flex flex-wrap items-center gap-4 pt-3">
             <Link
               to="/signup"
-              className="px-8 py-3.5 bg-primary text-primary-foreground font-bold rounded-xl hover:opacity-95 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-1 transition-all text-sm md:text-base flex items-center gap-2 group"
+              aria-label="Get Started Free"
+              className="px-8 py-3.5 bg-primary text-primary-foreground font-bold rounded-xl hover:opacity-95 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-1 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 transition-all text-sm md:text-base flex items-center gap-2 group min-h-[44px]"
             >
               Get Started Free
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -752,7 +758,8 @@ export function LandingPage() {
           <div className="pt-2">
             <Link
               to="/about"
-              className="inline-flex items-center gap-1.5 text-primary font-bold text-sm hover:underline"
+              aria-label="Read more about us"
+              className="inline-flex items-center gap-1.5 text-primary font-bold text-sm hover:underline active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded-md px-2 py-2 min-h-[44px]"
             >
               Read More
               <ArrowRight className="w-4 h-4" />

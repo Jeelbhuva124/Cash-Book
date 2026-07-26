@@ -1,8 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useToast } from '../context/ToastContext';
-import { Facebook, Twitter, Instagram, Linkedin, Send, FileText, Scale, Mail, ArrowUp, MapPin, Phone } from 'lucide-react';
+import { Facebook, Twitter, Instagram, Linkedin, Send, FileText, Scale, Mail, ArrowUp, MapPin, Phone, Home, HelpCircle, Briefcase, BookOpen, MessageSquare, LifeBuoy, Map, ShieldCheck } from 'lucide-react';
 import footerLogo from '../Assets/logo.png';
+import { WeightHover } from './WeightHover';
 
 export const UserFooter = () => {
   const { addToast } = useToast();
@@ -30,7 +31,7 @@ export const UserFooter = () => {
             <p className="text-sm text-muted-foreground leading-relaxed max-w-xs mt-2 mb-2">
               India's leading smart finance app. Digitize your khata book and manage daily budgets effortlessly.
             </p>
-            
+
             <div className="flex flex-col gap-4">
               <div className="flex items-start gap-3 text-muted-foreground hover:text-primary transition-colors">
                 <MapPin className="w-5 h-5 shrink-0 mt-0.5" />
@@ -48,13 +49,13 @@ export const UserFooter = () => {
 
             <div className="flex items-center gap-3 mt-4">
               {[
-                { Icon: Facebook, href: "#" },
-                { Icon: Twitter, href: "#" },
-                { Icon: Instagram, href: "#" },
-                { Icon: Linkedin, href: "#" }
-              ].map(({ Icon, href }, i) => (
-                <a key={i} href={href} className="w-10 h-10 rounded-xl bg-card border border-border flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-1 transition-all duration-300">
-                  <Icon className="w-4 h-4" />
+                { Icon: Facebook, href: "#", label: "Facebook" },
+                { Icon: Twitter, href: "#", label: "Twitter" },
+                { Icon: Instagram, href: "#", label: "Instagram" },
+                { Icon: Linkedin, href: "#", label: "LinkedIn" }
+              ].map(({ Icon, href, label }, i) => (
+                <a key={i} href={href} aria-label={label} className="w-11 h-11 rounded-xl bg-card border border-border flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-1 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 transition-all duration-300">
+                  <Icon className="w-5 h-5" />
                 </a>
               ))}
             </div>
@@ -67,22 +68,21 @@ export const UserFooter = () => {
               <h4 className="text-xs font-bold text-foreground tracking-widest uppercase">Quick Links</h4>
             </div>
             <ul className="space-y-3">
-              {['Home', 'Why Us?', 'Services', 'Blog', 'Contact Us'].map((item) => {
-                let linkPath = '/';
-                if (item === 'Home') linkPath = '/';
-                else if (item === 'Why Us?') linkPath = '/about';
-                else if (item === 'Services') linkPath = '/services';
-                else if (item === 'Blog') linkPath = '/blog';
-                else if (item === 'Contact Us') linkPath = '/contact';
-
-                return (
-                  <li key={item}>
-                    <Link to={linkPath} className="group text-sm text-muted-foreground hover:text-primary transition-all duration-300 flex items-center gap-2">
-                      <span className="text-xs group-hover:translate-x-1 transition-transform duration-300">›</span> {item}
-                    </Link>
-                  </li>
-                );
-              })}
+              {[
+                { label: 'Home', linkPath: '/', Icon: Home },
+                { label: 'About Us', linkPath: '/about', Icon: HelpCircle },
+                { label: 'Services', linkPath: '/services', Icon: Briefcase },
+                { label: 'Blog', linkPath: '/blog', Icon: BookOpen },
+                { label: 'Contact Us', linkPath: '/contact', Icon: MessageSquare }
+              ].map(({ label, linkPath, Icon }) => (
+                <li key={label}>
+                  <Link to={linkPath} className="group text-sm text-muted-foreground hover:text-primary transition-all duration-300 flex items-center gap-2 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded-md py-1">
+                    <Icon className="w-4 h-4 group-hover:scale-110 transition-transform duration-300" />
+                    <WeightHover text={label} defaultWeight={500} hoverWeight={700} />
+                  </Link>
+                </li>
+              )
+              )}
             </ul>
           </div>
 
@@ -93,21 +93,20 @@ export const UserFooter = () => {
               <h4 className="text-xs font-bold text-foreground tracking-widest uppercase">Resources</h4>
             </div>
             <ul className="space-y-3">
-              {['FAQ', 'Help Center', 'Legal', 'Roadmap'].map((item) => {
-                let linkPath = '/';
-                if (item === 'FAQ') linkPath = '/faq';
-                else if (item === 'Help Center') linkPath = '/helpcenter';
-                else if (item === 'Legal') linkPath = '/legal';
-                else if (item === 'Roadmap') linkPath = '/roadmap';
-
-                return (
-                  <li key={item}>
-                    <Link to={linkPath} className="group text-sm text-muted-foreground hover:text-primary transition-all duration-300 flex items-center gap-2">
-                      <span className="text-xs group-hover:translate-x-1 transition-transform duration-300">›</span> {item}
-                    </Link>
-                  </li>
-                );
-              })}
+              {[
+                { label: 'FAQ', linkPath: '/faq', Icon: HelpCircle },
+                { label: 'Help Center', linkPath: '/helpcenter', Icon: LifeBuoy },
+                { label: 'Legal', linkPath: '/legal', Icon: ShieldCheck },
+                { label: 'Roadmap', linkPath: '/roadmap', Icon: Map }
+              ].map(({ label, linkPath, Icon }) => (
+                <li key={label}>
+                  <Link to={linkPath} className="group text-sm text-muted-foreground hover:text-primary transition-all duration-300 flex items-center gap-2 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded-md py-1">
+                    <Icon className="w-4 h-4 group-hover:scale-110 transition-transform duration-300" /> 
+                    <WeightHover text={label} defaultWeight={500} hoverWeight={700} />
+                  </Link>
+                </li>
+              )
+              )}
             </ul>
           </div>
 
@@ -119,12 +118,12 @@ export const UserFooter = () => {
             </div>
             <ul className="space-y-3">
               <li>
-                <Link to="/privacy" className="group text-sm text-muted-foreground hover:text-primary transition-all duration-300 flex items-center gap-2">
+                <Link to="/privacy" className="group text-sm text-muted-foreground hover:text-primary transition-all duration-300 flex items-center gap-2 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded-md py-1">
                   <FileText className="w-4 h-4 group-hover:scale-110 transition-transform duration-300" /> Privacy Policy
                 </Link>
               </li>
               <li>
-                <Link to="/terms" className="group text-sm text-muted-foreground hover:text-primary transition-all duration-300 flex items-center gap-2">
+                <Link to="/terms" className="group text-sm text-muted-foreground hover:text-primary transition-all duration-300 flex items-center gap-2 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded-md py-1">
                   <Scale className="w-4 h-4 group-hover:scale-110 transition-transform duration-300" /> Terms of Service
                 </Link>
               </li>

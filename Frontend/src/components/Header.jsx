@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { ThemeToggle } from './ThemeToggle';
 import { BookOpen, Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { DirectionHover } from './DirectionHover';
 
 export const UserNavbar = () => {
   const location = useLocation();
@@ -37,12 +38,12 @@ export const UserNavbar = () => {
                 <Link
                   key={link.path}
                   to={link.path}
-                  className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-colors relative z-10 ${isActive
+                  className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-colors relative z-10 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${isActive
                       ? 'text-primary font-semibold'
                       : 'text-muted-foreground hover:text-foreground'
                     }`}
                 >
-                  {link.label}
+                  <DirectionHover text={link.label} hoverText={link.label} className="px-1" />
                   {/* Active Indicator Pill */}
                   {isActive && (
                     <motion.div
@@ -65,7 +66,7 @@ export const UserNavbar = () => {
             {localStorage.getItem("token") ? (
               <Link
                 to="/dashboard"
-                className="text-xs sm:text-sm font-semibold bg-primary text-primary-foreground px-4 py-2 rounded-full hover:opacity-95 transition-all shadow-sm hover:shadow-md"
+                className="text-xs sm:text-sm font-semibold bg-primary text-primary-foreground px-4 py-2 rounded-full hover:opacity-95 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 transition-all shadow-sm hover:shadow-md"
               >
                 Dashboard
               </Link>
@@ -73,13 +74,13 @@ export const UserNavbar = () => {
               <>
                 <Link
                   to="/login"
-                  className="hidden sm:block text-xs sm:text-sm font-medium text-muted-foreground hover:text-foreground transition-colors px-3 py-2"
+                  className="hidden sm:block text-xs sm:text-sm font-medium text-muted-foreground hover:text-foreground active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 transition-colors px-3 py-2"
                 >
                   Login
                 </Link>
                 <Link
                   to="/signup"
-                  className="text-xs sm:text-sm font-semibold bg-primary text-primary-foreground px-4 py-2 rounded-full hover:opacity-95 transition-all shadow-sm hover:shadow-md"
+                  className="text-xs sm:text-sm font-semibold bg-primary text-primary-foreground px-4 py-2 rounded-full hover:opacity-95 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 transition-all shadow-sm hover:shadow-md"
                 >
                   Get Started
                 </Link>
@@ -88,7 +89,8 @@ export const UserNavbar = () => {
             {/* Mobile Menu Button */}
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="md:hidden p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              aria-label="Toggle Menu"
+              className="md:hidden p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
             >
               {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>

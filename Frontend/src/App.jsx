@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 // ─── Context Providers ────────────────────────────────────
@@ -7,6 +8,7 @@ import { ToastProvider } from './context/ToastContext';
 // ─── Shared Components ────────────────────────────────────
 import { Toaster } from './components/Toaster';
 import { RouteScrollToTop } from './components/RouteScrollToTop';
+import { SplashScreen } from './components/SplashScreen';
 
 // ─── Landing Page ─────────────────────────────────────────
 import { LandingPage } from './page/LandingPage';
@@ -62,9 +64,12 @@ import SignUp from './Auth/SignUp';
 import { UserLayout } from './components/UserLayout';
 
 function App() {
+  const [showSplash, setShowSplash] = useState(true);
+
   return (
     <ThemeProvider defaultTheme="dark" storageKey="cashbook-ui-theme">
       <ToastProvider>
+        {showSplash && <SplashScreen onFinish={() => setShowSplash(false)} />}
         <Router>
           <RouteScrollToTop />
           <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
