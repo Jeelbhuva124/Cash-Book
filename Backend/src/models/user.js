@@ -36,6 +36,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    avatar: {
+      type: String, // Store Base64 or URL
+      default: '',
+    }
   },
   {
     timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' },

@@ -130,10 +130,37 @@ const userController = {
 
     getAllEntries: async (req, res) => {
         try {
-            const users = await User.find({});
-            return res.status(200).json({ success: true, data: users });
+            const dbUsers = await User.find().sort({ createdAt: -1 });
+            return res.status(200).json({ success: true, count: dbUsers.length, data: dbUsers });
         } catch (err) {
             return res.status(500).json({ success: false, message: err.message });
+        }
+    },
+
+    updateProfile: async (req, res) => {
+        try {
+            const { email_id, avatar } = req.body;
+            
+            if (!email_id) {
+                return res.status(400).json({ success: false, message: 'email_id is required' });
+            }
+
+            const updateData = {};
+            if (avatar !== undefined) updateData.avatar = avatar;
+
+            const updatedUser = await User.findOneAndUpdate(
+                { email_id: email_id.toLowerCase() },
+                { $set: updateData },
+                { new: true }
+            );
+
+            if (!updatedUser) {
+                return res.status(404).json({ success: false, message: 'User not found' });
+            }
+
+            res.status(200).json({ success: true, message: 'Profile updated successfully', data: updatedUser });
+        } catch (error) {
+            res.status(500).json({ success: false, message: error.message });
         }
     },
 

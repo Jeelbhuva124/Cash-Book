@@ -53,6 +53,7 @@ import { AdminRegister } from './AdminPanel/pages/AdminRegister';
 import { AdminDashboard } from './AdminPanel/pages/AdminDashboard';
 import { UserManagement } from './AdminPanel/pages/UserManagement';
 import { CashbookManagement } from './AdminPanel/pages/CashbookManagement';
+import { TransactionManagement } from './AdminPanel/pages/TransactionManagement';
 import { SystemAnalytics } from './AdminPanel/pages/SystemAnalytics';
 import { AdminSettings } from './AdminPanel/pages/AdminSettings';
 
@@ -89,6 +90,7 @@ function App() {
                   <Route path="dashboard" element={<AdminDashboard />} />
                   <Route path="users" element={<UserManagement />} />
                   <Route path="cashbooks" element={<CashbookManagement />} />
+                  <Route path="transactions" element={<TransactionManagement />} />
                   <Route path="analytics" element={<SystemAnalytics />} />
                   <Route path="settings" element={<AdminSettings />} />
                 </Route>

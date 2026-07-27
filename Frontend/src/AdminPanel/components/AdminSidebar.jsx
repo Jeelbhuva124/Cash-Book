@@ -54,9 +54,7 @@ export const AdminSidebar = ({ isCollapsed, setIsCollapsed, mobileOpen, setMobil
         {/* Sidebar Header */}
         <div className="h-20 px-4 flex items-center justify-between border-b border-border">
           <Link to="/admin" className="flex items-center gap-3 overflow-hidden">
-            <div className="w-10 h-10 rounded-xl bg-primary text-primary-foreground flex items-center justify-center font-black text-lg shrink-0 shadow-md shadow-primary/20">
-              <ShieldCheck className="w-6 h-6" />
-            </div>
+            <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain shrink-0" />
             {!isCollapsed && (
               <div className="flex flex-col leading-tight">
                 <span className="font-extrabold text-foreground text-base tracking-tight whitespace-nowrap">

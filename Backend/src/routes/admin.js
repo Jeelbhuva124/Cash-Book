@@ -19,4 +19,9 @@ router.post('/delete', adminController.delete);
 router.get('/stats', adminController.stats);
 router.post('/stats', adminController.stats);
 
+router.post('/user-details', adminController.getUserDetails);
+
+router.get('/transactions', adminController.transactions);
+router.post('/transactions', adminController.transactions);
+
 export default router;

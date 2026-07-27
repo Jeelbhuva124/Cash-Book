@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
   Users, 
@@ -14,22 +15,57 @@ import {
   Cpu
 } from 'lucide-react';
 import { AdminStatCard } from '../components/AdminStatCard';
-
 export const AdminDashboard = () => {
+  const navigate = useNavigate();
+  const [realStats, setRealStats] = useState({
+    total_users: 0,
+    active_cashbooks: 0,
+    total_volume: 0,
+    system_uptime: "99.98%"
+  });
+  const [recentLogs, setRecentLogs] = useState([]);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await fetch('http://localhost:5001/api/admin/stats');
+        const data = await res.json();
+        if (data.success && data.data) {
+          setRealStats({
+            total_users: data.data.total_users || 0,
+            active_cashbooks: data.data.total_cashbooks || 0,
+            total_volume: data.data.total_volume || 0,
+            system_uptime: data.data.system_uptime || "99.98%"
+          });
+          if (data.data.recentLogs) {
+            setRecentLogs(data.data.recentLogs);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch admin stats:", err);
+      }
+    };
+    fetchStats();
+    // Optional: Refresh every 30 seconds
+    const intervalId = setInterval(fetchStats, 30000);
+    return () => clearInterval(intervalId);
+  }, []);
+
+  const formatCurrency = (amount) => {
+    if (amount >= 10000000) return `₹${(amount / 10000000).toFixed(2)} Cr`;
+    if (amount >= 100000) return `₹${(amount / 100000).toFixed(2)} L`;
+    if (amount >= 1000) return `₹${(amount / 1000).toFixed(2)} K`;
+    return `₹${amount}`;
+  };
+
   const stats = [
-    { title: "Total Users", value: "24,890", change: "+14.2%", isIncrease: true, icon: Users, colorAccent: "primary", description: "vs last month" },
-    { title: "Active Cashbooks", value: "18,420", change: "+8.7%", isIncrease: true, icon: BookOpen, colorAccent: "success", description: "across all accounts" },
-    { title: "Transaction Volume", value: "₹4.82 Cr", change: "+22.4%", isIncrease: true, icon: TrendingUp, colorAccent: "warning", description: "processed this month" },
-    { title: "System Uptime", value: "99.98%", change: "Stable", isIncrease: true, icon: ShieldCheck, colorAccent: "info", description: "0 critical incidents" },
+    { title: "Total Users", value: realStats.total_users.toLocaleString(), change: "+14.2%", isIncrease: true, icon: Users, colorAccent: "primary", description: "registered accounts", path: "/admin/users" },
+    { title: "Active Cashbooks", value: realStats.active_cashbooks.toLocaleString(), change: "+8.7%", isIncrease: true, icon: BookOpen, colorAccent: "success", description: "across all accounts", path: "/admin/cashbooks" },
+    { title: "Transaction Volume", value: formatCurrency(realStats.total_volume), change: "+22.4%", isIncrease: true, icon: TrendingUp, colorAccent: "warning", description: "processed so far", path: "/admin/transactions" },
+    { title: "System Uptime", value: realStats.system_uptime, change: "Stable", isIncrease: true, icon: ShieldCheck, colorAccent: "info", description: "0 critical incidents", path: "/admin/analytics" },
   ];
 
-  const recentLogs = [
-    { id: 1, user: "Rahul Sharma", action: "Created Cashbook 'Kirana Store Log'", ip: "103.24.12.89", status: "success", time: "2 mins ago" },
-    { id: 2, user: "Priya Patel", action: "Exported PDF Ledger Report", ip: "49.207.54.12", status: "success", time: "10 mins ago" },
-    { id: 3, user: "Admin Root", action: "Updated SMTP Configuration", ip: "182.73.4.10", status: "warning", time: "24 mins ago" },
-    { id: 4, user: "Arjun Verma", action: "Added Member 'arjun@team.com'", ip: "103.50.160.4", status: "success", time: "45 mins ago" },
-    { id: 5, user: "System Auto", action: "Database Indexing Completed", ip: "Internal", status: "info", time: "1 hour ago" },
-  ];
+
 
   return (
     <div className="space-y-8">
@@ -50,7 +86,13 @@ export const AdminDashboard = () => {
       {/* Metric Stat Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {stats.map((stat, i) => (
-          <AdminStatCard key={i} {...stat} />
+          <AdminStatCard 
+            key={i} 
+            {...stat} 
+            onClick={() => {
+              if (stat.path) navigate(stat.path);
+            }} 
+          />
         ))}
       </div>
 
