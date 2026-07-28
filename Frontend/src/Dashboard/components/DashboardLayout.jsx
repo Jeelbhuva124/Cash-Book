@@ -6,6 +6,7 @@ import {
   Bell, User, ChevronDown, LogOut, PanelLeft, CheckCheck
 } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
+import { SplashScreen } from '../../components/SplashScreen';
 
 export const DashboardLayout = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -13,6 +14,11 @@ export const DashboardLayout = () => {
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showSplash, setShowSplash] = useState(() => {
+    if (sessionStorage.getItem('dashboardSplashShown')) return false;
+    sessionStorage.setItem('dashboardSplashShown', 'true');
+    return true;
+  });
 
   const notificationRef = useRef(null);
   const userDropdownRef = useRef(null);
@@ -109,6 +115,7 @@ export const DashboardLayout = () => {
     localStorage.removeItem("user");
     localStorage.removeItem("token");
     localStorage.removeItem("profile_data");
+    sessionStorage.removeItem("dashboardSplashShown");
     window.dispatchEvent(new Event("profileUpdated"));
     navigate("/login");
   };
@@ -164,6 +171,7 @@ export const DashboardLayout = () => {
 
   return (
     <div className="flex h-screen bg-transparent dark:bg-transparent overflow-hidden text-foreground">
+      {showSplash && <SplashScreen onFinish={() => setShowSplash(false)} />}
       {/* Sidebar Navigation */}
       <Sidebar mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} isCollapsed={isCollapsed} />
 

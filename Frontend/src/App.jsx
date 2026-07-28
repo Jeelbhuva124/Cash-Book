@@ -65,12 +65,9 @@ import SignUp from './Auth/SignUp';
 import { UserLayout } from './components/UserLayout';
 
 function App() {
-  const [showSplash, setShowSplash] = useState(true);
-
   return (
     <ThemeProvider defaultTheme="dark" storageKey="cashbook-ui-theme">
       <ToastProvider>
-        {showSplash && <SplashScreen onFinish={() => setShowSplash(false)} />}
         <Router>
           <RouteScrollToTop />
           <div className="min-h-screen bg-background text-foreground transition-colors duration-300">

@@ -20,6 +20,7 @@ export default function SignIn() {
   const [canResend, setCanResend] = useState(false);
 
   useEffect(() => {
+    sessionStorage.removeItem("dashboardSplashShown");
     if (localStorage.getItem("token")) {
       navigate("/dashboard");
     }

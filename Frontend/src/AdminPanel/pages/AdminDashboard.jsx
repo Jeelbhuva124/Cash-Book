@@ -21,7 +21,14 @@ export const AdminDashboard = () => {
     total_users: 0,
     active_cashbooks: 0,
     total_volume: 0,
-    system_uptime: "99.98%"
+    system_uptime: "99.98%",
+    growthChartData: [40, 65, 55, 80, 95, 70, 85, 100, 90, 110, 125, 140, 130, 150],
+    newUsersLast14Days: 1240,
+    serverDiagnostics: {
+      ram: { used: '4.2', total: '8.0', percent: '52.5' },
+      cpu: '24.5',
+      dbStorageGB: '18.4'
+    }
   });
   const [recentLogs, setRecentLogs] = useState([]);
 
@@ -35,7 +42,14 @@ export const AdminDashboard = () => {
             total_users: data.data.total_users || 0,
             active_cashbooks: data.data.total_cashbooks || 0,
             total_volume: data.data.total_volume || 0,
-            system_uptime: data.data.system_uptime || "99.98%"
+            system_uptime: data.data.system_uptime || "99.98%",
+            growthChartData: data.data.growthChartData || [40, 65, 55, 80, 95, 70, 85, 100, 90, 110, 125, 140, 130, 150],
+            newUsersLast14Days: data.data.newUsersLast14Days || 0,
+            serverDiagnostics: data.data.serverDiagnostics || {
+              ram: { used: '4.2', total: '8.0', percent: '52.5' },
+              cpu: '24.5',
+              dbStorageGB: '18.4'
+            }
           });
           if (data.data.recentLogs) {
             setRecentLogs(data.data.recentLogs);
@@ -106,21 +120,24 @@ export const AdminDashboard = () => {
               <p className="text-xs text-muted-foreground">Daily user onboardings over the last 30 days</p>
             </div>
             <span className="text-xs font-bold text-primary bg-primary/10 px-3 py-1 rounded-full">
-              +1,240 New Users
+              +{realStats.newUsersLast14Days.toLocaleString()} New Users
             </span>
           </div>
 
           <div className="h-56 w-full bg-muted/40 rounded-xl border border-dashed border-border flex items-end justify-between p-4 gap-2">
-            {[40, 65, 55, 80, 95, 70, 85, 100, 90, 110, 125, 140, 130, 150].map((h, idx) => (
+            {realStats.growthChartData.map((h, idx) => {
+              const maxH = Math.max(...realStats.growthChartData, 10);
+              const heightPercent = (h / maxH) * 100;
+              return (
               <motion.div
                 key={idx}
                 initial={{ height: 0 }}
-                animate={{ height: `${h / 1.6}%` }}
+                animate={{ height: `${heightPercent}%` }}
                 transition={{ duration: 0.6, delay: idx * 0.04 }}
                 className="flex-1 bg-gradient-to-t from-primary/40 to-primary rounded-t-md hover:opacity-80 transition-opacity"
-                title={`Day ${idx + 1}: ${h * 10} active entries`}
+                title={`Day ${idx + 1}: ${h} new users`}
               />
-            ))}
+            )})}
           </div>
         </div>
 
@@ -137,10 +154,10 @@ export const AdminDashboard = () => {
                 <span className="text-muted-foreground flex items-center gap-1.5">
                   <Cpu className="w-3.5 h-3.5 text-sky-500" /> CPU Load
                 </span>
-                <span className="text-foreground">24.5%</span>
+                <span className="text-foreground">{realStats.serverDiagnostics.cpu}%</span>
               </div>
               <div className="h-2 bg-muted rounded-full overflow-hidden">
-                <div className="h-full bg-sky-500 w-[24.5%] rounded-full" />
+                <div className="h-full bg-sky-500 rounded-full" style={{ width: `${realStats.serverDiagnostics.cpu}%` }} />
               </div>
             </div>
 
@@ -149,10 +166,10 @@ export const AdminDashboard = () => {
                 <span className="text-muted-foreground flex items-center gap-1.5">
                   <Activity className="w-3.5 h-3.5 text-emerald-500" /> RAM Memory
                 </span>
-                <span className="text-foreground">4.2 GB / 8.0 GB (52.5%)</span>
+                <span className="text-foreground">{realStats.serverDiagnostics.ram.used} GB / {realStats.serverDiagnostics.ram.total} GB ({realStats.serverDiagnostics.ram.percent}%)</span>
               </div>
               <div className="h-2 bg-muted rounded-full overflow-hidden">
-                <div className="h-full bg-emerald-500 w-[52.5%] rounded-full" />
+                <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${realStats.serverDiagnostics.ram.percent}%` }} />
               </div>
             </div>
 
@@ -161,10 +178,10 @@ export const AdminDashboard = () => {
                 <span className="text-muted-foreground flex items-center gap-1.5">
                   <Database className="w-3.5 h-3.5 text-amber-500" /> Database Storage
                 </span>
-                <span className="text-foreground">18.4 GB / 100 GB</span>
+                <span className="text-foreground">{realStats.serverDiagnostics.dbStorageGB} GB / 100 GB</span>
               </div>
               <div className="h-2 bg-muted rounded-full overflow-hidden">
-                <div className="h-full bg-amber-500 w-[18.4%] rounded-full" />
+                <div className="h-full bg-amber-500 rounded-full" style={{ width: `${Math.min((realStats.serverDiagnostics.dbStorageGB / 100) * 100, 100)}%` }} />
               </div>
             </div>
           </div>

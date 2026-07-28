@@ -1,27 +1,76 @@
 import React, { useState, useEffect } from 'react';
-import { Search, BookOpen, Trash2, RefreshCw } from 'lucide-react';
+import { Search, BookOpen, Trash2, RefreshCw, Eye, X, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
 
 export const CashbookManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [cashbooks, setCashbooks] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [selectedCashbook, setSelectedCashbook] = useState(null);
+  const [transactions, setTransactions] = useState([]);
+  const [loadingTransactions, setLoadingTransactions] = useState(false);
   const { toast } = useToast();
+
+  const fetchTransactions = async (cb) => {
+    setSelectedCashbook(cb);
+    setLoadingTransactions(true);
+    try {
+      const cbId = cb.id || cb._id;
+      const res = await fetch(`http://localhost:5001/api/admin/transactions?chalan_id=${cbId}`);
+      const data = await res.json();
+      if (data.success) {
+        // Fallback filter in case backend hasn't been restarted with the new filter logic
+        const filtered = data.data.filter(tx => String(tx.chalan_id) === String(cbId) || String(tx.chalanId) === String(cbId) || (cbId === '1' && !tx.chalan_id));
+        setTransactions(filtered);
+      } else {
+        toast.error("Failed to fetch transactions");
+      }
+    } catch (err) {
+      toast.error("Failed to fetch transactions");
+    } finally {
+      setLoadingTransactions(false);
+    }
+  };
 
   const fetchCashbooks = async () => {
     setLoading(true);
     try {
+      let fetchedCashbooks = [];
       const res = await fetch('http://localhost:5001/api/admin/select');
       const data = await res.json();
       if (data.success && data.data && data.data.cashbooks) {
-        setCashbooks(data.data.cashbooks);
+        fetchedCashbooks = data.data.cashbooks;
       } else {
         const fallbackRes = await fetch('http://localhost:5001/api/cashbook/select');
         const fallbackData = await fallbackRes.json();
         if (fallbackData.success && Array.isArray(fallbackData.data)) {
-          setCashbooks(fallbackData.data);
+          fetchedCashbooks = fallbackData.data;
         }
       }
+
+      // Fallback logic if backend wasn't restarted and doesn't have computed totals
+      if (fetchedCashbooks.length > 0 && fetchedCashbooks[0].total_income === undefined) {
+        try {
+          const txRes = await fetch('http://localhost:5001/api/admin/transactions');
+          const txData = await txRes.json();
+          if (txData.success && Array.isArray(txData.data)) {
+            const allTxns = txData.data;
+            fetchedCashbooks = fetchedCashbooks.map(cb => {
+              const cbId = String(cb.id || cb._id);
+              const cbTxns = allTxns.filter(t => String(t.chalan_id) === cbId || String(t.chalanId) === cbId || (cbId === '1' && !t.chalan_id));
+              let income = 0;
+              let expense = 0;
+              cbTxns.forEach(tx => {
+                if (tx.type === 'income') income += Number(tx.amount) || 0;
+                if (tx.type === 'expense') expense += Number(tx.amount) || 0;
+              });
+              return { ...cb, total_income: income, total_expense: expense };
+            });
+          }
+        } catch (e) { console.error("Error fetching transactions for stats fallback", e); }
+      }
+
+      setCashbooks(fetchedCashbooks);
     } catch (err) {
       console.warn("Failed to fetch cashbooks from server", err.message);
       setCashbooks([
@@ -115,8 +164,17 @@ export const CashbookManagement = () => {
             <tbody className="divide-y divide-border">
               {filteredCashbooks.map((cb, idx) => {
                 const cbId = cb.id || cb._id || idx;
-                const income = cb.total_income ? `₹${Number(cb.total_income).toLocaleString('en-IN')}` : '₹0';
-                const expense = cb.total_expense ? `₹${Number(cb.total_expense).toLocaleString('en-IN')}` : '₹0';
+                const incNum = cb.total_income !== undefined ? Number(cb.total_income) : 0;
+                const expNum = cb.total_expense !== undefined ? Number(cb.total_expense) : 0;
+                const income = incNum > 0 ? `₹${incNum.toLocaleString('en-IN')}` : '₹0';
+                const expense = expNum > 0 ? `₹${expNum.toLocaleString('en-IN')}` : '₹0';
+                
+                const formatDate = (ds) => {
+                  if (!ds) return 'N/A';
+                  const d = new Date(ds);
+                  if (isNaN(d.getTime())) return 'N/A';
+                  return `${String(d.getDate()).padStart(2, '0')}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getFullYear()).slice(-2)}`;
+                };
 
                 return (
                   <tr key={cbId} className="hover:bg-muted/30 transition-colors">
@@ -126,20 +184,29 @@ export const CashbookManagement = () => {
                       </div>
                       <span>{cb.cashbook_name || cb.name || 'Unnamed Khata'}</span>
                     </td>
-                    <td className="p-4 text-muted-foreground font-medium">{cb.owner_email || cb.owner || 'N/A'}</td>
+                    <td className="p-4 text-muted-foreground font-medium">{cb.owner_email || cb.user_email || 'N/A'}</td>
                     <td className="p-4 text-xs font-bold text-emerald-500">{income}</td>
                     <td className="p-4 text-xs font-bold text-rose-500">{expense}</td>
                     <td className="p-4 text-xs text-muted-foreground">
-                      {cb.created_at ? new Date(cb.created_at).toLocaleDateString() : 'N/A'}
+                      {formatDate(cb.created_at || cb.createdAt)}
                     </td>
                     <td className="p-4 text-right">
-                      <button
-                        onClick={() => deleteCashbook(cb)}
-                        className="p-2 rounded-xl text-rose-500 hover:bg-rose-500/10 transition-colors"
-                        title="Delete Cashbook"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => fetchTransactions(cb)}
+                          className="p-2 rounded-xl text-primary hover:bg-primary/10 transition-colors"
+                          title="View Transactions"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => deleteCashbook(cb)}
+                          className="p-2 rounded-xl text-rose-500 hover:bg-rose-500/10 transition-colors"
+                          title="Delete Cashbook"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -148,6 +215,62 @@ export const CashbookManagement = () => {
           </table>
         </div>
       </div>
+
+      {/* Transactions Modal */}
+      {selectedCashbook && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
+          <div className="bg-card border border-border rounded-2xl shadow-xl w-full max-w-3xl max-h-[85vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between p-6 border-b border-border bg-muted/30">
+              <div>
+                <h3 className="text-xl font-bold text-foreground">{selectedCashbook.cashbook_name || selectedCashbook.name}</h3>
+                <p className="text-sm text-muted-foreground">Transactions Log</p>
+              </div>
+              <button 
+                onClick={() => setSelectedCashbook(null)}
+                className="p-2 rounded-xl text-muted-foreground hover:bg-muted/80 hover:text-foreground transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto flex-1 bg-muted/10">
+              {loadingTransactions ? (
+                <div className="flex justify-center items-center py-12">
+                  <RefreshCw className="w-6 h-6 text-primary animate-spin" />
+                </div>
+              ) : transactions.length === 0 ? (
+                <div className="text-center py-12">
+                  <BookOpen className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
+                  <p className="text-muted-foreground">No transactions found for this cashbook.</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {transactions.map(tx => (
+                    <div key={tx._id || tx.id} className="flex items-center justify-between p-4 bg-card border border-border rounded-xl">
+                      <div className="flex items-center gap-4">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${tx.type === 'income' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'}`}>
+                          {tx.type === 'income' ? <ArrowUpRight className="w-5 h-5" /> : <ArrowDownRight className="w-5 h-5" />}
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-foreground text-sm">{tx.title}</h4>
+                          <div className="flex gap-2 items-center text-xs text-muted-foreground mt-0.5">
+                            <span>{tx.date}</span>
+                            <span>•</span>
+                            <span>{tx.payment_mode || 'Cash'}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className={`font-bold ${tx.type === 'income' ? 'text-emerald-500' : 'text-rose-500'}`}>
+                        {tx.type === 'income' ? '+' : '-'}₹{Number(tx.amount).toLocaleString('en-IN')}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
