@@ -63,6 +63,7 @@ import SignUp from './Auth/SignUp';
 
 // ─── User Layout ──────────────────────────────────────────
 import { UserLayout } from './components/UserLayout';
+import OtpAnimation from './components/OtpAnimation';
 
 function App() {
   return (
@@ -75,6 +76,7 @@ function App() {
               {/* ── Auth Pages ── */}
               <Route path="/login" element={<SignIn />} />
               <Route path="/signup" element={<SignUp />} />
+              <Route path="/otp-demo" element={<OtpAnimation />} />
 
               {/* ── Admin Auth Routes ── */}
               <Route path="/admin/login" element={<AdminLogin />} />
@@ -101,7 +103,7 @@ function App() {
                 <Route path="transactions" element={<Transactions />} />
                 <Route path="reports" element={<Reports />} />
                 <Route path="history" element={<History />} />
-                
+
                 {/* Reference Dashboard Routes */}
                 <Route path="chalans" element={<Chalans />} />
                 <Route path="categories" element={<Categories />} />
