@@ -29,7 +29,8 @@ export default function Reports() {
     const storageKey = `cashbook_txs_${sessionUser?.email_id || 'guest'}`;
     const saved = localStorage.getItem(storageKey);
     if (saved) {
-      setTransactions(JSON.parse(saved));
+      const parsed = JSON.parse(saved);
+      setTransactions(parsed.filter(t => !t.is_deleted && !t.deleted));
     }
   }, []);
 

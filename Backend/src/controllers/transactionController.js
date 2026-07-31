@@ -28,6 +28,13 @@ export const createTransaction = async (req, res) => {
 
       const inserted = await Transaction.insertMany(docs);
 
+      const io = req.app.get('io');
+      if (io) {
+        inserted.forEach(tx => {
+          io.emit('transaction_created', tx);
+        });
+      }
+
       return res.status(201).json({
         success: true,
         message: `${inserted.length} transactions created successfully`,
@@ -65,6 +72,11 @@ export const createTransaction = async (req, res) => {
     });
 
     await newTransaction.save();
+
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('transaction_created', newTransaction);
+    }
 
     return res.status(201).json({
       success: true,
@@ -149,6 +161,11 @@ export const updateTransaction = async (req, res) => {
       });
     }
 
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('transaction_updated', updatedTransaction);
+    }
+
     return res.status(200).json({
       success: true,
       message: 'Transaction updated successfully',
@@ -182,6 +199,11 @@ export const deleteTransaction = async (req, res) => {
 
       await Transaction.deleteMany({ _id: { $in: validIds } });
 
+      const io = req.app.get('io');
+      if (io) {
+        io.emit('transaction_deleted', { ids: validIds });
+      }
+
       return res.status(200).json({
         success: true,
         message: `${validIds.length} transactions deleted successfully`,
@@ -210,6 +232,11 @@ export const deleteTransaction = async (req, res) => {
         success: false,
         message: 'Transaction not found',
       });
+    }
+
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('transaction_deleted', { id, deleted: deletedTransaction });
     }
 
     return res.status(200).json({

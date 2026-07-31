@@ -23,9 +23,7 @@ export const UserFooter = () => {
           {/* Column 1: Brand & About (Takes 4 cols on md) */}
           <div className="col-span-1 md:col-span-4 flex flex-col gap-5">
             <Link to="/" className="flex items-center gap-3 w-fit">
-              <div className="bg-white p-2 rounded-xl">
-                <img src={footerLogo} alt="Cash Book Logo" className="h-10 w-auto object-contain" />
-              </div>
+              <img src={footerLogo} alt="Cash Book Logo" className="h-10 w-auto object-contain" />
               <span className="text-2xl font-bold text-foreground">Cash Book</span>
             </Link>
             <p className="text-sm text-muted-foreground leading-relaxed max-w-xs mt-2 mb-2">

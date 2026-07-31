@@ -33,7 +33,6 @@ import History from './Dashboard/pages/History';
 import Savings from './Dashboard/pages/Savings';
 import Reminders from './Dashboard/pages/Reminders';
 import Categories from './Dashboard/pages/Categories';
-import Subcategories from './Dashboard/pages/Subcategories';
 import PaymentModes from './Dashboard/pages/PaymentModes';
 import Chalans from './Dashboard/pages/Chalans';
 import Invitations from './Dashboard/pages/Invitations';
@@ -107,7 +106,6 @@ function App() {
                 {/* Reference Dashboard Routes */}
                 <Route path="chalans" element={<Chalans />} />
                 <Route path="categories" element={<Categories />} />
-                <Route path="subcategories" element={<Subcategories />} />
                 <Route path="payment-modes" element={<PaymentModes />} />
                 <Route path="invitations" element={<Invitations />} />
                 <Route path="cashbooks" element={<Cashbooks />} />

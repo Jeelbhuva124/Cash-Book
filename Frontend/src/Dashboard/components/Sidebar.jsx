@@ -11,7 +11,6 @@ const SIDEBAR_ITEMS = [
   { label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
   { label: 'Cashbooks', icon: Book, path: '/dashboard/cashbooks' },
   { label: 'Category', icon: Tag, path: '/dashboard/categories' },
-  { label: 'Subcategory', icon: Layers, path: '/dashboard/subcategories' },
   { label: 'Payment Mode', icon: CreditCard, path: '/dashboard/payment-modes' },
   { label: 'Invitations', icon: Users, path: '/dashboard/invitations' },
   { label: 'Reports', icon: BarChart3, path: '/dashboard/reports' },
