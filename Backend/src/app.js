@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import authRouter from './routes/auth.js';
 import userRouter from './routes/user.js';
 import adminRouter from './routes/admin.js';
 import contactRouter from './routes/contact.js';
@@ -19,7 +20,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Route Mapping
-app.use('/api/user', userRouter);
+app.use('/api/auth', authRouter);
 app.use('/api/users', userRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/contact', contactRouter);

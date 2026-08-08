@@ -2,21 +2,28 @@ import mongoose from 'mongoose';
 
 const userSchema = new mongoose.Schema(
   {
-    username: {
+    firebase_uid: {
       type: String,
-      required: [true, 'Username is required'],
+      required: [true, 'Firebase UID is required'],
+      unique: true,
+      index: true,
       trim: true,
     },
-    email_id: {
+    email: {
       type: String,
-      required: [true, 'Email ID is required'],
-      unique: true,
+      required: [true, 'Email is required'],
       lowercase: true,
       trim: true,
     },
-    password: {
+    name: {
       type: String,
-      required: [true, 'Password is required'],
+      default: '',
+      trim: true,
+    },
+    role: {
+      type: String,
+      enum: ['user', 'admin'],
+      default: 'user',
     },
     user_role: {
       type: String,
@@ -42,16 +49,16 @@ const userSchema = new mongoose.Schema(
     }
   },
   {
-    timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' },
+    timestamps: true,
+    strict: true, // Strips out any un-defined fluff sent from frontend
   }
 );
 
-// Virtual property to get 'id' as a string instead of '_id' object to keep API output compatible
+// Virtual property to get 'id' string
 userSchema.virtual('id').get(function () {
   return this._id.toHexString();
 });
 
-// Ensure virtual fields are serialized
 userSchema.set('toJSON', {
   virtuals: true,
   transform: function (doc, ret) {
@@ -59,10 +66,8 @@ userSchema.set('toJSON', {
     delete ret._id;
     delete ret.__v;
     return ret;
-  }
+  },
 });
 
-// Defining model name as 'user_info' and collection name specifically as 'user_info'
-const User = mongoose.model('user_info', userSchema, 'user_info');
-
+const User = mongoose.model('User', userSchema);
 export default User;
