@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import authRouter from './routes/auth.js';
 import userRouter from './routes/user.js';
 import contactRouter from './routes/contact.js';
 import invitationRouter from './routes/invitation.js';
@@ -17,6 +18,7 @@ app.use(cors());
 app.use(express.json());
 
 // Route Mapping
+app.use('/api/auth', authRouter);
 app.use('/api/users', userRouter);
 app.use('/api/contact', contactRouter);
 app.use('/api/invitation', invitationRouter);
