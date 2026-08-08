@@ -6,6 +6,7 @@ const router = express.Router();
 // SIGNUP / SAVE / UPDATE USER PROFILE
 router.post('/signup', userController.saveEntry);
 router.post('/save', userController.saveEntry);
+router.post('/update', userController.updateProfile);
 
 // LOGIN USER & OTP
 router.post('/login', userController.loginEntry);

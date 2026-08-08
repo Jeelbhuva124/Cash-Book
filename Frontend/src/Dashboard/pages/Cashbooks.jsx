@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Book, Plus, X, Trash2, Edit, Eye, ArrowRight, Palette, AlignLeft, ChevronsUpDown, Users } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '../../context/ToastContext';
+import { socket } from '../../utils/socket';
 
 const COLOR_OPTIONS = [
   { name: 'Purple', hex: '#8B5CF6' },
@@ -59,6 +60,22 @@ export default function Cashbooks() {
     loadCashbooks(controller.signal);
     return () => {
       controller.abort();
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleTxChange = () => {
+      loadCashbooks();
+    };
+
+    socket.on('transaction_created', handleTxChange);
+    socket.on('transaction_updated', handleTxChange);
+    socket.on('transaction_deleted', handleTxChange);
+
+    return () => {
+      socket.off('transaction_created', handleTxChange);
+      socket.off('transaction_updated', handleTxChange);
+      socket.off('transaction_deleted', handleTxChange);
     };
   }, []);
 

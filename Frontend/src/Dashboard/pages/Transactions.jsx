@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { formatCurrency } from '../../utils/currencyFormatter';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { socket } from '../../utils/socket';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Receipt, Search, Filter, ArrowLeft, Wallet, ArrowUp, ArrowDown, 
@@ -22,6 +23,14 @@ const formatDate = (dateStr) => {
   } catch (e) {
     return dateStr;
   }
+};
+
+const formatPaymentMode = (name) => {
+  if (!name) return '';
+  if (name.includes(' ** ')) {
+    return name.split(' ** ')[0];
+  }
+  return name;
 };
 
 const formatTime = (txId) => {
@@ -131,7 +140,6 @@ export default function Transactions() {
       const data = await res.json();
       if (data.success && data.data) {
         const filtered = data.data.filter(cat => 
-          cat.user_email?.toLowerCase() === userEmail &&
           cat.chalan_id === chalanId &&
           cat.active
         );
@@ -165,7 +173,6 @@ export default function Transactions() {
       const data = await res.json();
       if (data.success && data.data) {
         const filtered = data.data.filter(pm => 
-          pm.user_email?.toLowerCase() === userEmail &&
           pm.chalan_id === chalanId &&
           pm.active
         );
@@ -308,6 +315,22 @@ export default function Transactions() {
     loadCategoriesAndModes(chalanId);
   }, [location.state]);
 
+  useEffect(() => {
+    const handleTxChange = () => {
+      loadTransactions();
+    };
+
+    socket.on('transaction_created', handleTxChange);
+    socket.on('transaction_updated', handleTxChange);
+    socket.on('transaction_deleted', handleTxChange);
+
+    return () => {
+      socket.off('transaction_created', handleTxChange);
+      socket.off('transaction_updated', handleTxChange);
+      socket.off('transaction_deleted', handleTxChange);
+    };
+  }, []);
+
   const loadTransactions = async () => {
     try {
       const response = await fetch('http://localhost:5001/api/transaction/select');
@@ -367,7 +390,7 @@ export default function Transactions() {
       onConfirm: async () => {
         try {
           await fetch('http://localhost:5001/api/transaction/delete', {
-            method: 'POST',
+            method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id: txId, user_email: user?.email_id || '' })
           });
@@ -396,7 +419,7 @@ export default function Transactions() {
       onConfirm: async () => {
         try {
           await fetch('http://localhost:5001/api/transaction/delete', {
-            method: 'POST',
+            method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ ids: selectedIds, user_email: user?.email_id || '' })
           });
@@ -1272,7 +1295,7 @@ export default function Transactions() {
                     <td className="px-4 py-3.5 text-muted-foreground dark:text-slate-400">{tx.subcategory || "-"}</td>
                     <td className="px-4 py-3.5">
                       <span className="inline-block px-2 py-0.5 rounded border border-border dark:border-slate-700/60 text-[10px] font-bold text-muted-foreground dark:text-slate-400 bg-muted/20 dark:bg-slate-800/60">
-                        {tx.paymentMode || 'Cash'}
+                        {formatPaymentMode(tx.paymentMode || 'Cash')}
                       </span>
                     </td>
                     <td className="px-4 py-3.5">
@@ -1463,7 +1486,7 @@ export default function Transactions() {
                     onAddNew={handleAddNewPaymentMode}
                   >
                     {paymentModes.map(pm => (
-                      <option key={pm.id} value={pm.name}>{pm.name}</option>
+                      <option key={pm.id} value={pm.name}>{formatPaymentMode(pm.name)}</option>
                     ))}
                   </Dropdown>
                 </div>

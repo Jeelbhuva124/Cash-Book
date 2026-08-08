@@ -4,6 +4,15 @@ import {
   Wallet, RefreshCw, Book, Calendar, Tag, CreditCard, X
 } from 'lucide-react';
 import { formatCurrency } from '../../utils/currencyFormatter';
+import { socket } from '../../utils/socket';
+
+const formatPaymentMode = (name) => {
+  if (!name) return '';
+  if (name.includes(' ** ')) {
+    return name.split(' ** ')[0];
+  }
+  return name;
+};
 
 export default function History() {
   const [transactions, setTransactions] = useState([]);
@@ -164,6 +173,22 @@ export default function History() {
 
   useEffect(() => {
     loadData();
+  }, [userEmail]);
+
+  useEffect(() => {
+    const handleTxChange = () => {
+      loadData();
+    };
+
+    socket.on('transaction_created', handleTxChange);
+    socket.on('transaction_updated', handleTxChange);
+    socket.on('transaction_deleted', handleTxChange);
+
+    return () => {
+      socket.off('transaction_created', handleTxChange);
+      socket.off('transaction_updated', handleTxChange);
+      socket.off('transaction_deleted', handleTxChange);
+    };
   }, [userEmail]);
 
   // Cashbook name helper
@@ -463,7 +488,7 @@ export default function History() {
                     {/* Payment Mode */}
                     <td className="px-5 py-4">
                       <span className="inline-block px-2.5 py-1 rounded border border-border dark:border-slate-700/60 text-[10px] font-bold text-muted-foreground dark:text-slate-400 bg-muted/20 dark:bg-slate-800/60">
-                        {tx.paymentMode || 'Cash'}
+                        {formatPaymentMode(tx.paymentMode || 'Cash')}
                       </span>
                     </td>
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { formatCurrency } from '../../utils/currencyFormatter';
 import { useLocation } from 'react-router-dom';
+import { socket } from '../../utils/socket';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Wallet, ArrowUp, ArrowDown, TrendingUp, Info, 
@@ -10,6 +11,13 @@ import { useToast } from '../../context/ToastContext';
 import Dropdown from '../components/Dropdown';
 import ConfirmModal from '../components/ConfirmModal';
 
+const formatPaymentMode = (name) => {
+  if (!name) return '';
+  if (name.includes(' ** ')) {
+    return name.split(' ** ')[0];
+  }
+  return name;
+};
 
 export default function Home() {
   const { addToast } = useToast();
@@ -67,7 +75,6 @@ export default function Home() {
       const data = await res.json();
       if (data.success && data.data) {
         const filtered = data.data.filter(cat => 
-          cat.user_email?.toLowerCase() === userEmail &&
           cat.chalan_id === chalanId &&
           cat.active
         );
@@ -93,7 +100,6 @@ export default function Home() {
       const data = await res.json();
       if (data.success && data.data) {
         const filtered = data.data.filter(pm => 
-          pm.user_email?.toLowerCase() === userEmail &&
           pm.chalan_id === chalanId &&
           pm.active
         );
@@ -210,10 +216,11 @@ export default function Home() {
           paymentMode: tx.payment_mode,
           remark: tx.remark,
           createdBy: tx.created_by,
-          user_email: tx.user_email
+          user_email: tx.user_email,
+          is_deleted: !!tx.is_deleted || !!tx.deleted
         }));
         const userEmail = user?.email_id?.toLowerCase() || '';
-        const userTxs = mapped.filter(t => t.user_email?.toLowerCase() === userEmail);
+        const userTxs = mapped.filter(t => true);
         setTransactions(userTxs);
       }
     } catch (err) {
@@ -248,6 +255,22 @@ export default function Home() {
     loadTransactions();
     loadCategoriesAndModes(initialId || '1');
   }, [location.state]);
+
+  useEffect(() => {
+    const handleTxChange = () => {
+      loadTransactions();
+    };
+
+    socket.on('transaction_created', handleTxChange);
+    socket.on('transaction_updated', handleTxChange);
+    socket.on('transaction_deleted', handleTxChange);
+
+    return () => {
+      socket.off('transaction_created', handleTxChange);
+      socket.off('transaction_updated', handleTxChange);
+      socket.off('transaction_deleted', handleTxChange);
+    };
+  }, []);
 
   // Add transaction to backend database
   const handleAddTransaction = async (e) => {
@@ -348,11 +371,11 @@ export default function Home() {
   };
 
   // ── Metrics calculations scoped to active chalan ──
-  const activeTxs = activeChalanId === ''
+  const activeTxs = (activeChalanId === ''
     ? transactions
     : transactions.filter(tx => 
         tx.chalanId === activeChalanId || (activeChalanId === '1' && !tx.chalanId)
-      );
+      )).filter(t => !t.is_deleted && !t.deleted);
 
   const totalCashIn = activeTxs
     .filter(t => t.type === 'income')
@@ -390,7 +413,8 @@ export default function Home() {
 
   // Payment mode usage grouping
   const pmTotals = activeTxs.reduce((acc, curr) => {
-    acc[curr.paymentMode || 'Cash'] = (acc[curr.paymentMode || 'Cash'] || 0) + 1;
+    const formatted = formatPaymentMode(curr.paymentMode || 'Cash');
+    acc[formatted] = (acc[formatted] || 0) + 1;
     return acc;
   }, {});
   const sortedPaymentModes = Object.entries(pmTotals).sort((a, b) => b[1] - a[1]);
@@ -637,7 +661,7 @@ export default function Home() {
                     </td>
                     <td className="px-4 py-3.5">
                       <span className="inline-block px-2 py-0.5 rounded border border-border dark:border-slate-700/60 text-[10px] font-bold text-muted-foreground dark:text-slate-400 bg-muted/20 dark:bg-slate-800/60">
-                        {tx.paymentMode || 'Cash'}
+                        {formatPaymentMode(tx.paymentMode || 'Cash')}
                       </span>
                     </td>
                     <td className="px-4 py-3.5 text-muted-foreground dark:text-slate-400">
@@ -817,7 +841,7 @@ export default function Home() {
                       onAddNew={handleAddNewPaymentMode}
                     >
                       {paymentModes.map(pm => (
-                        <option key={pm.id} value={pm.name}>{pm.name}</option>
+                        <option key={pm.id} value={pm.name}>{formatPaymentMode(pm.name)}</option>
                       ))}
                     </Dropdown>
                   </div>

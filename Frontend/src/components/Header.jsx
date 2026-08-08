@@ -30,7 +30,7 @@ export const UserNavbar = () => {
           </Link>
 
           {/* Desktop Nav Links */}
-          <div className="hidden md:flex items-center p-1 border border-border/60 rounded-full bg-background/60 backdrop-blur-xl shadow-sm">
+          <div className="hidden md:flex items-center p-1 border border-border/60 rounded-full bg-background/60 dark:bg-muted/30 backdrop-blur-xl shadow-sm">
             {navLinks.map((link) => {
               const isActive = location.pathname === link.path || (link.path === '/' && location.pathname === '/home');
 
@@ -38,17 +38,17 @@ export const UserNavbar = () => {
                 <Link
                   key={link.path}
                   to={link.path}
-                  className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-colors relative z-10 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${isActive
-                      ? 'text-primary font-semibold'
-                      : 'text-muted-foreground hover:text-foreground'
+                  className={`px-4 py-1.5 rounded-full text-xs sm:text-sm transition-colors relative z-10 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${isActive
+                      ? 'text-primary dark:text-white font-semibold'
+                      : 'text-muted-foreground hover:text-foreground font-medium'
                     }`}
                 >
-                  <DirectionHover text={link.label} hoverText={link.label} className="px-1" />
+                  <span className="px-1">{link.label}</span>
                   {/* Active Indicator Pill */}
                   {isActive && (
                     <motion.div
                       layoutId="active-nav-pill"
-                      className="absolute inset-0 rounded-full bg-primary/10 border border-primary/20 -z-10"
+                      className="absolute inset-0 rounded-full bg-primary/10 dark:bg-primary/25 border border-primary/20 dark:border-primary/40 -z-10"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
@@ -114,8 +114,8 @@ export const UserNavbar = () => {
                   to={link.path}
                   onClick={() => setMobileOpen(false)}
                   className={`block px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors ${(location.pathname === link.path || (link.path === '/' && location.pathname === '/home'))
-                      ? 'bg-primary/10 text-primary'
-                      : 'text-muted-foreground hover:text-primary hover:bg-muted'
+                      ? 'bg-primary/10 dark:bg-primary/20 text-primary dark:text-white'
+                      : 'text-muted-foreground hover:text-primary dark:hover:text-white hover:bg-muted dark:hover:bg-muted/50'
                     }`}
                 >
                   {link.label}

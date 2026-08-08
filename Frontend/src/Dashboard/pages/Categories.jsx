@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Plus, Search, X, Pencil, Trash2, Check, HelpCircle, 
-  ChevronsUpDown, ArrowUp, ArrowDown 
+  ChevronsUpDown, ArrowUp, ArrowDown, Tag 
 } from 'lucide-react';
 import Dropdown from '../components/Dropdown';
 import { useToast } from '../../context/ToastContext';
@@ -69,14 +69,57 @@ export default function Categories() {
   const userEmail = user?.email_id || '';
 
   useEffect(() => {
-    // Load chalans from localStorage key cashbook_chalans_<userEmail>
-    const storageKey = `cashbook_chalans_${userEmail || 'guest'}`;
-    const savedChalans = localStorage.getItem(storageKey);
-    if (savedChalans) {
+    const loadCashbooks = async () => {
+      const uEmail = userEmail?.toLowerCase() || '';
+      let ownCashbooks = [];
+      let sharedCashbooks = [];
+
       try {
-        setChalans(JSON.parse(savedChalans));
-      } catch (e) {}
-    }
+        const response = await fetch('http://localhost:5001/api/cashbook/select');
+        const data = await response.json();
+        if (data.success && data.data) {
+          const filteredData = data.data.filter(cb => cb.user_email?.toLowerCase() === uEmail);
+          ownCashbooks = filteredData.map(cb => ({
+            id: cb.id,
+            name: cb.cashbook_name,
+            isShared: false
+          }));
+        }
+      } catch (err) {
+        console.error(err);
+      }
+
+      try {
+        const responseInv = await fetch('http://localhost:5001/api/invitation/select');
+        const dataInv = await responseInv.json();
+        if (dataInv.success && Array.isArray(dataInv.data)) {
+          const accepted = dataInv.data.filter(i => 
+            i.email?.toLowerCase() === uEmail && i.status === 'Accepted'
+          );
+          sharedCashbooks = accepted.map(inv => ({
+            id: inv.id,
+            name: inv.cashbook_name,
+            isShared: true,
+            sharedBy: inv.inviter_email
+          }));
+        }
+      } catch (err) {
+        console.error(err);
+      }
+
+      const combined = [...ownCashbooks];
+      sharedCashbooks.forEach(scb => {
+        if (!combined.some(cb => cb.name?.toLowerCase() === scb.name?.toLowerCase())) {
+          combined.push(scb);
+        }
+      });
+
+      setChalans(combined);
+      const storageKey = `cashbook_chalans_${userEmail || 'guest'}`;
+      localStorage.setItem(storageKey, JSON.stringify(combined));
+    };
+
+    loadCashbooks();
   }, [userEmail]);
 
   useEffect(() => {
@@ -93,9 +136,8 @@ export default function Categories() {
       const data = await response.json();
       
       if (data.success && data.data) {
-        // Filter by user email and chosen chalan_id
+        // Filter by chosen chalan_id
         const userCats = data.data.filter(cat => 
-          cat.user_email?.toLowerCase() === userEmail.toLowerCase() &&
           cat.chalan_id === selectedChalanId
         );
         setCategories(userCats);

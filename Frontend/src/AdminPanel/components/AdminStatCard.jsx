@@ -9,7 +9,8 @@ export const AdminStatCard = ({
   isIncrease = true, 
   icon: Icon, 
   colorAccent = "primary",
-  description 
+  description,
+  onClick
 }) => {
   const accentClasses = {
     primary: "bg-primary/10 text-primary border-primary/20",
@@ -24,7 +25,8 @@ export const AdminStatCard = ({
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="bg-card border border-border rounded-2xl p-5 shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden"
+      onClick={onClick}
+      className={`bg-card border border-border rounded-2xl p-5 shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden ${onClick ? 'cursor-pointer hover:border-primary/50 hover:-translate-y-1' : ''}`}
     >
       <div className="flex items-start justify-between mb-3">
         <div className="space-y-1">

@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
   Users, 
@@ -14,22 +15,71 @@ import {
   Cpu
 } from 'lucide-react';
 import { AdminStatCard } from '../components/AdminStatCard';
-
 export const AdminDashboard = () => {
+  const navigate = useNavigate();
+  const [realStats, setRealStats] = useState({
+    total_users: 0,
+    active_cashbooks: 0,
+    total_volume: 0,
+    system_uptime: "99.98%",
+    growthChartData: [40, 65, 55, 80, 95, 70, 85, 100, 90, 110, 125, 140, 130, 150],
+    newUsersLast14Days: 1240,
+    serverDiagnostics: {
+      ram: { used: '4.2', total: '8.0', percent: '52.5' },
+      cpu: '24.5',
+      dbStorageGB: '18.4'
+    }
+  });
+  const [recentLogs, setRecentLogs] = useState([]);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await fetch('http://localhost:5001/api/admin/stats');
+        const data = await res.json();
+        if (data.success && data.data) {
+          setRealStats({
+            total_users: data.data.total_users || 0,
+            active_cashbooks: data.data.total_cashbooks || 0,
+            total_volume: data.data.total_volume || 0,
+            system_uptime: data.data.system_uptime || "99.98%",
+            growthChartData: data.data.growthChartData || [40, 65, 55, 80, 95, 70, 85, 100, 90, 110, 125, 140, 130, 150],
+            newUsersLast14Days: data.data.newUsersLast14Days || 0,
+            serverDiagnostics: data.data.serverDiagnostics || {
+              ram: { used: '4.2', total: '8.0', percent: '52.5' },
+              cpu: '24.5',
+              dbStorageGB: '18.4'
+            }
+          });
+          if (data.data.recentLogs) {
+            setRecentLogs(data.data.recentLogs);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch admin stats:", err);
+      }
+    };
+    fetchStats();
+    // Optional: Refresh every 30 seconds
+    const intervalId = setInterval(fetchStats, 30000);
+    return () => clearInterval(intervalId);
+  }, []);
+
+  const formatCurrency = (amount) => {
+    if (amount >= 10000000) return `₹${(amount / 10000000).toFixed(2)} Cr`;
+    if (amount >= 100000) return `₹${(amount / 100000).toFixed(2)} L`;
+    if (amount >= 1000) return `₹${(amount / 1000).toFixed(2)} K`;
+    return `₹${amount}`;
+  };
+
   const stats = [
-    { title: "Total Users", value: "24,890", change: "+14.2%", isIncrease: true, icon: Users, colorAccent: "primary", description: "vs last month" },
-    { title: "Active Cashbooks", value: "18,420", change: "+8.7%", isIncrease: true, icon: BookOpen, colorAccent: "success", description: "across all accounts" },
-    { title: "Transaction Volume", value: "₹4.82 Cr", change: "+22.4%", isIncrease: true, icon: TrendingUp, colorAccent: "warning", description: "processed this month" },
-    { title: "System Uptime", value: "99.98%", change: "Stable", isIncrease: true, icon: ShieldCheck, colorAccent: "info", description: "0 critical incidents" },
+    { title: "Total Users", value: realStats.total_users.toLocaleString(), change: "+14.2%", isIncrease: true, icon: Users, colorAccent: "primary", description: "registered accounts", path: "/admin/users" },
+    { title: "Active Cashbooks", value: realStats.active_cashbooks.toLocaleString(), change: "+8.7%", isIncrease: true, icon: BookOpen, colorAccent: "success", description: "across all accounts", path: "/admin/cashbooks" },
+    { title: "Transaction Volume", value: formatCurrency(realStats.total_volume), change: "+22.4%", isIncrease: true, icon: TrendingUp, colorAccent: "warning", description: "processed so far", path: "/admin/transactions" },
+    { title: "System Uptime", value: realStats.system_uptime, change: "Stable", isIncrease: true, icon: ShieldCheck, colorAccent: "info", description: "0 critical incidents", path: "/admin/analytics" },
   ];
 
-  const recentLogs = [
-    { id: 1, user: "Rahul Sharma", action: "Created Cashbook 'Kirana Store Log'", ip: "103.24.12.89", status: "success", time: "2 mins ago" },
-    { id: 2, user: "Priya Patel", action: "Exported PDF Ledger Report", ip: "49.207.54.12", status: "success", time: "10 mins ago" },
-    { id: 3, user: "Admin Root", action: "Updated SMTP Configuration", ip: "182.73.4.10", status: "warning", time: "24 mins ago" },
-    { id: 4, user: "Arjun Verma", action: "Added Member 'arjun@team.com'", ip: "103.50.160.4", status: "success", time: "45 mins ago" },
-    { id: 5, user: "System Auto", action: "Database Indexing Completed", ip: "Internal", status: "info", time: "1 hour ago" },
-  ];
+
 
   return (
     <div className="space-y-8">
@@ -50,7 +100,13 @@ export const AdminDashboard = () => {
       {/* Metric Stat Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {stats.map((stat, i) => (
-          <AdminStatCard key={i} {...stat} />
+          <AdminStatCard 
+            key={i} 
+            {...stat} 
+            onClick={() => {
+              if (stat.path) navigate(stat.path);
+            }} 
+          />
         ))}
       </div>
 
@@ -64,21 +120,24 @@ export const AdminDashboard = () => {
               <p className="text-xs text-muted-foreground">Daily user onboardings over the last 30 days</p>
             </div>
             <span className="text-xs font-bold text-primary bg-primary/10 px-3 py-1 rounded-full">
-              +1,240 New Users
+              +{realStats.newUsersLast14Days.toLocaleString()} New Users
             </span>
           </div>
 
           <div className="h-56 w-full bg-muted/40 rounded-xl border border-dashed border-border flex items-end justify-between p-4 gap-2">
-            {[40, 65, 55, 80, 95, 70, 85, 100, 90, 110, 125, 140, 130, 150].map((h, idx) => (
+            {realStats.growthChartData.map((h, idx) => {
+              const maxH = Math.max(...realStats.growthChartData, 10);
+              const heightPercent = (h / maxH) * 100;
+              return (
               <motion.div
                 key={idx}
                 initial={{ height: 0 }}
-                animate={{ height: `${h / 1.6}%` }}
+                animate={{ height: `${heightPercent}%` }}
                 transition={{ duration: 0.6, delay: idx * 0.04 }}
                 className="flex-1 bg-gradient-to-t from-primary/40 to-primary rounded-t-md hover:opacity-80 transition-opacity"
-                title={`Day ${idx + 1}: ${h * 10} active entries`}
+                title={`Day ${idx + 1}: ${h} new users`}
               />
-            ))}
+            )})}
           </div>
         </div>
 
@@ -95,10 +154,10 @@ export const AdminDashboard = () => {
                 <span className="text-muted-foreground flex items-center gap-1.5">
                   <Cpu className="w-3.5 h-3.5 text-sky-500" /> CPU Load
                 </span>
-                <span className="text-foreground">24.5%</span>
+                <span className="text-foreground">{realStats.serverDiagnostics.cpu}%</span>
               </div>
               <div className="h-2 bg-muted rounded-full overflow-hidden">
-                <div className="h-full bg-sky-500 w-[24.5%] rounded-full" />
+                <div className="h-full bg-sky-500 rounded-full" style={{ width: `${realStats.serverDiagnostics.cpu}%` }} />
               </div>
             </div>
 
@@ -107,10 +166,10 @@ export const AdminDashboard = () => {
                 <span className="text-muted-foreground flex items-center gap-1.5">
                   <Activity className="w-3.5 h-3.5 text-emerald-500" /> RAM Memory
                 </span>
-                <span className="text-foreground">4.2 GB / 8.0 GB (52.5%)</span>
+                <span className="text-foreground">{realStats.serverDiagnostics.ram.used} GB / {realStats.serverDiagnostics.ram.total} GB ({realStats.serverDiagnostics.ram.percent}%)</span>
               </div>
               <div className="h-2 bg-muted rounded-full overflow-hidden">
-                <div className="h-full bg-emerald-500 w-[52.5%] rounded-full" />
+                <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${realStats.serverDiagnostics.ram.percent}%` }} />
               </div>
             </div>
 
@@ -119,10 +178,10 @@ export const AdminDashboard = () => {
                 <span className="text-muted-foreground flex items-center gap-1.5">
                   <Database className="w-3.5 h-3.5 text-amber-500" /> Database Storage
                 </span>
-                <span className="text-foreground">18.4 GB / 100 GB</span>
+                <span className="text-foreground">{realStats.serverDiagnostics.dbStorageGB} GB / 100 GB</span>
               </div>
               <div className="h-2 bg-muted rounded-full overflow-hidden">
-                <div className="h-full bg-amber-500 w-[18.4%] rounded-full" />
+                <div className="h-full bg-amber-500 rounded-full" style={{ width: `${Math.min((realStats.serverDiagnostics.dbStorageGB / 100) * 100, 100)}%` }} />
               </div>
             </div>
           </div>
