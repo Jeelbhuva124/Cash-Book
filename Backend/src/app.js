@@ -19,6 +19,14 @@ app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Health Check Route
+app.get('/', (req, res) => {
+  res.status(200).json({ status: 'online', message: 'Cash-Book Backend API is live!' });
+});
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ status: 'online', message: 'Cash-Book Backend API is live!' });
+});
+
 // Route Mapping
 app.use('/api/auth', authRouter);
 app.use('/api/users', userRouter);

@@ -1,0 +1,47 @@
+===================================================================================================
+              CASH-BOOK - GLOBAL PUBLIC INTERNET HOST & PORT ALLOCATION TABLE
+===================================================================================================
+
++-------------------+------+---------------------------------+---------------------------------+------------+
+| PROJECT NAME      | PORT | LOCAL BROWSER URL               | PUBLIC INTERNET SERVER IP URL   | STATUS     |
++-------------------+------+---------------------------------+---------------------------------+------------+
+| CashBook Frontend | 8001 | http://localhost:8001           | http://178.249.231.225:8001/    | IIS Static |
+| CashBook Backend  | 5001 | http://localhost:5001           | http://178.249.231.225:5001/    | IIS Proxy  |
+| CashBook Node API | 5002 | http://127.0.0.1:5002           | Internal PM2 Node Process       | PM2 Node   |
++-------------------+------+---------------------------------+---------------------------------+------------+
+
+===================================================================================================
+1. HOW TO DEPLOY FRONTEND & BACKEND (DOUBLE-CLICK BATCH FILES)
+===================================================================================================
+
+Simply DOUBLE-CLICK these files in your project folder (they auto-run as Administrator):
+
+[DEPLOY FRONTEND (PORT 8001)]
+  Double-Click: Deploy-Frontend.bat
+
+[DEPLOY BACKEND (PM2 + IIS PORT 5001)]
+  Double-Click: Deploy-Backend.bat
+
+[GIT COMMIT & SYNC (COMMIT -> PULL -> PUSH -> PULL)]
+  Double-Click: Git Commit.bat
+
+[GIT PULL LATEST CODE]
+  Double-Click: Git Pull.bat
+
+===================================================================================================
+2. YOUR LIVE PUBLIC WEBSITE URLS
+===================================================================================================
+
+  - Frontend Public Website : http://178.249.231.225:8001/
+  - Backend Public API      : http://178.249.231.225:5001/api
+
+===================================================================================================
+3. USEFUL PM2 & IIS COMMANDS
+===================================================================================================
+
+- Check PM2 status    : pm2 status
+- Restart Backend     : pm2 restart cashbook-backend
+- View Backend Logs   : pm2 logs cashbook-backend
+- Restart IIS Server  : iisreset
+- Check IIS Sites     : Get-Website
+===================================================================================================
