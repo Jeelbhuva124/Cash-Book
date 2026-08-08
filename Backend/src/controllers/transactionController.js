@@ -197,7 +197,10 @@ export const deleteTransaction = async (req, res) => {
         });
       }
 
-      await Transaction.deleteMany({ _id: { $in: validIds } });
+      await Transaction.updateMany(
+        { _id: { $in: validIds } },
+        { is_deleted: true }
+      );
 
       const io = req.app.get('io');
       if (io) {
@@ -206,7 +209,7 @@ export const deleteTransaction = async (req, res) => {
 
       return res.status(200).json({
         success: true,
-        message: `${validIds.length} transactions deleted successfully`,
+        message: `${validIds.length} transactions soft-deleted successfully`,
       });
     }
 
@@ -225,7 +228,11 @@ export const deleteTransaction = async (req, res) => {
       });
     }
 
-    const deletedTransaction = await Transaction.findByIdAndDelete(id);
+    const deletedTransaction = await Transaction.findByIdAndUpdate(
+      id,
+      { is_deleted: true },
+      { new: true }
+    );
 
     if (!deletedTransaction) {
       return res.status(404).json({

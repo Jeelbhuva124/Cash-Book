@@ -62,6 +62,10 @@ const transactionSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
+    is_deleted: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

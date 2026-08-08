@@ -51,6 +51,7 @@ import { AdminLogin } from './AdminPanel/pages/AdminLogin';
 import { AdminRegister } from './AdminPanel/pages/AdminRegister';
 import { AdminDashboard } from './AdminPanel/pages/AdminDashboard';
 import { UserManagement } from './AdminPanel/pages/UserManagement';
+import { Admins } from './AdminPanel/pages/Admins';
 import { CashbookManagement } from './AdminPanel/pages/CashbookManagement';
 import { TransactionManagement } from './AdminPanel/pages/TransactionManagement';
 import { SystemAnalytics } from './AdminPanel/pages/SystemAnalytics';
@@ -87,6 +88,7 @@ function App() {
                   <Route index element={<AdminDashboard />} />
                   <Route path="dashboard" element={<AdminDashboard />} />
                   <Route path="users" element={<UserManagement />} />
+                  <Route path="admins" element={<Admins />} />
                   <Route path="cashbooks" element={<CashbookManagement />} />
                   <Route path="transactions" element={<TransactionManagement />} />
                   <Route path="analytics" element={<SystemAnalytics />} />

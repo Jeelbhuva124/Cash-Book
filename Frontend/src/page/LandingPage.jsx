@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from "react";
-import { ScrambleText } from "../components/ScrambleText";
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
 import { Link } from "react-router-dom";
 import {
@@ -40,7 +39,7 @@ import {
   ShoppingBag,
   RotateCcw,
   ArrowUpRight,
-  ArrowDownLeft,
+  ArrowDownRight,
 } from "lucide-react";
 import { Testimonials } from "../components/Testimonials";
 import { ContactSection } from "../components/ContactSection";
@@ -121,20 +120,13 @@ const TrackerCard = ({ icon: Icon, title, desc, tag, color, index }) => (
 );
 
 const HeroMockupAnimation = ({ baseDelay = 0 }) => {
-  const [activeTxIndex, setActiveTxIndex] = useState(0);
+  const activeTxIndex = 1;
 
   const transactions = [
     { title: "Supermarket Purchase", category: "Grocery", amt: "-₹2,340", type: "expense", time: "Just now", icon: ShoppingCart },
     { title: "Freelance Project Deposit", category: "Income", amt: "+₹12,500", type: "income", time: "2m ago", icon: Briefcase },
     { title: "Petrol & Travel Commute", category: "Fuel & Travel", amt: "-₹1,200", type: "expense", time: "15m ago", icon: Fuel },
   ];
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setActiveTxIndex((prev) => (prev + 1) % transactions.length);
-    }, 3000);
-    return () => clearInterval(interval);
-  }, [transactions.length]);
 
   // Smooth Organic Liquid SVG Wave Path Coordinates
   const waveLineA = "M 0,46 Q 60,30 120,40 T 240,32 T 360,44 T 400,34";
@@ -144,218 +136,139 @@ const HeroMockupAnimation = ({ baseDelay = 0 }) => {
 
   return (
     <div className="relative w-full max-w-xl mx-auto py-2">
-      {/* Background Multi-Layer Ambient Glow Aura */}
-      <div className="absolute -inset-4 bg-gradient-to-tr from-primary/30 via-indigo-500/20 to-purple-500/30 rounded-3xl blur-3xl opacity-75 animate-pulse pointer-events-none" />
+      {/* Inner Glass Card (Cleanly Spaced, No Overlap) */}
+      <motion.div
+        animate={{
+          y: [0, -8, 0],
+        }}
+        transition={{
+          duration: 6,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+        className="relative z-20 bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl border border-slate-200 dark:border-slate-700/80 rounded-2xl shadow-xl dark:shadow-2xl overflow-hidden p-4 sm:p-5 space-y-4 my-1"
+      >
+        {/* Glass reflection beam effect */}
+        <div className="absolute -top-24 -left-24 w-64 h-96 bg-gradient-to-br from-white/10 dark:from-white/15 to-transparent rotate-45 pointer-events-none blur-sm" />
 
-      {/* Dribbble Glass Studio Box Container */}
-      <div className="relative w-full rounded-3xl bg-gradient-to-b from-slate-900/95 via-slate-950 to-slate-900/95 border border-slate-800/80 shadow-[0_25px_70px_-15px_rgba(99,102,241,0.2)] p-5 sm:p-7 md:p-8 overflow-hidden group">
-        {/* Background Grid Pattern */}
-        <div 
-          className="absolute inset-0 opacity-20 pointer-events-none" 
-          style={{
-            backgroundImage: `radial-gradient(rgba(255, 255, 255, 0.3) 1px, transparent 1px)`,
-            backgroundSize: "28px 28px",
-          }}
-        />
-
-        {/* Studio Background Grid Lines */}
-        <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 border-slate-800/40 pointer-events-none">
-          <div className="border-r border-b border-slate-800/30" />
-          <div className="border-r border-b border-slate-800/30" />
-          <div className="border-b border-slate-800/30" />
-          <div className="border-r border-b border-slate-800/30" />
-          <div className="border-r border-b border-slate-800/30" />
-          <div className="border-b border-slate-800/30" />
-        </div>
-
-        {/* Ambient Floating Light Orb 1 - Bottom Left */}
-        <motion.div
-          animate={{
-            x: [10, 140, 200, 40, 10],
-            y: [240, 200, 260, 290, 240],
-            scale: [1, 1.25, 0.9, 1.15, 1],
-          }}
-          transition={{
-            duration: 12,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-          className="absolute w-28 h-28 rounded-full bg-gradient-to-r from-sky-400 via-indigo-500 to-purple-500 blur-2xl opacity-60 z-10 pointer-events-none"
-        />
-
-        {/* Ambient Floating Light Orb 2 - Top Right */}
-        <motion.div
-          animate={{
-            x: [200, 100, 220, 180, 200],
-            y: [20, 60, 10, 40, 20],
-            scale: [1, 1.1, 0.95, 1.2, 1],
-          }}
-          transition={{
-            duration: 14,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-          className="absolute w-24 h-24 rounded-full bg-gradient-to-r from-emerald-400 via-teal-500 to-sky-500 blur-2xl opacity-40 z-10 pointer-events-none"
-        />
-
-        {/* Studio Top & Bottom Minimal Metadata Bar */}
-        <div className="flex items-center justify-between mb-4 relative z-20">
-          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-slate-800/60 border border-slate-700/50 backdrop-blur-md">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-            <span className="text-[10px] uppercase font-bold tracking-widest text-slate-300">
-              <ScrambleText text="Total Inbound ₹45,500" delay={baseDelay + 200} />
-            </span>
-          </div>
-
-          <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-slate-800/60 border border-slate-700/50 backdrop-blur-md">
-            <span className="w-2 h-2 rounded-full bg-sky-400 animate-pulse" />
-            <span className="text-[10px] uppercase font-bold tracking-widest text-slate-300">
-              <ScrambleText text="Live Sync Active" delay={baseDelay + 400} />
+        {/* Mockup Window Top Bar */}
+        <div className="flex items-center justify-end pb-3 border-b border-slate-100 dark:border-slate-800 relative z-10">
+          <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-900/80 backdrop-blur-md px-3 py-1 rounded-full border border-slate-200 dark:border-slate-700 shadow-sm">
+            <img src="/logo.png" alt="Cash Book" className="w-3.5 h-3.5 object-contain" />
+            <span className="text-[9px] font-bold text-slate-600 dark:text-slate-200 tracking-widest uppercase">
+              CASH BOOK
             </span>
           </div>
         </div>
 
-        {/* Inner Glass Card (Cleanly Spaced, No Overlap) */}
-        <motion.div
-          animate={{
-            y: [0, -8, 0],
-          }}
-          transition={{
-            duration: 6,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-          className="relative z-20 bg-slate-900/90 backdrop-blur-2xl border border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden p-5 sm:p-6 space-y-4 my-1"
-        >
-          {/* Glass reflection beam effect */}
-          <div className="absolute -top-24 -left-24 w-64 h-96 bg-gradient-to-br from-white/15 to-transparent rotate-45 pointer-events-none blur-sm" />
-
-          {/* Mockup Window Top Bar */}
-          <div className="flex items-center justify-between pb-3 border-b border-slate-800 relative z-10">
-            <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-rose-500 shadow-sm" />
-              <span className="w-3 h-3 rounded-full bg-amber-500 shadow-sm" />
-              <span className="w-3 h-3 rounded-full bg-emerald-500 shadow-sm" />
+        {/* Balance Stats Row */}
+        <div className="grid grid-cols-3 gap-2.5 py-0.5 relative z-10">
+          <div className="p-2.5 rounded-xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-500/80 text-emerald-600 dark:text-emerald-400">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-[9px] font-bold uppercase tracking-wider">Income</span>
+              <ArrowUpRight className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400" />
             </div>
-            <div className="flex items-center gap-2 bg-slate-800/80 backdrop-blur-md px-3 py-1 rounded-full border border-slate-700/60">
-              <img src="/logo.png" alt="Cash Book" className="w-4 h-4 object-contain" />
-              <span className="text-[10px] font-bold text-slate-200 tracking-widest uppercase">
-                <ScrambleText text="CASH BOOK" delay={baseDelay + 600} />
-              </span>
-            </div>
+            <p className="text-xs sm:text-sm md:text-base font-extrabold mt-1">₹45,500</p>
           </div>
 
-          {/* Balance Stats Row */}
-          <div className="grid grid-cols-3 gap-2.5 py-1 relative z-10">
-            <div className="p-2.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-wider"><ScrambleText text="Income" delay={baseDelay + 800} flipboard={true} /></span>
-                <ArrowUpRight className="w-3 h-3 text-emerald-400" />
-              </div>
-              <p className="text-xs sm:text-sm font-extrabold text-emerald-400 mt-1"><ScrambleText text="₹45,500" delay={baseDelay + 1000} flipboard={true} /></p>
+          <div className="p-2.5 rounded-xl bg-rose-50/50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-500/80 text-rose-600 dark:text-rose-400">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-[9px] font-bold uppercase tracking-wider">Expense</span>
+              <ArrowDownRight className="w-3.5 h-3.5 text-rose-500 dark:text-rose-400" />
             </div>
-
-            <div className="p-2.5 rounded-xl bg-rose-500/15 border border-rose-500/30">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-[9px] font-bold text-rose-400 uppercase tracking-wider"><ScrambleText text="Expense" delay={baseDelay + 1200} flipboard={true} /></span>
-                <ArrowDownLeft className="w-3 h-3 text-rose-400" />
-              </div>
-              <p className="text-xs sm:text-sm font-extrabold text-rose-400 mt-1"><ScrambleText text="₹18,240" delay={baseDelay + 1400} flipboard={true} /></p>
-            </div>
-
-            <div className="p-2.5 rounded-xl bg-sky-500/15 border border-sky-500/30">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-[9px] font-bold text-sky-400 uppercase tracking-wider"><ScrambleText text="Net Cash" delay={baseDelay + 1600} flipboard={true} /></span>
-                <Wallet className="w-3.5 h-3.5 text-sky-400" />
-              </div>
-              <p className="text-xs sm:text-sm font-extrabold text-sky-400 mt-1"><ScrambleText text="₹27,260" delay={baseDelay + 1800} flipboard={true} /></p>
-            </div>
+            <p className="text-xs sm:text-sm md:text-base font-extrabold mt-1">₹18,240</p>
           </div>
 
-          {/* Animated Analytics Wave Chart (Ultra Smooth Liquid Wave) */}
-          <div className="p-3 rounded-xl bg-slate-800/40 border border-slate-700/40 relative z-10 overflow-hidden">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] font-semibold text-slate-400"><ScrambleText text="Real-time Analytics Feed" delay={2000} /></span>
-              <span className="text-[9px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 shadow-sm"><ScrambleText text="+14.2% Growth" delay={2200} /></span>
+          <div className="p-2.5 rounded-xl bg-sky-50/50 dark:bg-sky-950/20 border border-sky-200 dark:border-sky-500/80 text-sky-600 dark:text-sky-400">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-[9px] font-bold uppercase tracking-wider">Net Cash</span>
+              <Wallet className="w-3.5 h-3.5 text-sky-500 dark:text-sky-400" />
             </div>
-            <div className="h-10 w-full relative">
-              <svg className="w-full h-full overflow-hidden" viewBox="0 0 400 60" preserveAspectRatio="none">
-                <defs>
-                  <linearGradient id="payiusWaveGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" stopColor="rgb(99, 102, 241)" stopOpacity="0.4" />
-                    <stop offset="100%" stopColor="rgb(99, 102, 241)" stopOpacity="0" />
-                  </linearGradient>
-                </defs>
-                <motion.path
-                  animate={{ d: [waveFillA, waveFillB, waveFillA] }}
-                  transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                  fill="url(#payiusWaveGradient)"
-                />
-                <motion.path
-                  animate={{ d: [waveLineA, waveLineB, waveLineA] }}
-                  transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                  fill="none"
-                  stroke="rgb(99, 102, 241)"
-                  strokeWidth="2.5"
-                />
-              </svg>
-            </div>
+            <p className="text-xs sm:text-sm md:text-base font-extrabold mt-1">₹27,260</p>
+          </div>
+        </div>
+
+        {/* Animated Analytics Wave Chart (Ultra Smooth Liquid Wave) */}
+        <div className="p-3 rounded-xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/60 relative z-10 overflow-hidden">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400">Real-time Analytics Feed</span>
+            <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-500/20 shadow-sm">+14.2% Growth</span>
+          </div>
+          <div className="h-10 w-full relative">
+            <svg className="w-full h-full overflow-hidden" viewBox="0 0 400 60" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="payiusWaveGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stopColor="rgb(99, 102, 241)" stopOpacity="0.4" />
+                  <stop offset="100%" stopColor="rgb(99, 102, 241)" stopOpacity="0" />
+                </linearGradient>
+              </defs>
+              <motion.path
+                animate={{ d: [waveFillA, waveFillB, waveFillA] }}
+                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                fill="url(#payiusWaveGradient)"
+              />
+              <motion.path
+                animate={{ d: [waveLineA, waveLineB, waveLineA] }}
+                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                fill="none"
+                stroke="rgb(99, 102, 241)"
+                strokeWidth="2.5"
+              />
+            </svg>
+          </div>
+        </div>
+
+        {/* Live Transaction Stream */}
+        <div className="space-y-2 relative z-10">
+          <div className="flex items-center justify-between">
+            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+              <Zap className="w-3 h-3 text-indigo-500 dark:text-primary animate-pulse" />
+              Recent Activity
+            </p>
+            <span className="text-[9px] text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-semibold">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse" />
+              Live Sync
+            </span>
           </div>
 
-          {/* Live Transaction Stream */}
-          <div className="space-y-2 relative z-10">
-            <div className="flex items-center justify-between">
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                <Zap className="w-3 h-3 text-primary" />
-                <ScrambleText text="Recent Activity" delay={2400} />
-              </p>
-              <span className="text-[9px] text-emerald-400 flex items-center gap-1 font-semibold">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                <ScrambleText text="Live Sync" delay={2600} />
-              </span>
-            </div>
-
-            <div className="space-y-1.5">
-              {transactions.map((row, i) => {
-                const IconComponent = row.icon;
-                const isActive = i === activeTxIndex;
-                return (
-                  <motion.div
-                    key={i}
-                    animate={{
-                      scale: isActive ? 1.02 : 1,
-                      x: isActive ? 4 : 0,
-                      borderColor: isActive ? "rgba(99, 102, 241, 0.6)" : "rgba(51, 65, 85, 0.5)",
-                    }}
-                    transition={{ type: "spring", stiffness: 220, damping: 22, mass: 0.8 }}
-                    className={`flex items-center justify-between p-2.5 rounded-xl border transition-all duration-300 ${
-                      isActive ? "bg-primary/20 border-primary/60 shadow-[0_0_20px_rgba(99,102,241,0.25)]" : "bg-slate-800/50 border-slate-700/50"
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <div className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all ${
-                        row.type === "income" ? "bg-emerald-500/20 text-emerald-400" : "bg-rose-500/20 text-rose-400"
-                      }`}>
-                        <IconComponent className="w-3.5 h-3.5" />
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold text-white flex items-center gap-1">
-                          <ScrambleText text={row.title} delay={2800 + baseDelay + (i * 200)} />
-                          {isActive && <span className="w-1.5 h-1.5 rounded-full bg-primary animate-ping" />}
-                        </p>
-                        <p className="text-[9px] text-slate-400"><ScrambleText text={`${row.category} • ${row.time}`} delay={2900 + baseDelay + (i * 200)} /></p>
-                      </div>
+          <div className="space-y-1.5">
+            {transactions.map((row, i) => {
+              const IconComponent = row.icon;
+              const isActive = i === activeTxIndex;
+              return (
+                <div
+                  key={i}
+                  className={`flex items-center justify-between p-2.5 rounded-xl border transition-all duration-300 ${
+                    isActive 
+                      ? "bg-indigo-50/80 dark:bg-primary/20 border-indigo-200 dark:border-primary/60 shadow-[0_4px_12px_rgba(99,102,241,0.06)] dark:shadow-[0_0_20px_rgba(99,102,241,0.25)] scale-[1.02] translate-x-1" 
+                      : "bg-slate-50/50 dark:bg-slate-900/40 border-slate-100 dark:border-slate-800/60"
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
+                      row.type === "income" 
+                        ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400" 
+                        : "bg-rose-100 text-rose-600 dark:bg-rose-500/20 dark:text-rose-400"
+                    }`}>
+                      <IconComponent className="w-4 h-4" />
                     </div>
-                    <span className={`text-xs font-extrabold ${row.type === "income" ? "text-emerald-400" : "text-rose-400"}`}>
-                      <ScrambleText text={row.amt} delay={3000 + (i * 200)} />
-                    </span>
-                  </motion.div>
-                );
-              })}
-            </div>
+                    <div>
+                      <p className="text-xs font-bold text-slate-800 dark:text-white flex items-center gap-1.5">
+                        {row.title}
+                        {isActive && <span className="w-2 h-2 rounded-full bg-sky-500 dark:bg-sky-400" />}
+                      </p>
+                      <p className="text-[9px] text-slate-400 dark:text-slate-400">{row.category} • {row.time}</p>
+                    </div>
+                  </div>
+                  <span className={`text-xs font-extrabold ${row.type === "income" ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
+                    {row.amt}
+                  </span>
+                </div>
+              );
+            })}
           </div>
-        </motion.div>
-      </div>
+        </div>
+      </motion.div>
     </div>
   );
 };

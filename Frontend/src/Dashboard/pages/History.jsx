@@ -100,8 +100,7 @@ export default function History() {
       const res = await fetch('http://localhost:5001/api/cashbook/select');
       const data = await res.json();
       if (data.success && Array.isArray(data.data)) {
-        const accessibleChalans = data.data.filter(c => sharedEmails.has(c.user_email?.toLowerCase()));
-        loadedChalans = accessibleChalans.map(c => ({
+        loadedChalans = data.data.map(c => ({
           id: c.id,
           name: c.cashbook_name,
           hex_code: c.hex_code || '#6366F1'
@@ -127,8 +126,7 @@ export default function History() {
       const res = await fetch('http://localhost:5001/api/transaction/select');
       const data = await res.json();
       if (data.success && Array.isArray(data.data)) {
-        const accessibleTxs = data.data.filter(t => sharedEmails.has(t.user_email?.toLowerCase()));
-        loadedTxs = accessibleTxs.map(t => ({
+        loadedTxs = data.data.map(t => ({
           id: t.id,
           chalanId: t.chalan_id || '1',
           title: t.title || (t.type === 'income' ? 'Cash In Entry' : 'Cash Out Entry'),
@@ -149,25 +147,32 @@ export default function History() {
       console.error("Failed to fetch transactions from API:", e);
     }
 
+    // Filter out transactions belonging to deleted cashbooks
+    const activeChalanIds = new Set(loadedChalans.map(c => c.id));
+    activeChalanIds.add('1'); // Always allow default chalan ID '1'
+    let validTxs = loadedTxs.filter(t => activeChalanIds.has(t.chalanId));
+
     // Merge with Local Storage fallback
     const savedTxs = localStorage.getItem(txsStorageKey);
     if (savedTxs) {
       try {
         const localTxs = JSON.parse(savedTxs);
         localTxs.forEach(ltx => {
-          const existingIdx = loadedTxs.findIndex(t => t.id === ltx.id);
+          const existingIdx = validTxs.findIndex(t => t.id === ltx.id);
           if (existingIdx === -1) {
-            loadedTxs.push(ltx);
+            if (activeChalanIds.has(ltx.chalanId || '1')) {
+              validTxs.push(ltx);
+            }
           } else {
             if (ltx.is_deleted || ltx.deleted) {
-              loadedTxs[existingIdx].is_deleted = true;
+              validTxs[existingIdx].is_deleted = true;
             }
           }
         });
       } catch (e) {}
     }
 
-    setTransactions(loadedTxs);
+    setTransactions(validTxs);
     setLoading(false);
   };
 

@@ -1,5 +1,8 @@
 import mongoose from 'mongoose';
 import Cashbook from '../models/cashbook.js';
+import Transaction from '../models/transaction.js';
+import Category from '../models/category.js';
+import PaymentMode from '../models/paymentMode.js';
 
 // Create a new Cashbook
 export const createCashbook = async (req, res) => {
@@ -162,9 +165,14 @@ export const deleteCashbook = async (req, res) => {
       });
     }
 
+    // Cascade Delete associated transactions, categories, and payment modes
+    await Transaction.deleteMany({ chalan_id: id });
+    await Category.deleteMany({ chalan_id: id });
+    await PaymentMode.deleteMany({ chalan_id: id });
+
     return res.status(200).json({
       success: true,
-      message: 'Cashbook deleted successfully',
+      message: 'Cashbook and all associated transactions/categories/modes deleted successfully',
       data: deletedCashbook,
     });
   } catch (error) {

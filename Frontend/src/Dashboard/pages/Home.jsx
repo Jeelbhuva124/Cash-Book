@@ -28,6 +28,7 @@ export default function Home() {
   const [paymentModes, setPaymentModes] = useState([]);
   const [chalans, setChalans] = useState([]);
   const [activeChalanId, setActiveChalanId] = useState('1');
+  const [hoveredPointIdx, setHoveredPointIdx] = useState(null);
 
   // Custom Confirmation Modal State
   const [confirmModal, setConfirmModal] = useState({
@@ -219,8 +220,20 @@ export default function Home() {
           user_email: tx.user_email,
           is_deleted: !!tx.is_deleted || !!tx.deleted
         }));
-        const userEmail = user?.email_id?.toLowerCase() || '';
-        const userTxs = mapped.filter(t => true);
+
+        // Fetch active cashbooks to filter out deleted ones
+        const activeChalanIds = new Set(['1']);
+        try {
+          const cbRes = await fetch('http://localhost:5001/api/cashbook/select');
+          const cbData = await cbRes.json();
+          if (cbData.success && Array.isArray(cbData.data)) {
+            cbData.data.forEach(cb => activeChalanIds.add(cb.id));
+          }
+        } catch (e) {
+          console.error("Failed to load cashbooks for filtering", e);
+        }
+
+        const userTxs = mapped.filter(t => activeChalanIds.has(t.chalanId || '1'));
         setTransactions(userTxs);
       }
     } catch (err) {
@@ -357,7 +370,7 @@ export default function Home() {
           });
           const data = await response.json();
           if (data.success) {
-            setTransactions(transactions.filter(t => t.id !== id));
+            setTransactions(transactions.map(t => t.id === id ? { ...t, is_deleted: true } : t));
             addToast("Transaction deleted successfully", "success");
           } else {
             addToast(data.message || "Failed to delete transaction", "error");
@@ -579,39 +592,164 @@ export default function Home() {
             </div>
           )}
         </div>
+        <div className="relative bg-white dark:bg-[#121827] border border-border/80 dark:border-slate-800 rounded-2xl p-6 space-y-4">
+          <div className="flex justify-between items-center">
+            <h3 className="font-bold text-base text-[#1e293b] dark:text-slate-100">
+              Cashbook Balance Flow
+            </h3>
+            <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 px-2 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-500/10">
+              Trend Graph
+            </span>
+          </div>
 
-        {/* Payment Mode Usage Card */}
-        <div className="bg-white dark:bg-[#121827] border border-border/80 dark:border-slate-800 rounded-2xl p-6 space-y-4">
-          <h3 className="font-bold text-base text-[#1e293b] dark:text-slate-100">
-            Payment Mode Usage
-          </h3>
-
-          {sortedPaymentModes.length === 0 ? (
+          {activeTxs.length === 0 ? (
             <div className="flex items-center justify-center py-16 text-center text-muted-foreground dark:text-slate-400 text-sm font-medium">
-              No transactions recorded yet
+              No transaction history to display graph
             </div>
-          ) : (
-            <div className="space-y-4">
-              {sortedPaymentModes.slice(0, 5).map(([modeName, count]) => {
-                const totalTxsCount = activeTxs.length;
-                const pct = totalTxsCount > 0 ? ((count / totalTxsCount) * 100).toFixed(0) : 0;
-                return (
-                  <div key={modeName} className="space-y-1.5">
-                    <div className="flex justify-between text-xs font-semibold">
-                      <span className="text-foreground dark:text-slate-200">{modeName}</span>
-                      <span className="text-muted-foreground dark:text-slate-400">{count} logs ({pct}%)</span>
+          ) : (() => {
+            const chronologicalTxs = [...activeTxs].sort((a, b) => {
+              const dateCompare = a.date.localeCompare(b.date);
+              if (dateCompare !== 0) return dateCompare;
+              
+              const parseTime = (tStr) => {
+                if (!tStr) return 0;
+                try {
+                  const parts = tStr.split(' ');
+                  const timeParts = parts[0].split(':');
+                  let hrs = parseInt(timeParts[0]);
+                  const mins = parseInt(timeParts[1]);
+                  const secs = parseInt(timeParts[2] || '0');
+                  if (parts[1] && parts[1].toLowerCase() === 'pm' && hrs < 12) hrs += 12;
+                  if (parts[1] && parts[1].toLowerCase() === 'am' && hrs === 12) hrs = 0;
+                  return hrs * 3600 + mins * 60 + secs;
+                } catch (e) {
+                  return 0;
+                }
+              };
+              return parseTime(a.time) - parseTime(b.time);
+            });
+
+            let currentRunningBal = 0;
+            const chartPoints = [{ balance: 0, date: 'Start', title: 'Opening Balance' }];
+            chronologicalTxs.forEach(tx => {
+              if (tx.type === 'income') {
+                currentRunningBal += tx.amount;
+              } else {
+                currentRunningBal -= tx.amount;
+              }
+              chartPoints.push({
+                balance: currentRunningBal,
+                date: tx.date,
+                title: tx.title,
+                type: tx.type,
+                amount: tx.amount
+              });
+            });
+
+            const svgWidth = 500;
+            const svgHeight = 200;
+            const paddingX = 40;
+            const paddingY = 30;
+
+            const balances = chartPoints.map(p => p.balance);
+            const minBal = Math.min(...balances);
+            const maxBal = Math.max(...balances);
+            const balRange = maxBal - minBal === 0 ? 100 : maxBal - minBal;
+
+            const points = chartPoints.map((p, i) => {
+              const x = paddingX + (i * (svgWidth - 2 * paddingX)) / (chartPoints.length - 1 || 1);
+              const y = svgHeight - paddingY - ((p.balance - minBal) / balRange) * (svgHeight - 2 * paddingY);
+              return { x, y, ...p };
+            });
+
+            // Construct SVG Path
+            let pathD = '';
+            let fillD = '';
+            if (points.length > 0) {
+              pathD = `M ${points[0].x} ${points[0].y} ` + points.slice(1).map(p => `L ${p.x} ${p.y}`).join(' ');
+              fillD = `${pathD} L ${points[points.length - 1].x} ${svgHeight - paddingY} L ${points[0].x} ${svgHeight - paddingY} Z`;
+            }
+
+            const yMax = paddingY;
+            const yMin = svgHeight - paddingY;
+            const yMid = (yMax + yMin) / 2;
+
+            return (
+              <div className="relative">
+                {/* Tooltip Overlay */}
+                {hoveredPointIdx !== null && points[hoveredPointIdx] && (
+                  <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-slate-900/95 dark:bg-slate-950/95 text-white border border-slate-700/60 rounded-xl p-2.5 shadow-xl z-20 text-[10px] min-w-[150px]">
+                    <p className="font-bold truncate text-slate-300">{points[hoveredPointIdx].title}</p>
+                    <div className="mt-1 flex items-center justify-between gap-3">
+                      <span className="text-slate-400">Balance:</span>
+                      <span className="font-bold text-indigo-300">{formatCurrency(points[hoveredPointIdx].balance)}</span>
                     </div>
-                    <div className="w-full h-2 bg-muted/60 dark:bg-slate-800 rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-300"
-                        style={{ width: `${pct}%` }}
-                      />
-                    </div>
+                    {points[hoveredPointIdx].amount !== undefined && (
+                      <div className="mt-0.5 flex items-center justify-between gap-3">
+                        <span className="text-slate-400">Amount:</span>
+                        <span className={`font-bold ${points[hoveredPointIdx].type === 'income' ? 'text-emerald-400' : 'text-rose-400'}`}>
+                          {points[hoveredPointIdx].type === 'income' ? '+' : '-'}{formatCurrency(points[hoveredPointIdx].amount)}
+                        </span>
+                      </div>
+                    )}
                   </div>
-                );
-              })}
-            </div>
-          )}
+                )}
+
+                <div className="w-full overflow-hidden">
+                  <svg className="w-full h-auto max-h-[220px]" viewBox={`0 0 ${svgWidth} ${svgHeight}`} fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                      <linearGradient id="moneyGraphAreaGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#6366f1" stopOpacity="0.25" />
+                        <stop offset="100%" stopColor="#6366f1" stopOpacity="0" />
+                      </linearGradient>
+                    </defs>
+
+                    {/* Reference Lines */}
+                    <line x1={paddingX} y1={yMax} x2={svgWidth - paddingX} y2={yMax} stroke="currentColor" strokeDasharray="3 3" className="text-slate-200 dark:text-slate-800" strokeWidth="1" />
+                    <line x1={paddingX} y1={yMid} x2={svgWidth - paddingX} y2={yMid} stroke="currentColor" strokeDasharray="3 3" className="text-slate-200 dark:text-slate-800" strokeWidth="1" />
+                    <line x1={paddingX} y1={yMin} x2={svgWidth - paddingX} y2={yMin} stroke="currentColor" className="text-slate-300 dark:text-slate-700" strokeWidth="1" />
+
+                    {/* Reference Labels */}
+                    <text x={paddingX - 10} y={yMax + 4} textAnchor="end" className="text-[8px] font-bold fill-slate-400 dark:fill-slate-500">{formatCurrency(maxBal)}</text>
+                    <text x={paddingX - 10} y={yMid + 4} textAnchor="end" className="text-[8px] font-bold fill-slate-400 dark:fill-slate-500">{formatCurrency((maxBal + minBal) / 2)}</text>
+                    <text x={paddingX - 10} y={yMin + 4} textAnchor="end" className="text-[8px] font-bold fill-slate-400 dark:fill-slate-500">{formatCurrency(minBal)}</text>
+
+                    {/* Area path */}
+                    {fillD && <path d={fillD} fill="url(#moneyGraphAreaGradient)" />}
+
+                    {/* Trend Line path */}
+                    {pathD && <path d={pathD} stroke="#6366f1" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />}
+
+                    {/* Interactive dots */}
+                    {points.map((p, idx) => (
+                      <g key={idx}>
+                        {/* Hover activation target (larger transparent circle) */}
+                        <circle
+                          cx={p.x}
+                          cy={p.y}
+                          r="10"
+                          className="fill-transparent cursor-pointer"
+                          onMouseEnter={() => setHoveredPointIdx(idx)}
+                          onMouseLeave={() => setHoveredPointIdx(null)}
+                        />
+                        {/* Visible dot */}
+                        <circle
+                          cx={p.x}
+                          cy={p.y}
+                          r={hoveredPointIdx === idx ? "5" : "3.5"}
+                          className={`transition-all duration-150 ${
+                            hoveredPointIdx === idx 
+                              ? "fill-indigo-500 stroke-white dark:stroke-slate-900 stroke-[1.5px] filter drop-shadow-[0_0_4px_rgba(99,102,241,0.6)]" 
+                              : "fill-white dark:fill-slate-900 stroke-indigo-500 stroke-2"
+                          }`}
+                        />
+                      </g>
+                    ))}
+                  </svg>
+                </div>
+              </div>
+            );
+          })()}
         </div>
       </div>
 

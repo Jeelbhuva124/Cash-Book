@@ -1,14 +1,37 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Bell, Shield, Menu, User, Settings, LogOut, CheckCircle2 } from 'lucide-react';
+import { Search, Bell, Shield, Menu, User, Settings, LogOut, CheckCircle2, PanelLeft, Maximize2, Minimize2, ChevronDown } from 'lucide-react';
 import { ThemeToggle } from '../../components/ThemeToggle';
 import { useNavigate } from 'react-router-dom';
 
-export const AdminHeader = ({ setMobileOpen }) => {
+export const AdminHeader = ({ setMobileOpen, isCollapsed, setIsCollapsed }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const notificationRef = useRef(null);
   const navigate = useNavigate();
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().then(() => {
+        setIsFullscreen(true);
+      }).catch(err => {
+        console.error("Fullscreen error:", err);
+      });
+    } else {
+      document.exitFullscreen().then(() => {
+        setIsFullscreen(false);
+      });
+    }
+  };
+
+  useEffect(() => {
+    const handleFsChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFsChange);
+    return () => document.removeEventListener('fullscreenchange', handleFsChange);
+  }, []);
 
   const [notifications, setNotifications] = useState(() => {
     const saved = localStorage.getItem('cashbook_admin_notifications');
@@ -54,47 +77,61 @@ export const AdminHeader = ({ setMobileOpen }) => {
 
 
   return (
-    <header className="sticky top-0 z-40 h-20 bg-background/90 backdrop-blur-2xl border-b border-border/50 px-4 sm:px-8 flex items-center justify-between gap-4 shadow-sm">
+    <header className="sticky top-0 z-40 h-[64px] bg-transparent dark:bg-card px-4 sm:px-8 flex items-center justify-between gap-4">
       {/* Left: Mobile Menu Toggle & Search Bar */}
       <div className="flex items-center gap-4 flex-1 max-w-md">
         <button
           onClick={() => setMobileOpen(true)}
-          className="md:hidden p-2.5 rounded-xl bg-card border border-border/50 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all shadow-sm"
+          className="p-2 -ml-2 rounded-xl text-muted-foreground hover:bg-muted/40 hover:text-foreground lg:hidden"
+          aria-label="Toggle menu"
         >
           <Menu className="w-5 h-5" />
         </button>
 
-        <div className="relative w-full hidden sm:block group">
-          <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
+        <button
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="p-2 -ml-2 rounded-xl text-muted-foreground hover:bg-muted/40 hover:text-foreground hidden lg:flex"
+          aria-label="Toggle sidebar"
+        >
+          <PanelLeft className="w-5 h-5" />
+        </button>
+
+        <div className="relative hidden md:block w-72">
+          <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+            <Search className="w-4 h-4 text-muted-foreground" />
+          </span>
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search users, cashbooks, audit logs..."
-            className="w-full pl-11 pr-4 py-2.5 rounded-2xl bg-muted/30 hover:bg-muted/50 border border-transparent hover:border-border/50 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all shadow-inner"
+            placeholder="Search users, cashbooks..."
+            className="w-full pl-9 pr-4 py-1.5 text-sm bg-[#f8fafc] dark:bg-[#1f2229] border border-border/80 rounded-xl focus:outline-none focus:border-primary text-foreground placeholder:text-muted-foreground"
           />
         </div>
       </div>
 
       {/* Right Action Icons & Profile */}
       <div className="flex items-center gap-2 sm:gap-4">
-        {/* System Status Pill */}
-        <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-xs font-bold shadow-sm">
-          <CheckCircle2 className="w-3.5 h-3.5" />
-          <span>v2.4 Production Live</span>
-        </div>
-
         <ThemeToggle />
+
+        {/* Fullscreen Button */}
+        <button
+          onClick={toggleFullscreen}
+          className="p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors hidden sm:block cursor-pointer"
+          title="Toggle Fullscreen"
+        >
+          {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+        </button>
 
         {/* Admin Notifications Dropdown */}
         <div className="relative" ref={notificationRef}>
           <button
             onClick={() => setNotificationsOpen(!notificationsOpen)}
-            className="p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors relative flex items-center justify-center min-w-[44px] min-h-[44px]"
+            className="p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors relative flex items-center justify-center cursor-pointer"
           >
             <Bell className="w-4 h-4" />
             {unreadCount > 0 && (
-              <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-primary rounded-full animate-pulse" />
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full animate-pulse" />
             )}
           </button>
 
@@ -153,15 +190,15 @@ export const AdminHeader = ({ setMobileOpen }) => {
         <div className="relative">
           <button
             onClick={() => setProfileOpen(!profileOpen)}
-            className="flex items-center gap-3 p-1 pr-4 rounded-full bg-card hover:bg-muted/50 border border-border/50 hover:border-primary/30 transition-all cursor-pointer shadow-sm group"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl hover:bg-muted/30 transition-all font-medium text-sm text-foreground select-none"
           >
-            <div className="w-10 h-10 rounded-full bg-card border border-border/50 overflow-hidden flex items-center justify-center p-1 shadow-inner group-hover:scale-105 transition-transform">
-              <img src="/logo.png" alt="Admin" className="w-full h-full object-contain" />
+            <div className="w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center flex-shrink-0 overflow-hidden">
+              <Shield className="w-4 h-4" />
             </div>
-            <div className="hidden md:flex flex-col text-left leading-tight">
-              <span className="text-[13px] font-bold text-foreground group-hover:text-primary transition-colors">{adminUser.username || 'Admin Root'}</span>
-              <span className="text-[11px] font-medium text-muted-foreground">{adminUser.email_id || 'superadmin@cashbook.io'}</span>
-            </div>
+            <span className="max-w-[150px] truncate hidden md:inline font-semibold">
+              {adminUser.username || 'Admin Root'}
+            </span>
+            <ChevronDown className="w-4 h-4 text-muted-foreground" />
           </button>
 
           {profileOpen && (

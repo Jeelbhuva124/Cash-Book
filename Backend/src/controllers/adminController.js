@@ -1,10 +1,12 @@
 import User from '../models/user.js';
+import Admin from '../models/admin.js';
 import Cashbook from '../models/cashbook.js';
 import mongoose from 'mongoose';
 import Transaction from '../models/transaction.js';
 import os from 'os';
 
 const adminController = {
+
   // POST /api/admin/login
   login: async (req, res) => {
     const { email_id, password } = req.body;
@@ -13,11 +15,11 @@ const adminController = {
     }
 
     try {
-      let user = await User.findOne({ email_id: email_id.toLowerCase() });
+      let adminUser = await Admin.findOne({ email_id: email_id.toLowerCase() });
 
       // Auto-provision root admin if logging in with admin email
-      if (!user && email_id.toLowerCase().includes('admin')) {
-        user = new User({
+      if (!adminUser && email_id.toLowerCase().includes('admin')) {
+        adminUser = new Admin({
           username: 'Admin Root',
           email_id: email_id.toLowerCase(),
           password: password,
@@ -25,25 +27,18 @@ const adminController = {
           is_admin: true,
           account_status: 'active'
         });
-        await user.save();
+        await adminUser.save();
       }
 
-      if (!user) {
+      if (!adminUser) {
         return res.status(404).json({ success: false, message: "Admin account not found" });
       }
 
-      if (user.password !== password) {
+      if (adminUser.password !== password) {
         return res.status(401).json({ success: false, message: "Invalid password" });
       }
 
-      // Elevate admin status if email is an admin email
-      if (!user.is_admin && email_id.toLowerCase().includes('admin')) {
-        user.user_role = 'admin';
-        user.is_admin = true;
-        await user.save();
-      }
-
-      if (!user.is_admin && user.user_role !== 'admin') {
+      if (!adminUser.is_admin && adminUser.user_role !== 'admin') {
         return res.status(403).json({ success: false, message: "Access denied. Administrative rights required." });
       }
 
@@ -51,13 +46,14 @@ const adminController = {
         success: true,
         message: "Admin authentication successful",
         data: [{
-          id: user.id,
-          username: user.username,
-          email_id: user.email_id,
-          user_role: user.user_role,
-          is_admin: user.is_admin,
-          account_status: user.account_status,
-          created_at: user.created_at
+          id: adminUser.id,
+          username: adminUser.username,
+          email_id: adminUser.email_id,
+          user_role: adminUser.user_role,
+          is_admin: adminUser.is_admin,
+          account_status: adminUser.account_status,
+          created_at: adminUser.created_at || adminUser.createdAt,
+          security_pin: adminUser.security_pin
         }]
       });
     } catch (err) {
@@ -70,6 +66,7 @@ const adminController = {
   select: async (req, res) => {
     try {
       const users = await User.find({}).sort({ createdAt: -1 }).lean();
+      const admins = await Admin.find({}).sort({ createdAt: -1 }).lean();
       const rawCashbooks = await Cashbook.find({}).sort({ createdAt: -1 }).lean();
       const allTxns = await Transaction.find({}, 'chalan_id type amount').lean();
       
@@ -104,6 +101,7 @@ const adminController = {
           active_users,
           total_cashbooks,
           users,
+          admins,
           cashbooks
         }
       });
@@ -115,35 +113,36 @@ const adminController = {
 
   // POST /api/admin/insert (Create new user from admin panel)
   insert: async (req, res) => {
-    const { username, email_id, password, user_role, phone_number } = req.body;
+    const { username, email_id, password, user_role, phone_number, security_pin } = req.body;
     if (!email_id || !password) {
       return res.status(400).json({ success: false, message: "Email ID and password are required" });
     }
 
     try {
-      const existingUser = await User.findOne({ email_id: email_id.toLowerCase() });
-      if (existingUser) {
-        return res.status(400).json({ success: false, message: "User already exists with this email" });
+      const existingAdmin = await Admin.findOne({ email_id: email_id.toLowerCase() });
+      if (existingAdmin) {
+        return res.status(400).json({ success: false, message: "Admin already exists with this email" });
       }
 
-      const role = user_role || 'user';
-      const isAdmin = role === 'admin';
+      const role = user_role || 'admin';
+      const isAdmin = true;
 
-      const newUser = new User({
+      const newAdmin = new Admin({
         username: username || email_id.split('@')[0],
         email_id: email_id.toLowerCase(),
         password: password,
         user_role: role,
         is_admin: isAdmin,
         account_status: 'active',
-        phone_number: phone_number || ''
+        phone_number: phone_number || '',
+        security_pin: security_pin || '1234'
       });
 
-      await newUser.save();
+      await newAdmin.save();
       return res.status(200).json({
         success: true,
-        message: "User inserted successfully",
-        data: [newUser]
+        message: "Admin inserted successfully",
+        data: [newAdmin]
       });
     } catch (err) {
       console.error("Admin Insert Error:", err.message);
@@ -153,7 +152,7 @@ const adminController = {
 
   // POST /api/admin/update (Update user role or status)
   update: async (req, res) => {
-    const { user_id, id, username, email_id, user_role, is_admin, account_status, phone_number } = req.body;
+    const { user_id, id, username, email_id, user_role, is_admin, account_status, phone_number, password, security_pin } = req.body;
     const targetId = user_id || id;
 
     if (!targetId || !mongoose.Types.ObjectId.isValid(targetId)) {
@@ -161,9 +160,58 @@ const adminController = {
     }
 
     try {
+      // Cross-collection Promote
+      if (user_role === 'admin' || is_admin === true) {
+        const userToPromote = await User.findById(targetId);
+        if (userToPromote) {
+          const newAdmin = new Admin({
+            username: username || userToPromote.username,
+            email_id: (email_id || userToPromote.email_id).toLowerCase(),
+            password: password || userToPromote.password,
+            user_role: 'admin',
+            is_admin: true,
+            account_status: account_status || userToPromote.account_status,
+            phone_number: phone_number !== undefined ? phone_number : userToPromote.phone_number,
+            security_pin: security_pin || '1234'
+          });
+          await newAdmin.save();
+          await User.findByIdAndDelete(targetId);
+          return res.status(200).json({ success: true, message: "User promoted to admin", data: [newAdmin] });
+        }
+      }
+
+      // Cross-collection Demote
+      if (user_role === 'user' || is_admin === false) {
+        const adminToDemote = await Admin.findById(targetId);
+        if (adminToDemote) {
+          const newUser = new User({
+            username: username || adminToDemote.username,
+            email_id: (email_id || adminToDemote.email_id).toLowerCase(),
+            password: password || adminToDemote.password,
+            user_role: 'user',
+            is_admin: false,
+            account_status: account_status || adminToDemote.account_status,
+            phone_number: phone_number !== undefined ? phone_number : adminToDemote.phone_number
+          });
+          await newUser.save();
+          await Admin.findByIdAndDelete(targetId);
+          return res.status(200).json({ success: true, message: "Admin demoted to user", data: [newUser] });
+        }
+      }
+
+      // Regular Update
       const updateData = {};
-      if (username) updateData.username = username;
-      if (email_id) updateData.email_id = email_id.toLowerCase();
+      if (username) {
+        updateData.username = username;
+        updateData.name = username;
+      }
+      if (email_id) {
+        updateData.email_id = email_id.toLowerCase();
+        updateData.email = email_id.toLowerCase();
+      }
+      if (password) {
+        updateData.password = password;
+      }
       if (user_role) {
         updateData.user_role = user_role;
         updateData.is_admin = user_role === 'admin';
@@ -174,15 +222,15 @@ const adminController = {
       }
       if (account_status) updateData.account_status = account_status;
       if (phone_number !== undefined) updateData.phone_number = phone_number;
+      if (security_pin !== undefined) updateData.security_pin = security_pin;
 
-      const updatedUser = await User.findByIdAndUpdate(
-        targetId,
-        updateData,
-        { new: true, runValidators: true }
-      );
+      let updatedUser = await Admin.findByIdAndUpdate(targetId, updateData, { new: true, runValidators: true });
+      if (!updatedUser) {
+        updatedUser = await User.findByIdAndUpdate(targetId, updateData, { new: true, runValidators: true });
+      }
 
       if (!updatedUser) {
-        return res.status(404).json({ success: false, message: "User not found for update" });
+        return res.status(404).json({ success: false, message: "User or Admin not found for update" });
       }
 
       return res.status(200).json({
@@ -212,11 +260,14 @@ const adminController = {
       }
 
       if (targetUserId && mongoose.Types.ObjectId.isValid(targetUserId)) {
-        const deletedUser = await User.findByIdAndDelete(targetUserId);
+        let deletedUser = await Admin.findByIdAndDelete(targetUserId);
         if (!deletedUser) {
-          return res.status(404).json({ success: false, message: "User not found for deletion" });
+          deletedUser = await User.findByIdAndDelete(targetUserId);
         }
-        return res.status(200).json({ success: true, message: "User deleted successfully", data: [deletedUser] });
+        if (!deletedUser) {
+          return res.status(404).json({ success: false, message: "User or Admin not found for deletion" });
+        }
+        return res.status(200).json({ success: true, message: "User/Admin deleted successfully", data: [deletedUser] });
       }
 
       return res.status(400).json({ success: false, message: "Valid user_id or cashbook_id required in request body" });
@@ -232,6 +283,7 @@ const adminController = {
       const total_users = await User.countDocuments({});
       const active_users = await User.countDocuments({ account_status: 'active' });
       const suspended_users = await User.countDocuments({ account_status: 'suspended' });
+      const total_admins = await Admin.countDocuments({});
       const total_cashbooks = await Cashbook.countDocuments({});
 
       // Manually sum up transaction volumes to avoid string issues
