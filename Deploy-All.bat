@@ -8,5 +8,5 @@ if %errorLevel% neq 0 (
     exit /b
 )
 :: Run the combined PowerShell deployment script
-powershell.exe -ExecutionPolicy Bypass -File "%~dp0Deploy-All.ps1"
+"C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" -ExecutionPolicy Bypass -File "%~dp0Deploy-All.ps1"
 pause
