@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Plus, Search, X, Pencil, Trash2, Check, HelpCircle, 
-  ChevronsUpDown, ArrowUp, ArrowDown 
+  ChevronsUpDown, ArrowUp, ArrowDown, Tag 
 } from 'lucide-react';
 import Dropdown from '../components/Dropdown';
 import { useToast } from '../../context/ToastContext';
@@ -69,14 +69,57 @@ export default function Categories() {
   const userEmail = user?.email_id || '';
 
   useEffect(() => {
-    // Load chalans from localStorage key cashbook_chalans_<userEmail>
-    const storageKey = `cashbook_chalans_${userEmail || 'guest'}`;
-    const savedChalans = localStorage.getItem(storageKey);
-    if (savedChalans) {
+    const loadCashbooks = async () => {
+      const uEmail = userEmail?.toLowerCase() || '';
+      let ownCashbooks = [];
+      let sharedCashbooks = [];
+
       try {
-        setChalans(JSON.parse(savedChalans));
-      } catch (e) {}
-    }
+        const response = await fetch('http://localhost:5001/api/cashbook/select');
+        const data = await response.json();
+        if (data.success && data.data) {
+          const filteredData = data.data.filter(cb => cb.user_email?.toLowerCase() === uEmail);
+          ownCashbooks = filteredData.map(cb => ({
+            id: cb.id,
+            name: cb.cashbook_name,
+            isShared: false
+          }));
+        }
+      } catch (err) {
+        console.error(err);
+      }
+
+      try {
+        const responseInv = await fetch('http://localhost:5001/api/invitation/select');
+        const dataInv = await responseInv.json();
+        if (dataInv.success && Array.isArray(dataInv.data)) {
+          const accepted = dataInv.data.filter(i => 
+            i.email?.toLowerCase() === uEmail && i.status === 'Accepted'
+          );
+          sharedCashbooks = accepted.map(inv => ({
+            id: inv.id,
+            name: inv.cashbook_name,
+            isShared: true,
+            sharedBy: inv.inviter_email
+          }));
+        }
+      } catch (err) {
+        console.error(err);
+      }
+
+      const combined = [...ownCashbooks];
+      sharedCashbooks.forEach(scb => {
+        if (!combined.some(cb => cb.name?.toLowerCase() === scb.name?.toLowerCase())) {
+          combined.push(scb);
+        }
+      });
+
+      setChalans(combined);
+      const storageKey = `cashbook_chalans_${userEmail || 'guest'}`;
+      localStorage.setItem(storageKey, JSON.stringify(combined));
+    };
+
+    loadCashbooks();
   }, [userEmail]);
 
   useEffect(() => {
@@ -93,9 +136,8 @@ export default function Categories() {
       const data = await response.json();
       
       if (data.success && data.data) {
-        // Filter by user email and chosen chalan_id
+        // Filter by chosen chalan_id
         const userCats = data.data.filter(cat => 
-          cat.user_email?.toLowerCase() === userEmail.toLowerCase() &&
           cat.chalan_id === selectedChalanId
         );
         setCategories(userCats);
@@ -283,18 +325,18 @@ export default function Categories() {
         </p>
       </div>
 
-      {/* Select Cashbook Card */}
-      <div className="bg-white dark:bg-card border border-border/80 rounded-2xl p-5 shadow-sm space-y-4">
-        <div className="flex items-center gap-2 text-sm font-bold text-[#1e293b] dark:text-foreground">
-          <Check className="w-4 h-4 text-primary" />
+      {/* Top Card */}
+      <div className="bg-white dark:bg-[#121827] border border-border/80 dark:border-slate-800 rounded-2xl p-6 space-y-3">
+        <div className="flex items-center gap-2 text-foreground dark:text-slate-100 font-bold text-base">
+          <Tag className="w-5 h-5 text-primary dark:text-indigo-400" />
           <span>Cashbook-wise Categories</span>
         </div>
-        <p className="text-xs text-muted-foreground font-medium">
+        <p className="text-xs text-muted-foreground dark:text-slate-400 font-medium">
           Each cashbook maintains its own category list
         </p>
 
         <div className="space-y-1 max-w-sm">
-          <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">Select Cashbook</label>
+          <label className="text-[10px] font-bold text-muted-foreground dark:text-slate-400 uppercase tracking-wide">Select Cashbook</label>
           <Dropdown
             value={selectedChalanId}
             onChange={(e) => setSelectedChalanId(e.target.value)}
@@ -308,51 +350,51 @@ export default function Categories() {
       </div>
 
       {/* Categories Table Card */}
-      <div className="bg-white dark:bg-card border border-border/80 rounded-2xl p-6 shadow-sm space-y-4">
-        <h2 className="font-bold text-sm text-foreground flex items-center gap-2">
+      <div className="bg-white dark:bg-[#121827] border border-border/80 dark:border-slate-800 rounded-2xl p-6 space-y-4">
+        <h2 className="font-bold text-sm text-foreground dark:text-slate-100 flex items-center gap-2">
           Category List 
-          <span className="text-muted-foreground font-normal">• {sortedCategories.length} Records</span>
+          <span className="text-muted-foreground dark:text-slate-400 font-normal">• {sortedCategories.length} Records</span>
         </h2>
 
         {/* Table Container */}
-        <div className="overflow-x-auto w-full border border-border/60 rounded-xl bg-card">
+        <div className="overflow-x-auto w-full border border-border/60 dark:border-slate-800 rounded-xl bg-card dark:bg-[#0b0f19]">
           <table className="w-full text-left border-collapse table-fixed min-w-[1200px]">
             <thead>
               {/* Column titles */}
-              <tr className="bg-muted/30 border-b border-border text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
-                <th className="px-4 py-3 w-[70px] cursor-pointer" onClick={() => handleSort('no')}>
+              <tr className="bg-muted/30 dark:bg-slate-900/80 border-b border-border dark:border-slate-800 text-[11px] font-bold text-muted-foreground dark:text-slate-400 uppercase tracking-wider">
+                <th className="px-4 py-3 w-[70px] cursor-pointer hover:text-foreground dark:hover:text-slate-200 transition-colors" onClick={() => handleSort('no')}>
                   No {getSortIcon('no')}
                 </th>
-                <th className="px-4 py-3 w-[220px] cursor-pointer" onClick={() => handleSort('category_name')}>
+                <th className="px-4 py-3 w-[220px] cursor-pointer hover:text-foreground dark:hover:text-slate-200 transition-colors" onClick={() => handleSort('category_name')}>
                   Category Name {getSortIcon('category_name')}
                 </th>
-                <th className="px-4 py-3 w-[120px] cursor-pointer" onClick={() => handleSort('active')}>
+                <th className="px-4 py-3 w-[120px] cursor-pointer hover:text-foreground dark:hover:text-slate-200 transition-colors" onClick={() => handleSort('active')}>
                   Active {getSortIcon('active')}
                 </th>
-                <th className="px-4 py-3 w-[160px] cursor-pointer" onClick={() => handleSort('created_by')}>
+                <th className="px-4 py-3 w-[160px] cursor-pointer hover:text-foreground dark:hover:text-slate-200 transition-colors" onClick={() => handleSort('created_by')}>
                   Created By {getSortIcon('created_by')}
                 </th>
-                <th className="px-4 py-3 w-[180px] cursor-pointer" onClick={() => handleSort('createdAt')}>
+                <th className="px-4 py-3 w-[180px] cursor-pointer hover:text-foreground dark:hover:text-slate-200 transition-colors" onClick={() => handleSort('createdAt')}>
                   Created On {getSortIcon('createdAt')}
                 </th>
-                <th className="px-4 py-3 w-[160px] cursor-pointer" onClick={() => handleSort('updated_by')}>
+                <th className="px-4 py-3 w-[160px] cursor-pointer hover:text-foreground dark:hover:text-slate-200 transition-colors" onClick={() => handleSort('updated_by')}>
                   Updated By {getSortIcon('updated_by')}
                 </th>
-                <th className="px-4 py-3 w-[180px] cursor-pointer" onClick={() => handleSort('updatedAt')}>
+                <th className="px-4 py-3 w-[180px] cursor-pointer hover:text-foreground dark:hover:text-slate-200 transition-colors" onClick={() => handleSort('updatedAt')}>
                   Updated On {getSortIcon('updatedAt')}
                 </th>
                 <th className="px-4 py-3 w-[100px] text-center">Actions</th>
               </tr>
 
               {/* Column Filter Row */}
-              <tr className="bg-muted/10 border-b border-border/40">
+              <tr className="bg-muted/10 dark:bg-slate-950/40 border-b border-border/40 dark:border-slate-800/60">
                 <th className="px-4 py-2">
                   <input
                     type="text"
                     placeholder="Search..."
                     value={filters.no}
                     onChange={(e) => setFilters(prev => ({ ...prev, no: e.target.value }))}
-                    className="w-full px-2 py-1 text-xs border border-border bg-white dark:bg-card rounded-lg focus:outline-none focus:border-primary font-normal"
+                    className="w-full px-2 py-1 text-xs border border-border dark:border-slate-800 bg-white dark:bg-slate-900/90 rounded-lg focus:outline-none focus:border-primary font-normal text-foreground dark:text-slate-200 dark:placeholder:text-slate-500"
                   />
                 </th>
                 <th className="px-4 py-2">
@@ -361,7 +403,7 @@ export default function Categories() {
                     placeholder="Search..."
                     value={filters.category_name}
                     onChange={(e) => setFilters(prev => ({ ...prev, category_name: e.target.value }))}
-                    className="w-full px-2 py-1 text-xs border border-border bg-white dark:bg-card rounded-lg focus:outline-none focus:border-primary font-normal"
+                    className="w-full px-2 py-1 text-xs border border-border dark:border-slate-800 bg-white dark:bg-slate-900/90 rounded-lg focus:outline-none focus:border-primary font-normal text-foreground dark:text-slate-200 dark:placeholder:text-slate-500"
                   />
                 </th>
                 <th className="px-4 py-2">
@@ -370,7 +412,7 @@ export default function Categories() {
                     placeholder="Search..."
                     value={filters.active}
                     onChange={(e) => setFilters(prev => ({ ...prev, active: e.target.value }))}
-                    className="w-full px-2 py-1 text-xs border border-border bg-white dark:bg-card rounded-lg focus:outline-none focus:border-primary font-normal"
+                    className="w-full px-2 py-1 text-xs border border-border dark:border-slate-800 bg-white dark:bg-slate-900/90 rounded-lg focus:outline-none focus:border-primary font-normal text-foreground dark:text-slate-200 dark:placeholder:text-slate-500"
                   />
                 </th>
                 <th className="px-4 py-2">

@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Camera, Pencil, Check, X } from 'lucide-react';
+import { useToast } from '../../context/ToastContext';
 
 const Profile = () => {
+  const { toast } = useToast();
   // Mock data matching the design, merged with real user data if available
   const [user, setUser] = useState({
     firstName: 'Natashia',
@@ -20,19 +22,69 @@ const Profile = () => {
   const [personalForm, setPersonalForm] = useState({});
   const [isEditingAddress, setIsEditingAddress] = useState(false);
   const [addressForm, setAddressForm] = useState({});
+  const [pendingAvatar, setPendingAvatar] = useState(null);
   const fileInputRef = useRef(null);
 
-  const handleImageChange = (e) => {
+  const handleImageChange = async (e) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        const updatedUser = { ...user, avatar: reader.result };
-        setUser(updatedUser);
-        localStorage.setItem('profile_data', JSON.stringify(updatedUser));
-        window.dispatchEvent(new Event('profileUpdated'));
+        setPendingAvatar(reader.result);
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  const cancelImageChange = () => {
+    setPendingAvatar(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const saveImageChange = async () => {
+    if (!pendingAvatar) return;
+    
+    const updatedUser = { ...user, avatar: pendingAvatar };
+    setUser(updatedUser);
+    localStorage.setItem('profile_data', JSON.stringify(updatedUser));
+    window.dispatchEvent(new Event('profileUpdated'));
+
+    // Save to backend database
+    try {
+      // Get the real logged-in user email just to be 100% sure
+      const loggedInUserStr = localStorage.getItem('user');
+      let correctEmail = user.email;
+      if (loggedInUserStr) {
+        const parsedUser = JSON.parse(loggedInUserStr);
+        if (parsedUser && parsedUser.email_id) {
+          correctEmail = parsedUser.email_id;
+        }
+      }
+
+      const res = await fetch('http://localhost:5001/api/user/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email_id: correctEmail, avatar: pendingAvatar })
+      });
+      
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error("Backend Error:", errorText);
+        toast.error("Failed to update profile picture. (Server error)");
+        return;
+      }
+
+      const data = await res.json();
+      if (data.success) {
+        toast.success("Profile picture updated successfully!");
+        setPendingAvatar(null);
+      } else {
+        toast.error("Failed to update profile picture in database.");
+        console.error("Server returned false success:", data.message);
+      }
+    } catch (error) {
+      console.error("Failed to sync avatar with database:", error);
+      toast.error("Network error while saving profile picture.");
     }
   };
 
@@ -170,7 +222,7 @@ const Profile = () => {
         <div className="relative">
           <div className="w-[100px] h-[100px] rounded-full overflow-hidden border-2 border-border/30 bg-muted">
             <img
-              src={user.avatar}
+              src={pendingAvatar || user.avatar}
               alt="Profile"
               className="w-full h-full object-cover"
             />
@@ -194,6 +246,24 @@ const Profile = () => {
           <h2 className="text-lg font-bold text-primary mb-1">{user.firstName} {user.lastName}</h2>
           <p className="text-muted-foreground text-[13px] font-medium mb-0.5">{user.role}</p>
           <p className="text-muted-foreground text-[13px] font-medium">{user.city.split(',')[0]}, {user.country}</p>
+          
+          {/* Action Buttons for Avatar */}
+          {pendingAvatar && (
+            <div className="mt-3 flex gap-2">
+              <button
+                onClick={saveImageChange}
+                className="bg-[#ef7a15] hover:bg-[#d66b10] text-white px-3 py-1 rounded-md text-xs font-semibold shadow-sm transition-colors flex items-center gap-1"
+              >
+                <Check className="w-3.5 h-3.5" /> Save Picture
+              </button>
+              <button
+                onClick={cancelImageChange}
+                className="bg-muted hover:bg-muted/80 text-foreground px-3 py-1 rounded-md text-xs font-semibold shadow-sm transition-colors flex items-center gap-1 border border-border"
+              >
+                <X className="w-3.5 h-3.5" /> Cancel
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -273,11 +343,7 @@ const Profile = () => {
             {!isEditingPersonal ? (
               <p className="text-[15px] font-semibold text-foreground/90">{user.role}</p>
             ) : (
-              <select name="role" value={personalForm.role} onChange={handlePersonalChange} className={inputClass}>
-                <option value="Admin">Admin</option>
-                <option value="Manager">Manager</option>
-                <option value="User">User</option>
-              </select>
+              <input type="text" value={user.role} disabled className={`${inputClass} opacity-60 bg-muted cursor-not-allowed`} />
             )}
           </div>
         </div>

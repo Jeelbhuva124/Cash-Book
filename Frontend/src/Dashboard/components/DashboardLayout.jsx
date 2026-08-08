@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Outlet, Navigate, Link, useNavigate } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
-import {
-  Menu, Search, Play, Moon, Sun, Maximize2, Minimize2,
-  Bell, User, ChevronDown, LogOut, PanelLeft
+import { 
+  Menu, Search, Play, Moon, Sun, Maximize2, Minimize2, 
+  Bell, User, ChevronDown, LogOut, PanelLeft, CheckCheck
 } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
+import { SplashScreen } from '../../components/SplashScreen';
 
 export const DashboardLayout = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -13,6 +14,11 @@ export const DashboardLayout = () => {
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showSplash, setShowSplash] = useState(() => {
+    if (sessionStorage.getItem('dashboardSplashShown')) return false;
+    sessionStorage.setItem('dashboardSplashShown', 'true');
+    return true;
+  });
 
   const notificationRef = useRef(null);
   const userDropdownRef = useRef(null);
@@ -32,16 +38,43 @@ export const DashboardLayout = () => {
 
   // Load user profile from state to allow reactivity
   const [profileData, setProfileData] = useState(() => {
-    const saved = localStorage.getItem('profile_data');
-    if (saved) return JSON.parse(saved);
     const userRaw = localStorage.getItem("user");
-    return userRaw ? JSON.parse(userRaw) : null;
+    const userObj = userRaw ? JSON.parse(userRaw) : null;
+    const saved = localStorage.getItem('profile_data');
+    if (saved && userObj) {
+      try {
+        const parsedSaved = JSON.parse(saved);
+        const savedEmail = (parsedSaved.email_id || parsedSaved.email || '').toLowerCase();
+        const currentEmail = (userObj.email_id || userObj.email || '').toLowerCase();
+        if (savedEmail && currentEmail && savedEmail === currentEmail) {
+          return parsedSaved;
+        } else {
+          localStorage.removeItem('profile_data');
+        }
+      } catch (e) {
+        localStorage.removeItem('profile_data');
+      }
+    }
+    return userObj;
   });
 
   useEffect(() => {
     const handleProfileUpdate = () => {
+      const userRaw = localStorage.getItem("user");
+      const userObj = userRaw ? JSON.parse(userRaw) : null;
       const saved = localStorage.getItem('profile_data');
-      if (saved) setProfileData(JSON.parse(saved));
+      if (saved && userObj) {
+        try {
+          const parsedSaved = JSON.parse(saved);
+          const savedEmail = (parsedSaved.email_id || parsedSaved.email || '').toLowerCase();
+          const currentEmail = (userObj.email_id || userObj.email || '').toLowerCase();
+          if (savedEmail && currentEmail && savedEmail === currentEmail) {
+            setProfileData(parsedSaved);
+            return;
+          }
+        } catch (e) {}
+      }
+      setProfileData(userObj);
     };
     const handleNotificationsUpdate = (e) => {
       if (e.detail) setNotifications(e.detail);
@@ -76,6 +109,15 @@ export const DashboardLayout = () => {
   const handleClearNotifications = () => {
     setNotifications([]);
     localStorage.setItem('cashbook_notifications', JSON.stringify([]));
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    localStorage.removeItem("profile_data");
+    sessionStorage.removeItem("dashboardSplashShown");
+    window.dispatchEvent(new Event("profileUpdated"));
+    navigate("/login");
   };
 
   const username = profileData?.firstName
@@ -118,12 +160,6 @@ export const DashboardLayout = () => {
     }
   }, [token, navigate]);
 
-  const handleLogout = () => {
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
-    navigate("/login");
-  };
-
   if (!token) {
     const queryParams = new URLSearchParams(window.location.search);
     const acceptId = queryParams.get('accept_id');
@@ -135,6 +171,7 @@ export const DashboardLayout = () => {
 
   return (
     <div className="flex h-screen bg-transparent dark:bg-transparent overflow-hidden text-foreground">
+      {showSplash && <SplashScreen onFinish={() => setShowSplash(false)} />}
       {/* Sidebar Navigation */}
       <Sidebar mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} isCollapsed={isCollapsed} />
 
@@ -220,9 +257,10 @@ export const DashboardLayout = () => {
                     {unreadCount > 0 && (
                       <button
                         onClick={handleMarkAllRead}
-                        className="text-xs text-primary hover:underline font-semibold"
+                        className="px-2.5 py-1 text-xs font-semibold text-primary bg-primary/10 hover:bg-primary/20 rounded-lg transition-all hover:scale-105 active:scale-95 flex items-center gap-1 border border-primary/20 cursor-pointer"
                       >
-                        Mark all as read
+                        <CheckCheck className="w-3.5 h-3.5" />
+                        <span>Mark all as read</span>
                       </button>
                     )}
                   </div>
@@ -237,7 +275,9 @@ export const DashboardLayout = () => {
                         <div key={n.id} className={`p-4 border-b border-border/50 hover:bg-muted/20 transition-colors cursor-pointer ${n.unread ? 'bg-primary/5' : ''}`}>
                           <div className="flex justify-between items-start mb-1">
                             <p className={`text-sm ${n.unread ? 'font-bold text-foreground' : 'font-medium text-foreground/80'}`}>{n.title}</p>
-                            <span className="text-[10px] text-muted-foreground whitespace-nowrap ml-2 mt-0.5">{n.time}</span>
+                            <span className="text-[10px] text-muted-foreground whitespace-nowrap ml-2 mt-0.5">
+                              {(n.time && n.time !== 'Just now') ? n.time : (n.timestamp ? new Date(n.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }))}
+                            </span>
                           </div>
                           <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">{n.message}</p>
                         </div>

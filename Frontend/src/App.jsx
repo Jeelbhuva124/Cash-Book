@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 // ─── Context Providers ────────────────────────────────────
@@ -7,6 +8,7 @@ import { ToastProvider } from './context/ToastContext';
 // ─── Shared Components ────────────────────────────────────
 import { Toaster } from './components/Toaster';
 import { RouteScrollToTop } from './components/RouteScrollToTop';
+import { SplashScreen } from './components/SplashScreen';
 
 // ─── Landing Page ─────────────────────────────────────────
 import { LandingPage } from './page/LandingPage';
@@ -31,7 +33,6 @@ import History from './Dashboard/pages/History';
 import Savings from './Dashboard/pages/Savings';
 import Reminders from './Dashboard/pages/Reminders';
 import Categories from './Dashboard/pages/Categories';
-import Subcategories from './Dashboard/pages/Subcategories';
 import PaymentModes from './Dashboard/pages/PaymentModes';
 import Chalans from './Dashboard/pages/Chalans';
 import Invitations from './Dashboard/pages/Invitations';
@@ -43,12 +44,25 @@ import { Preferences } from './Dashboard/pages/Preferences';
 import { ActiveSessions } from './Dashboard/pages/ActiveSessions';
 import { DashboardLayout } from './Dashboard/components/DashboardLayout';
 
+// ─── Admin Panel Pages & Auth ──────────────────────────────
+import { AdminLayout } from './AdminPanel/components/AdminLayout';
+import { AdminProtectedRoute } from './AdminPanel/components/AdminProtectedRoute';
+import { AdminLogin } from './AdminPanel/pages/AdminLogin';
+import { AdminRegister } from './AdminPanel/pages/AdminRegister';
+import { AdminDashboard } from './AdminPanel/pages/AdminDashboard';
+import { UserManagement } from './AdminPanel/pages/UserManagement';
+import { CashbookManagement } from './AdminPanel/pages/CashbookManagement';
+import { TransactionManagement } from './AdminPanel/pages/TransactionManagement';
+import { SystemAnalytics } from './AdminPanel/pages/SystemAnalytics';
+import { AdminSettings } from './AdminPanel/pages/AdminSettings';
+
 // ─── Auth Pages ───────────────────────────────────────────
 import SignIn from './Auth/SignIn';
 import SignUp from './Auth/SignUp';
 
 // ─── User Layout ──────────────────────────────────────────
 import { UserLayout } from './components/UserLayout';
+import OtpAnimation from './components/OtpAnimation';
 
 function App() {
   return (
@@ -61,6 +75,24 @@ function App() {
               {/* ── Auth Pages ── */}
               <Route path="/login" element={<SignIn />} />
               <Route path="/signup" element={<SignUp />} />
+              <Route path="/otp-demo" element={<OtpAnimation />} />
+
+              {/* ── Admin Auth Routes ── */}
+              <Route path="/admin/login" element={<AdminLogin />} />
+              <Route path="/admin/register" element={<AdminRegister />} />
+
+              {/* ── Admin Panel Protected Routes ── */}
+              <Route element={<AdminProtectedRoute />}>
+                <Route path="/admin" element={<AdminLayout />}>
+                  <Route index element={<AdminDashboard />} />
+                  <Route path="dashboard" element={<AdminDashboard />} />
+                  <Route path="users" element={<UserManagement />} />
+                  <Route path="cashbooks" element={<CashbookManagement />} />
+                  <Route path="transactions" element={<TransactionManagement />} />
+                  <Route path="analytics" element={<SystemAnalytics />} />
+                  <Route path="settings" element={<AdminSettings />} />
+                </Route>
+              </Route>
 
               {/* ── AI Dashboard ── */}
               <Route path="/dashboard" element={<DashboardLayout />}>
@@ -70,11 +102,10 @@ function App() {
                 <Route path="transactions" element={<Transactions />} />
                 <Route path="reports" element={<Reports />} />
                 <Route path="history" element={<History />} />
-                
+
                 {/* Reference Dashboard Routes */}
                 <Route path="chalans" element={<Chalans />} />
                 <Route path="categories" element={<Categories />} />
-                <Route path="subcategories" element={<Subcategories />} />
                 <Route path="payment-modes" element={<PaymentModes />} />
                 <Route path="invitations" element={<Invitations />} />
                 <Route path="cashbooks" element={<Cashbooks />} />

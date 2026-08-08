@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import os from 'os';
 
 const sendOtpEmail = async (email, otp) => {
     const hasSmtpConfig = process.env.SMTP_USER && process.env.SMTP_PASS;
@@ -206,12 +207,34 @@ const sendContactMessageEmail = async (name, senderEmail, message) => {
     }
 };
 
+const getNetworkHost = () => {
+    if (process.env.APP_URL) return process.env.APP_URL;
+    if (process.env.BACKEND_URL) return process.env.BACKEND_URL;
+    
+    try {
+        const interfaces = os.networkInterfaces();
+        for (const name of Object.keys(interfaces)) {
+            for (const iface of interfaces[name]) {
+                if (iface.family === 'IPv4' && !iface.internal) {
+                    const port = process.env.PORT || '5001';
+                    return `http://${iface.address}:${port}`;
+                }
+            }
+        }
+    } catch (e) {}
+    
+    const port = process.env.PORT || '5001';
+    return `http://localhost:${port}`;
+};
+
 const sendInviteEmail = async (email, inviteeName, inviterName, cashbookName, permissions, inviteId) => {
     const hasSmtpConfig = process.env.SMTP_USER && process.env.SMTP_PASS;
+    const acceptUrl = `${getNetworkHost()}/api/invitation/accept-direct?accept_id=${inviteId || ''}`;
 
     if (!hasSmtpConfig) {
         console.log(`\n==========================================`);
         console.log(`[DEVELOPMENT] SMTP not configured. Invitation sent to ${email} for Cashbook: ${cashbookName} (ID: ${inviteId || 'N/A'})`);
+        console.log(`[DEVELOPMENT] Mobile Direct Accept Link: ${acceptUrl}`);
         console.log(`==========================================\n`);
         return true;
     }
@@ -244,7 +267,7 @@ const sendInviteEmail = async (email, inviteeName, inviterName, cashbookName, pe
                     <p><strong>${inviterName || 'A user'}</strong> has invited you to collaborate on the Cash Book: <strong>${cashbookName}</strong>.</p>
                     <p>You have been assigned <strong>${permissions}</strong> access.</p>
                     <br/>
-                    <a href="http://localhost:5174/dashboard/invitations?accept_id=${inviteId || ''}" style="background-color: #5a75f6; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">Accept Invitation</a>
+                    <a href="${acceptUrl}" style="background-color: #5a75f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;">Accept Invitation</a>
                     <br/><br/>
                     <p>Thanks,<br/>The Cash Book Team</p>
                 </div>
@@ -259,4 +282,69 @@ const sendInviteEmail = async (email, inviteeName, inviterName, cashbookName, pe
         throw new Error("Failed to send email");
     }
 };
-export default { sendOtpEmail, sendContactMessageEmail, sendInviteEmail };
+
+const sendInviteAcceptedEmail = async (inviterEmail, acceptorEmail, acceptorName, cashbookName, permissions) => {
+    const hasSmtpConfig = process.env.SMTP_USER && process.env.SMTP_PASS;
+
+    if (!hasSmtpConfig) {
+        console.log(`\n==========================================`);
+        console.log(`[DEVELOPMENT] SMTP not configured. Notification: Invitation to Cashbook "${cashbookName}" ACCEPTED by ${acceptorEmail} (Sent to inviter Gmail: ${inviterEmail})`);
+        console.log(`==========================================\n`);
+        return true;
+    }
+
+    try {
+        const smtpHost = process.env.SMTP_HOST || 'smtp.gmail.com';
+        const smtpPass = process.env.SMTP_PASS ? process.env.SMTP_PASS.replace(/\s+/g, '') : '';
+
+        const transporterConfig = {
+            host: smtpHost,
+            port: parseInt(process.env.SMTP_PORT) || 587,
+            secure: process.env.SMTP_SECURE === 'true' || parseInt(process.env.SMTP_PORT) === 465,
+            auth: {
+                user: process.env.SMTP_USER,
+                pass: smtpPass
+            },
+            tls: { rejectUnauthorized: false }
+        };
+
+        const transporter = nodemailer.createTransport(transporterConfig);
+
+        const mailOptions = {
+            from: `"Cash Book Notifications" <${process.env.SMTP_USER}>`,
+            to: inviterEmail,
+            subject: `Invitation Accepted: ${cashbookName}`,
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff;">
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <h2 style="color: #10b981; margin-bottom: 8px;">Invitation Accepted</h2>
+                        <p style="color: #64748b; font-size: 14px;">Collaboration update for your cashbook</p>
+                    </div>
+                    <p style="color: #334155; font-size: 15px; line-height: 1.6;">Hello,</p>
+                    <p style="color: #334155; font-size: 15px; line-height: 1.6;">
+                        <strong>${acceptorName || acceptorEmail}</strong> (${acceptorEmail}) has accepted your invitation to collaborate on the cashbook: <strong>"${cashbookName}"</strong>.
+                    </p>
+                    <div style="background-color: #f8fafc; border-left: 4px solid #10b981; padding: 12px 16px; margin: 20px 0; border-radius: 4px;">
+                        <p style="margin: 0; color: #475569; font-size: 14px;"><strong>Permission Granted:</strong> ${permissions}</p>
+                    </div>
+                    <p style="color: #334155; font-size: 14px; line-height: 1.6;">They can now view and contribute to this cashbook from their dashboard.</p>
+                    <br/>
+                    <div style="text-align: center;">
+                        <a href="http://localhost:5174/dashboard/cashbooks" style="background-color: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold; font-size: 14px;">Open Cashbook Dashboard</a>
+                    </div>
+                    <br/><br/>
+                    <p style="color: #94a3b8; font-size: 12px; border-top: 1px solid #f1f5f9; padding-top: 16px;">Thanks,<br/>The Cash Book Team</p>
+                </div>
+            `
+        };
+
+        await transporter.sendMail(mailOptions);
+        console.log(`[SMTP] Invitation acceptance email notification sent to ${inviterEmail} successfully`);
+        return true;
+    } catch (err) {
+        console.error(`[SMTP] Failed to send invitation acceptance notification email to ${inviterEmail}:`, err.message);
+        return false;
+    }
+};
+
+export default { sendOtpEmail, sendContactMessageEmail, sendInviteEmail, sendInviteAcceptedEmail };

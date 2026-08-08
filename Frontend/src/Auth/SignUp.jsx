@@ -19,6 +19,7 @@ export default function SignUp() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    sessionStorage.removeItem("dashboardSplashShown");
     if (localStorage.getItem("token")) {
       navigate("/dashboard");
     }

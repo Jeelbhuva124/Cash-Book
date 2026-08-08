@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   UserPlus, 
   ChevronDown, 
@@ -14,7 +15,8 @@ import {
   Eye, 
   ShieldAlert, 
   ShieldCheck, 
-  FileText 
+  FileText,
+  Book 
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Dropdown from '../components/Dropdown';
@@ -23,6 +25,7 @@ import { useToast } from '../../context/ToastContext';
 import axios from 'axios';
 
 const Invitations = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('sent'); // 'sent' or 'received'
   const [selectedBook, setSelectedBook] = useState('');
   const [cashbooks, setCashbooks] = useState([]);
@@ -59,14 +62,23 @@ const Invitations = () => {
       const res = await axios.get('http://localhost:5001/api/invitation/select');
       if (res.data.success) {
         const allInvites = res.data.data || [];
-        
-        // Filter Sent Invitations (by current user's ID)
-        const sent = allInvites.filter(i => i.inviter_id === user.id);
+        const userEmailLower = user?.email_id?.toLowerCase() || '';
+
+        // Filter Sent Invitations (by current user's ID or inviter_email)
+        const sent = allInvites.filter(i => i.inviter_id === user.id || i.inviter_email?.toLowerCase() === userEmailLower);
         setSentInvitations(sent);
         
         // Filter Received Invitations (by current user's Email)
-        const received = allInvites.filter(i => i.email === user.email_id.toLowerCase());
-        setReceivedInvitations(received);
+        const received = allInvites.filter(i => i.email?.toLowerCase() === userEmailLower);
+
+        // Include ALL invited users and collaborators in Inbox
+        const inboxList = [...received];
+        sent.forEach(s => {
+          if (!inboxList.some(r => r.id === s.id)) {
+            inboxList.push(s);
+          }
+        });
+        setReceivedInvitations(inboxList);
 
         // Check for URL accept_id parameter (from email link) or session storage (saved when logged out)
         const queryParams = new URLSearchParams(window.location.search);
@@ -76,6 +88,7 @@ const Invitations = () => {
         }
 
         if (urlAcceptId) {
+          setActiveTab('received');
           const matchingInvite = received.find(i => i.id === urlAcceptId);
           if (matchingInvite) {
             if (matchingInvite.status === 'Pending') {
@@ -102,8 +115,17 @@ const Invitations = () => {
           const updatedRes = await axios.get('http://localhost:5001/api/invitation/select');
           if (updatedRes.data.success) {
             const updatedInvites = updatedRes.data.data || [];
-            setSentInvitations(updatedInvites.filter(i => i.inviter_id === user.id));
-            setReceivedInvitations(updatedInvites.filter(i => i.email === user.email_id.toLowerCase()));
+            const updatedSent = updatedInvites.filter(i => i.inviter_id === user.id || i.inviter_email?.toLowerCase() === userEmailLower);
+            const updatedRec = updatedInvites.filter(i => i.email?.toLowerCase() === userEmailLower);
+            setSentInvitations(updatedSent);
+            
+            const updatedInbox = [...updatedRec];
+            updatedSent.forEach(s => {
+              if (!updatedInbox.some(r => r.id === s.id)) {
+                updatedInbox.push(s);
+              }
+            });
+            setReceivedInvitations(updatedInbox);
           }
         }
       }
@@ -263,24 +285,43 @@ const Invitations = () => {
     );
   };
 
-  // Render Status Badge with Premium Design and Pulsing Indicator
+  const formatDateTime = (dateString) => {
+    if (!dateString) return { date: 'Jul 26, 2026', time: '12:00 PM' };
+    try {
+      const d = new Date(dateString);
+      if (isNaN(d.getTime())) return { date: 'Jul 26, 2026', time: '12:00 PM' };
+      const date = d.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
+      let hours = d.getHours();
+      const minutes = String(d.getMinutes()).padStart(2, '0');
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12;
+      hours = hours ? hours : 12;
+      const formattedHours = String(hours).padStart(2, '0');
+      const time = `${formattedHours}:${minutes} ${ampm}`;
+      return { date, time };
+    } catch (e) {
+      return { date: 'Jul 26, 2026', time: '12:00 PM' };
+    }
+  };
+
+  // Render Status Badge with Premium Pill Design
   const renderStatusBadge = (status) => {
     let classes = "";
     let dotClass = "";
     
     if (status === "Accepted") {
-      classes = "bg-emerald-50/70 text-emerald-700 border-emerald-200/50 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-900/30";
+      classes = "bg-emerald-50/80 text-emerald-600 border-emerald-200 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-900/30";
       dotClass = "bg-emerald-500";
     } else if (status === "Rejected") {
-      classes = "bg-rose-50/70 text-rose-700 border-rose-200/50 dark:bg-rose-950/20 dark:text-rose-400 dark:border-rose-900/30";
+      classes = "bg-rose-50/80 text-rose-600 border-rose-200 dark:bg-rose-950/20 dark:text-rose-400 dark:border-rose-900/30";
       dotClass = "bg-rose-500";
     } else {
-      classes = "bg-amber-50/70 text-amber-700 border-amber-200/50 dark:bg-amber-950/20 dark:text-amber-400 dark:border-amber-900/30";
+      classes = "bg-amber-50/80 text-amber-600 border-amber-200 dark:bg-amber-950/20 dark:text-amber-400 dark:border-amber-900/30";
       dotClass = "bg-amber-500 animate-pulse";
     }
 
     return (
-      <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md border text-[11px] font-bold tracking-wide shadow-[0_1px_2px_rgba(0,0,0,0.02)] ${classes}`}>
+      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-bold tracking-wide ${classes}`}>
         <span className={`w-1.5 h-1.5 rounded-full ${dotClass}`} />
         {status}
       </span>
@@ -322,7 +363,7 @@ const Invitations = () => {
             }`}
           >
             <Mail className="w-3.5 h-3.5" />
-            Inbox ({receivedInvitations.filter(i => i.status === 'Pending').length})
+            Inbox ({receivedInvitations.length})
           </button>
         </div>
       </div>
@@ -402,7 +443,15 @@ const Invitations = () => {
                         </td>
                         <td className="px-6 py-4">{renderStatusBadge(invite.status)}</td>
                         <td className="px-6 py-4 text-xs text-muted-foreground font-normal">
-                          {new Date(invite.createdAt).toLocaleDateString([], { day: '2-digit', month: 'short', year: 'numeric' })}
+                          {(() => {
+                            const { date, time } = formatDateTime(invite.createdAt);
+                            return (
+                              <div>
+                                <div className="font-semibold text-slate-800 dark:text-slate-200">{date}</div>
+                                <div className="text-[11px] text-muted-foreground font-normal mt-0.5">{time}</div>
+                              </div>
+                            );
+                          })()}
                         </td>
                         <td className="px-6 py-4 text-right">
                           <div className="flex justify-end items-center gap-1.5">
@@ -446,11 +495,11 @@ const Invitations = () => {
               <table className="w-full text-left border-collapse min-w-[800px]">
                 <thead>
                   <tr className="bg-[#f8fafc] dark:bg-muted/30 border-b border-border/40 text-[12px] font-bold uppercase tracking-wider text-[#64748b] dark:text-muted-foreground">
-                    <th className="px-6 py-4">Shared By</th>
+                    <th className="px-6 py-4">User Details / Shared By</th>
                     <th className="px-6 py-4">Cashbook</th>
                     <th className="px-6 py-4">Permission Offered</th>
                     <th className="px-6 py-4">Status</th>
-                    <th className="px-6 py-4">Received On</th>
+                    <th className="px-6 py-4">Received / Invited On</th>
                     <th className="px-6 py-4 text-right">Actions</th>
                   </tr>
                 </thead>
@@ -458,47 +507,99 @@ const Invitations = () => {
                   {receivedInvitations.length === 0 ? (
                     <tr>
                       <td colSpan="6" className="text-center py-12 text-sm text-muted-foreground font-medium">
-                        No invitations received. Shared cashbooks will appear here.
+                        No invitations in Inbox yet. Shared cashbooks and invited collaborators will appear here.
                       </td>
                     </tr>
                   ) : (
-                    receivedInvitations.map((invite) => (
-                      <tr key={invite.id} className="hover:bg-slate-50/30 dark:hover:bg-muted/5 text-sm font-medium text-foreground transition-colors">
-                        <td className="px-6 py-4">
-                          <div className="font-semibold text-slate-800 dark:text-foreground">{invite.inviter_email}</div>
-                        </td>
-                        <td className="px-6 py-4 text-slate-600 dark:text-muted-foreground">{invite.cashbook_name}</td>
-                        <td className="px-6 py-4">{renderPermissionBadge(invite.permissions)}</td>
-                        <td className="px-6 py-4">{renderStatusBadge(invite.status)}</td>
-                        <td className="px-6 py-4 text-xs text-muted-foreground font-normal">
-                          {new Date(invite.createdAt).toLocaleDateString([], { day: '2-digit', month: 'short', year: 'numeric' })}
-                        </td>
-                        <td className="px-6 py-4 text-right">
-                          {invite.status === 'Pending' ? (
-                            <div className="flex justify-end gap-2.5">
-                              <button 
-                                onClick={() => handleAcceptInvite(invite.id)}
-                                className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1 cursor-pointer"
-                              >
-                                <Check className="w-3.5 h-3.5" />
-                                Accept
-                              </button>
-                              <button 
-                                onClick={() => handleRejectInvite(invite.id)}
-                                className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-muted dark:hover:bg-muted/80 dark:text-foreground rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
-                              >
-                                <X className="w-3.5 h-3.5" />
-                                Decline
-                              </button>
+                    receivedInvitations.map((invite) => {
+                      const isRecipient = invite.email?.toLowerCase() === user?.email_id?.toLowerCase();
+                      const primaryName = invite.invite_name || (isRecipient ? invite.inviter_email : invite.email);
+
+                      return (
+                        <tr key={invite.id} className="hover:bg-slate-50/30 dark:hover:bg-muted/5 text-sm font-medium text-foreground transition-colors">
+                          <td className="px-6 py-4">
+                            <div className="font-semibold text-slate-800 dark:text-foreground">{primaryName}</div>
+                            <div className="text-[12px] text-muted-foreground font-normal">
+                              {isRecipient ? `Shared by ${invite.inviter_email}` : invite.email}
                             </div>
-                          ) : (
-                            <span className="text-xs text-muted-foreground font-semibold italic">
-                              Closed
-                            </span>
-                          )}
-                        </td>
-                      </tr>
-                    ))
+                          </td>
+                          <td className="px-6 py-4 text-slate-600 dark:text-muted-foreground">{invite.cashbook_name}</td>
+                          <td className="px-6 py-4">{renderPermissionBadge(invite.permissions)}</td>
+                          <td className="px-6 py-4">{renderStatusBadge(invite.status)}</td>
+                          <td className="px-6 py-4 text-xs text-muted-foreground font-normal">
+                            {(() => {
+                              const { date, time } = formatDateTime(invite.createdAt);
+                              return (
+                                <div>
+                                  <div className="font-semibold text-slate-800 dark:text-slate-200">{date}</div>
+                                  <div className="text-[11px] text-muted-foreground font-normal mt-0.5">{time}</div>
+                                </div>
+                              );
+                            })()}
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            {invite.status === 'Pending' && isRecipient ? (
+                              <div className="flex justify-end gap-2.5">
+                                <button 
+                                  onClick={() => handleAcceptInvite(invite.id)}
+                                  className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1 cursor-pointer"
+                                >
+                                  <Check className="w-3.5 h-3.5" />
+                                  Accept
+                                </button>
+                                <button 
+                                  onClick={() => handleRejectInvite(invite.id)}
+                                  className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-muted dark:hover:bg-muted/80 dark:text-foreground rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
+                                >
+                                  <X className="w-3.5 h-3.5" />
+                                  Decline
+                                </button>
+                              </div>
+                            ) : invite.status === 'Accepted' ? (
+                              <div className="flex items-center justify-end gap-2.5">
+                                <span className="text-xs text-muted-foreground font-semibold italic">Closed</span>
+                                <button 
+                                  onClick={() => navigate('/dashboard/cashbooks')}
+                                  className="px-3 py-1.5 bg-[#4f46e5] hover:bg-[#4338ca] text-white rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1 cursor-pointer"
+                                  title="Open Cashbook"
+                                >
+                                  <Book className="w-3.5 h-3.5" />
+                                  Open
+                                </button>
+                              </div>
+                            ) : invite.status === 'Pending' ? (
+                              <div className="flex justify-end items-center gap-1.5">
+                                <button 
+                                  onClick={() => {
+                                    setEditingInvite(invite);
+                                    setEditingPermission(invite.permissions);
+                                    setShowEditModal(true);
+                                  }}
+                                  className="p-2 text-indigo-500 hover:text-indigo-700 hover:bg-indigo-50/80 dark:hover:bg-indigo-950/20 rounded-xl transition-all cursor-pointer"
+                                  title="Edit Permission"
+                                >
+                                  <Edit2 className="w-4 h-4" />
+                                </button>
+                                <button 
+                                  onClick={() => {
+                                    setDeletingInviteId(invite.id);
+                                    setShowDeleteModal(true);
+                                  }}
+                                  className="p-2 text-rose-500 hover:text-rose-700 hover:bg-rose-50/80 dark:hover:bg-rose-950/20 rounded-xl transition-all cursor-pointer"
+                                  title="Remove"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            ) : (
+                              <span className="text-xs text-muted-foreground font-semibold italic">
+                                Declined
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })
                   )}
                 </tbody>
               </table>

@@ -3,13 +3,17 @@ import {
     sendInvitation, 
     getInvitations, 
     updateInvite, 
-    deleteInvite 
+    deleteInvite,
+    acceptInviteDirect
 } from '../controllers/invitationController.js';
 
 const router = express.Router();
 
 // GET all invitations
 router.get('/select', getInvitations);
+
+// GET direct mobile accept invitation from email link
+router.get('/accept-direct', acceptInviteDirect);
 
 // POST new invitation
 router.post('/insert', sendInvitation);

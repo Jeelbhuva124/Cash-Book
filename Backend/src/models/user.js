@@ -25,6 +25,28 @@ const userSchema = new mongoose.Schema(
       enum: ['user', 'admin'],
       default: 'user',
     },
+    user_role: {
+      type: String,
+      enum: ['admin', 'user'],
+      default: 'user',
+    },
+    is_admin: {
+      type: Boolean,
+      default: false,
+    },
+    account_status: {
+      type: String,
+      enum: ['active', 'suspended'],
+      default: 'active',
+    },
+    phone_number: {
+      type: String,
+      default: '',
+    },
+    avatar: {
+      type: String, // Store Base64 or URL
+      default: '',
+    }
   },
   {
     timestamps: true,

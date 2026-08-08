@@ -1,0 +1,234 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { 
+  Users, 
+  BookOpen, 
+  TrendingUp, 
+  ShieldCheck, 
+  Activity, 
+  Clock, 
+  ArrowUpRight, 
+  UserCheck, 
+  AlertCircle,
+  Database,
+  Cpu
+} from 'lucide-react';
+import { AdminStatCard } from '../components/AdminStatCard';
+export const AdminDashboard = () => {
+  const navigate = useNavigate();
+  const [realStats, setRealStats] = useState({
+    total_users: 0,
+    active_cashbooks: 0,
+    total_volume: 0,
+    system_uptime: "99.98%",
+    growthChartData: [40, 65, 55, 80, 95, 70, 85, 100, 90, 110, 125, 140, 130, 150],
+    newUsersLast14Days: 1240,
+    serverDiagnostics: {
+      ram: { used: '4.2', total: '8.0', percent: '52.5' },
+      cpu: '24.5',
+      dbStorageGB: '18.4'
+    }
+  });
+  const [recentLogs, setRecentLogs] = useState([]);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await fetch('http://localhost:5001/api/admin/stats');
+        const data = await res.json();
+        if (data.success && data.data) {
+          setRealStats({
+            total_users: data.data.total_users || 0,
+            active_cashbooks: data.data.total_cashbooks || 0,
+            total_volume: data.data.total_volume || 0,
+            system_uptime: data.data.system_uptime || "99.98%",
+            growthChartData: data.data.growthChartData || [40, 65, 55, 80, 95, 70, 85, 100, 90, 110, 125, 140, 130, 150],
+            newUsersLast14Days: data.data.newUsersLast14Days || 0,
+            serverDiagnostics: data.data.serverDiagnostics || {
+              ram: { used: '4.2', total: '8.0', percent: '52.5' },
+              cpu: '24.5',
+              dbStorageGB: '18.4'
+            }
+          });
+          if (data.data.recentLogs) {
+            setRecentLogs(data.data.recentLogs);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch admin stats:", err);
+      }
+    };
+    fetchStats();
+    // Optional: Refresh every 30 seconds
+    const intervalId = setInterval(fetchStats, 30000);
+    return () => clearInterval(intervalId);
+  }, []);
+
+  const formatCurrency = (amount) => {
+    if (amount >= 10000000) return `₹${(amount / 10000000).toFixed(2)} Cr`;
+    if (amount >= 100000) return `₹${(amount / 100000).toFixed(2)} L`;
+    if (amount >= 1000) return `₹${(amount / 1000).toFixed(2)} K`;
+    return `₹${amount}`;
+  };
+
+  const stats = [
+    { title: "Total Users", value: realStats.total_users.toLocaleString(), change: "+14.2%", isIncrease: true, icon: Users, colorAccent: "primary", description: "registered accounts", path: "/admin/users" },
+    { title: "Active Cashbooks", value: realStats.active_cashbooks.toLocaleString(), change: "+8.7%", isIncrease: true, icon: BookOpen, colorAccent: "success", description: "across all accounts", path: "/admin/cashbooks" },
+    { title: "Transaction Volume", value: formatCurrency(realStats.total_volume), change: "+22.4%", isIncrease: true, icon: TrendingUp, colorAccent: "warning", description: "processed so far", path: "/admin/transactions" },
+    { title: "System Uptime", value: realStats.system_uptime, change: "Stable", isIncrease: true, icon: ShieldCheck, colorAccent: "info", description: "0 critical incidents", path: "/admin/analytics" },
+  ];
+
+
+
+  return (
+    <div className="space-y-8">
+      {/* Page Title Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-black text-foreground tracking-tight">Admin Overview</h1>
+          <p className="text-sm text-muted-foreground">Monitor system activity, user growth, and core performance metrics.</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-xs font-bold flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+            Live Metrics Active
+          </span>
+        </div>
+      </div>
+
+      {/* Metric Stat Cards Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        {stats.map((stat, i) => (
+          <AdminStatCard 
+            key={i} 
+            {...stat} 
+            onClick={() => {
+              if (stat.path) navigate(stat.path);
+            }} 
+          />
+        ))}
+      </div>
+
+      {/* Charts & System Health Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* User Activity Chart Placeholder Card */}
+        <div className="lg:col-span-2 bg-card border border-border rounded-2xl p-6 shadow-sm space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-bold text-foreground">User Registration & Activity Growth</h3>
+              <p className="text-xs text-muted-foreground">Daily user onboardings over the last 30 days</p>
+            </div>
+            <span className="text-xs font-bold text-primary bg-primary/10 px-3 py-1 rounded-full">
+              +{realStats.newUsersLast14Days.toLocaleString()} New Users
+            </span>
+          </div>
+
+          <div className="h-56 w-full bg-muted/40 rounded-xl border border-dashed border-border flex items-end justify-between p-4 gap-2">
+            {realStats.growthChartData.map((h, idx) => {
+              const maxH = Math.max(...realStats.growthChartData, 10);
+              const heightPercent = (h / maxH) * 100;
+              return (
+              <motion.div
+                key={idx}
+                initial={{ height: 0 }}
+                animate={{ height: `${heightPercent}%` }}
+                transition={{ duration: 0.6, delay: idx * 0.04 }}
+                className="flex-1 bg-gradient-to-t from-primary/40 to-primary rounded-t-md hover:opacity-80 transition-opacity"
+                title={`Day ${idx + 1}: ${h} new users`}
+              />
+            )})}
+          </div>
+        </div>
+
+        {/* Server & DB Diagnostics Widget */}
+        <div className="bg-card border border-border rounded-2xl p-6 shadow-sm space-y-6">
+          <div className="flex items-center justify-between border-b border-border pb-4">
+            <h3 className="text-lg font-bold text-foreground">Server Diagnostics</h3>
+            <Activity className="w-5 h-5 text-primary" />
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <div className="flex justify-between text-xs font-bold mb-1.5">
+                <span className="text-muted-foreground flex items-center gap-1.5">
+                  <Cpu className="w-3.5 h-3.5 text-sky-500" /> CPU Load
+                </span>
+                <span className="text-foreground">{realStats.serverDiagnostics.cpu}%</span>
+              </div>
+              <div className="h-2 bg-muted rounded-full overflow-hidden">
+                <div className="h-full bg-sky-500 rounded-full" style={{ width: `${realStats.serverDiagnostics.cpu}%` }} />
+              </div>
+            </div>
+
+            <div>
+              <div className="flex justify-between text-xs font-bold mb-1.5">
+                <span className="text-muted-foreground flex items-center gap-1.5">
+                  <Activity className="w-3.5 h-3.5 text-emerald-500" /> RAM Memory
+                </span>
+                <span className="text-foreground">{realStats.serverDiagnostics.ram.used} GB / {realStats.serverDiagnostics.ram.total} GB ({realStats.serverDiagnostics.ram.percent}%)</span>
+              </div>
+              <div className="h-2 bg-muted rounded-full overflow-hidden">
+                <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${realStats.serverDiagnostics.ram.percent}%` }} />
+              </div>
+            </div>
+
+            <div>
+              <div className="flex justify-between text-xs font-bold mb-1.5">
+                <span className="text-muted-foreground flex items-center gap-1.5">
+                  <Database className="w-3.5 h-3.5 text-amber-500" /> Database Storage
+                </span>
+                <span className="text-foreground">{realStats.serverDiagnostics.dbStorageGB} GB / 100 GB</span>
+              </div>
+              <div className="h-2 bg-muted rounded-full overflow-hidden">
+                <div className="h-full bg-amber-500 rounded-full" style={{ width: `${Math.min((realStats.serverDiagnostics.dbStorageGB / 100) * 100, 100)}%` }} />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* System Audit Logs Table */}
+      <div className="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
+        <div className="p-6 border-b border-border flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-bold text-foreground">Recent Audit Trail</h3>
+            <p className="text-xs text-muted-foreground">Real-time administrator & system audit event log</p>
+          </div>
+          <span className="text-xs font-bold text-primary cursor-pointer hover:underline">
+            View Full Log
+          </span>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm">
+            <thead className="bg-muted/50 text-muted-foreground font-bold text-xs uppercase tracking-wider border-b border-border">
+              <tr>
+                <th className="p-4">User</th>
+                <th className="p-4">Action Activity</th>
+                <th className="p-4">IP Address</th>
+                <th className="p-4">Status</th>
+                <th className="p-4">Timestamp</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {recentLogs.map((log) => (
+                <tr key={log.id} className="hover:bg-muted/30 transition-colors">
+                  <td className="p-4 font-bold text-foreground">{log.user}</td>
+                  <td className="p-4 text-muted-foreground">{log.action}</td>
+                  <td className="p-4 text-xs font-mono text-muted-foreground">{log.ip}</td>
+                  <td className="p-4">
+                    <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                      {log.status}
+                    </span>
+                  </td>
+                  <td className="p-4 text-xs text-muted-foreground">{log.time}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+};

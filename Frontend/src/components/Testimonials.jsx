@@ -74,11 +74,12 @@ const testimonialsRow2 = [
 
 const TestimonialCard = ({ data, expandedCard, setExpandedCard }) => {
   const isExpanded = expandedCard === data.id;
+  const isLong = data.text.length > 120;
 
   return (
     <div className="w-[350px] md:w-[400px] flex-shrink-0 touch-pan-y group p-2">
       <div 
-        className={`bg-card border border-border p-6 rounded-2xl flex flex-col relative overflow-hidden shadow-lg shadow-black/20 transition-all duration-300 group-hover:shadow-xl group-hover:shadow-primary/20 group-hover:-translate-y-1 group-hover:border-primary/30 h-full`}
+        className={`bg-card/80 backdrop-blur-md border border-border/50 p-6 rounded-2xl flex flex-col relative overflow-hidden shadow-lg shadow-black/20 transition-all duration-300 group-hover:shadow-xl group-hover:shadow-primary/20 group-hover:-translate-y-1 active:scale-[0.98] group-hover:border-primary/30 h-full`}
       >
         <div className="absolute top-4 right-4 opacity-10">
           <Quote className="w-12 h-12 text-primary" />
@@ -99,20 +100,22 @@ const TestimonialCard = ({ data, expandedCard, setExpandedCard }) => {
           </div>
         </div>
 
-        <div className="relative">
-          <p className={`text-sm text-foreground/80 leading-relaxed ${!isExpanded && data.isLong ? 'line-clamp-3' : ''}`}>
+        <div className={`relative transition-all duration-300 ${!isExpanded ? 'h-[65px]' : ''}`}>
+          <p className={`text-sm text-foreground/80 leading-relaxed ${!isExpanded ? 'line-clamp-3' : ''}`}>
             "{data.text}"
           </p>
         </div>
 
-        {data.isLong && (
-          <button
-            onClick={() => setExpandedCard(isExpanded ? null : data.id)}
-            className="mt-3 text-xs font-bold text-primary hover:text-primary/80 self-start transition-colors"
-          >
-            {isExpanded ? "Read Less" : "Read More"}
-          </button>
-        )}
+        <div className="h-6 mt-3">
+          {isLong && (
+            <button
+              onClick={() => setExpandedCard(isExpanded ? null : data.id)}
+              className="text-xs font-bold text-primary hover:text-primary/80 self-start active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded-md px-1 py-0.5 transition-all"
+            >
+              {isExpanded ? "Read Less" : "Read More"}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

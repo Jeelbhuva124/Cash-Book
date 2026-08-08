@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { formatCurrency } from '../../utils/currencyFormatter';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { socket } from '../../utils/socket';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Receipt, Search, Filter, ArrowLeft, Wallet, ArrowUp, ArrowDown, 
-  Plus, Trash2, X, CheckCircle2, Pencil, ChevronsUpDown, Upload 
+  Plus, Trash2, X, CheckCircle2, Pencil, Edit, ChevronsUpDown, Upload, Users 
 } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
 import Dropdown from '../components/Dropdown';
@@ -22,6 +23,14 @@ const formatDate = (dateStr) => {
   } catch (e) {
     return dateStr;
   }
+};
+
+const formatPaymentMode = (name) => {
+  if (!name) return '';
+  if (name.includes(' ** ')) {
+    return name.split(' ** ')[0];
+  }
+  return name;
 };
 
 const formatTime = (txId) => {
@@ -85,6 +94,7 @@ export default function Transactions() {
 
   // Checked Rows Selection state
   const [selectedIds, setSelectedIds] = useState([]);
+  const [isEditMode, setIsEditMode] = useState(false);
 
   // Custom Confirmation Modal State
   const [confirmModal, setConfirmModal] = useState({
@@ -93,6 +103,19 @@ export default function Transactions() {
     message: '',
     onConfirm: () => {}
   });
+
+  const showConfirm = (title, message, onConfirm) => {
+    setConfirmModal({
+      isOpen: true,
+      title,
+      message,
+      onConfirm
+    });
+  };
+
+  const closeConfirm = () => {
+    setConfirmModal(prev => ({ ...prev, isOpen: false }));
+  };
 
   // Import CSV states
   const [showImportForm, setShowImportForm] = useState(false);
@@ -103,60 +126,77 @@ export default function Transactions() {
   const user = userRaw ? JSON.parse(userRaw) : null;
   const username = user?.username || 'Guest';
 
+  const DEFAULT_CATEGORIES = ['Bills', 'Entertainment', 'Food', 'Grocery', 'Other', 'Shopping', 'Transportation', 'Utilities'];
+  const DEFAULT_PAYMENT_MODES = ['Bank Transfer', 'Cash', 'Credit Card', 'Debit Card', 'UPI'];
+
   const loadCategoriesAndModes = async (chalanId) => {
     if (!chalanId) return;
     const userEmail = user?.email_id?.toLowerCase() || '';
 
     // Fetch Categories
+    let mappedCats = [];
     try {
       const res = await fetch('http://localhost:5001/api/category/select');
       const data = await res.json();
       if (data.success && data.data) {
         const filtered = data.data.filter(cat => 
-          cat.user_email?.toLowerCase() === userEmail &&
           cat.chalan_id === chalanId &&
           cat.active
         );
-        const mapped = filtered.map(c => ({
+        mappedCats = filtered.map(c => ({
           id: c.id,
           name: c.category_name,
           active: c.active
         }));
-        setCategories(mapped);
-        if (mapped.length > 0) {
-          setCategory(mapped[0].name);
-        } else {
-          setCategory('');
-        }
       }
     } catch (err) {
       console.error("Failed to load categories from API:", err);
     }
 
+    // Merge default categories & sort in ascending alphabetical order
+    const catNames = new Set(mappedCats.map(c => c.name));
+    DEFAULT_CATEGORIES.forEach(defName => {
+      if (!catNames.has(defName)) {
+        mappedCats.push({ id: `def_${defName}`, name: defName, active: true });
+      }
+    });
+    mappedCats.sort((a, b) => a.name.localeCompare(b.name));
+    setCategories(mappedCats);
+    if (mappedCats.length > 0) {
+      setCategory(prev => mappedCats.some(c => c.name === prev) ? prev : mappedCats[0].name);
+    }
+
     // Fetch Payment Modes
+    let mappedModes = [];
     try {
       const res = await fetch('http://localhost:5001/api/payment-mode/select');
       const data = await res.json();
       if (data.success && data.data) {
         const filtered = data.data.filter(pm => 
-          pm.user_email?.toLowerCase() === userEmail &&
           pm.chalan_id === chalanId &&
           pm.active
         );
-        const mapped = filtered.map(p => ({
+        mappedModes = filtered.map(p => ({
           id: p.id,
           name: p.payment_mode,
           active: p.active
         }));
-        setPaymentModes(mapped);
-        if (mapped.length > 0) {
-          setPaymentMode(mapped[0].name);
-        } else {
-          setPaymentMode('');
-        }
       }
     } catch (err) {
       console.error("Failed to load payment modes from API:", err);
+    }
+
+    // Merge default payment modes & sort in ascending alphabetical order
+    const modeNames = new Set(mappedModes.map(m => m.name));
+    DEFAULT_PAYMENT_MODES.forEach(defMode => {
+      if (!modeNames.has(defMode)) {
+        mappedModes.push({ id: `def_${defMode}`, name: defMode, active: true });
+      }
+    });
+    mappedModes.sort((a, b) => a.name.localeCompare(b.name));
+    setPaymentModes(mappedModes);
+    if (mappedModes.length > 0) {
+      setPaymentMode(prev => mappedModes.some(m => m.name === prev) ? prev : mappedModes[0].name);
     }
   };
 
@@ -275,13 +315,28 @@ export default function Transactions() {
     loadCategoriesAndModes(chalanId);
   }, [location.state]);
 
+  useEffect(() => {
+    const handleTxChange = () => {
+      loadTransactions();
+    };
+
+    socket.on('transaction_created', handleTxChange);
+    socket.on('transaction_updated', handleTxChange);
+    socket.on('transaction_deleted', handleTxChange);
+
+    return () => {
+      socket.off('transaction_created', handleTxChange);
+      socket.off('transaction_updated', handleTxChange);
+      socket.off('transaction_deleted', handleTxChange);
+    };
+  }, []);
+
   const loadTransactions = async () => {
     try {
       const response = await fetch('http://localhost:5001/api/transaction/select');
       const data = await response.json();
       
       if (data.success && data.data) {
-        // Map backend properties (snake_case) to frontend (camelCase)
         const mapped = data.data.map(tx => ({
           id: tx.id,
           title: tx.title,
@@ -295,12 +350,30 @@ export default function Transactions() {
           paymentMode: tx.payment_mode,
           remark: tx.remark,
           createdBy: tx.created_by,
-          user_email: tx.user_email
+          user_email: tx.user_email,
+          is_deleted: !!tx.is_deleted || !!tx.deleted
         }));
 
-        // Client side filter by logged-in user's email
         const userEmail = user?.email_id?.toLowerCase() || '';
-        const userTxs = mapped.filter(t => t.user_email?.toLowerCase() === userEmail);
+
+        // Fetch accepted invitations to get collaborator emails for shared cashbooks
+        let allowedEmails = new Set([userEmail]);
+        try {
+          const invRes = await fetch('http://localhost:5001/api/invitation/select');
+          const invData = await invRes.json();
+          if (invData.success && Array.isArray(invData.data)) {
+            const accepted = invData.data.filter(i => 
+              (i.email?.toLowerCase() === userEmail || i.inviter_email?.toLowerCase() === userEmail) && 
+              i.status === 'Accepted'
+            );
+            accepted.forEach(a => {
+              if (a.email) allowedEmails.add(a.email.toLowerCase());
+              if (a.inviter_email) allowedEmails.add(a.inviter_email.toLowerCase());
+            });
+          }
+        } catch (e) {}
+
+        const userTxs = mapped.filter(t => allowedEmails.has(t.user_email?.toLowerCase()));
         setTransactions(userTxs);
       }
     } catch (err) {
@@ -313,27 +386,25 @@ export default function Transactions() {
     setConfirmModal({
       isOpen: true,
       title: "Delete Transaction",
-      message: "Are you sure you want to delete this transaction? This action cannot be undone.",
+      message: "Are you sure you want to delete this transaction? It will be removed from your cashbook and archived in History.",
       onConfirm: async () => {
         try {
-          const response = await fetch('http://localhost:5001/api/transaction/delete', {
+          await fetch('http://localhost:5001/api/transaction/delete', {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: txId })
+            body: JSON.stringify({ id: txId, user_email: user?.email_id || '' })
           });
-          const data = await response.json();
-          
-          if (data.success) {
-            setTransactions(transactions.filter(t => t.id !== txId));
-            setSelectedIds(selectedIds.filter(id => id !== txId));
-            addToast("Transaction deleted successfully", "success");
-          } else {
-            addToast(data.message || "Failed to delete transaction", "error");
-          }
         } catch (err) {
           console.error("Delete call failed:", err);
-          addToast("Failed to delete transaction from database", "error");
         }
+        
+        const userEmail = user?.email_id || 'guest';
+        const storageKey = `cashbook_txs_${userEmail}`;
+        const updated = transactions.map(t => t.id === txId ? { ...t, is_deleted: true } : t);
+        setTransactions(updated);
+        localStorage.setItem(storageKey, JSON.stringify(updated));
+        setSelectedIds(selectedIds.filter(id => id !== txId));
+        addToast("Transaction removed from cashbook", "success");
       }
     });
   };
@@ -344,27 +415,25 @@ export default function Transactions() {
     setConfirmModal({
       isOpen: true,
       title: "Delete Selected Transactions",
-      message: `Are you sure you want to delete the ${selectedIds.length} selected transaction(s)? This action cannot be undone.`,
+      message: `Are you sure you want to delete the ${selectedIds.length} selected transaction(s)?`,
       onConfirm: async () => {
         try {
-          const response = await fetch('http://localhost:5001/api/transaction/delete', {
+          await fetch('http://localhost:5001/api/transaction/delete', {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ids: selectedIds })
+            body: JSON.stringify({ ids: selectedIds, user_email: user?.email_id || '' })
           });
-          const data = await response.json();
-
-          if (data.success) {
-            setTransactions(transactions.filter(t => !selectedIds.includes(t.id)));
-            setSelectedIds([]);
-            addToast(`${selectedIds.length} transactions deleted successfully`, "success");
-          } else {
-            addToast(data.message || "Failed to delete transactions", "error");
-          }
         } catch (err) {
           console.error("Bulk delete call failed:", err);
-          addToast("Failed to delete transactions from database", "error");
         }
+
+        const userEmail = user?.email_id || 'guest';
+        const storageKey = `cashbook_txs_${userEmail}`;
+        const updated = transactions.map(t => selectedIds.includes(t.id) ? { ...t, is_deleted: true } : t);
+        setTransactions(updated);
+        localStorage.setItem(storageKey, JSON.stringify(updated));
+        setSelectedIds([]);
+        addToast(`${selectedIds.length} transactions removed from cashbook`, "success");
       }
     });
   };
@@ -634,15 +703,33 @@ export default function Transactions() {
 
   // Filter transactions for active cashbook
   const rawActiveTxs = selectedChalanId === ''
-    ? transactions
+    ? transactions.filter(tx => !tx.is_deleted && !tx.deleted)
     : transactions.filter(tx => 
-        tx.chalanId === selectedChalanId || (selectedChalanId === '1' && !tx.chalanId)
+        (!tx.is_deleted && !tx.deleted) &&
+        (tx.chalanId === selectedChalanId || (selectedChalanId === '1' && !tx.chalanId))
       );
 
-  // Chronological order for calculating running balance
+  const parseTxTime = (tx) => {
+    if (tx.time) {
+      const parsed = Date.parse(`${tx.date || ''} ${tx.time}`);
+      if (!isNaN(parsed)) return parsed;
+    }
+    const numericId = parseInt(tx.id);
+    if (!isNaN(numericId) && numericId > 1000000000000) {
+      return numericId;
+    }
+    return 0;
+  };
+
+  // Chronological order by date and time in ascending order
   const chronologicalTxs = [...rawActiveTxs].sort((a, b) => {
     if (a.date !== b.date) {
       return a.date.localeCompare(b.date);
+    }
+    const timeA = parseTxTime(a);
+    const timeB = parseTxTime(b);
+    if (timeA !== timeB) {
+      return timeA - timeB;
     }
     const idA = parseInt(a.id);
     const idB = parseInt(b.id);
@@ -675,12 +762,40 @@ export default function Transactions() {
 
   const totalBalance = totalCashIn - totalCashOut;
 
-  // Reverse list to display newest first
-  const displayTxs = [...txsWithBalance].reverse();
+  // Calculate per-user activity stats for this cashbook
+  const userActivities = React.useMemo(() => {
+    const activityMap = {};
+    rawActiveTxs.forEach(tx => {
+      const name = tx.createdBy || (tx.user_email ? tx.user_email.split('@')[0] : 'User');
+      const key = (tx.user_email || name).toLowerCase();
+
+      if (!activityMap[key]) {
+        activityMap[key] = {
+          name: name,
+          email: tx.user_email || '',
+          totalEntries: 0,
+          cashIn: 0,
+          cashOut: 0
+        };
+      }
+
+      activityMap[key].totalEntries += 1;
+      if (tx.type === 'income') {
+        activityMap[key].cashIn += tx.amount;
+      } else {
+        activityMap[key].cashOut += tx.amount;
+      }
+    });
+
+    return Object.values(activityMap);
+  }, [rawActiveTxs]);
+
+  // Display in ascending order (chronological order 1, 2, 3...)
+  const displayTxs = [...txsWithBalance];
 
   // Apply column-level searching filters
   const filteredTxs = displayTxs.filter((tx, index) => {
-    const rowNo = (displayTxs.length - index).toString();
+    const rowNo = (index + 1).toString();
     if (searchFilters.no && !rowNo.includes(searchFilters.no)) return false;
 
     const typeLabel = tx.type === 'income' ? 'Cash In' : 'Cash Out';
@@ -703,9 +818,6 @@ export default function Transactions() {
 
     const pm = tx.paymentMode || 'Cash';
     if (searchFilters.paymentMode && !pm.toLowerCase().includes(searchFilters.paymentMode.toLowerCase())) return false;
-
-    const remark = tx.remark || 'Null';
-    if (searchFilters.remark && !remark.toLowerCase().includes(searchFilters.remark.toLowerCase())) return false;
 
     const cb = tx.createdBy || 'Guest';
     if (searchFilters.createdBy && !cb.toLowerCase().includes(searchFilters.createdBy.toLowerCase())) return false;
@@ -733,8 +845,8 @@ export default function Transactions() {
           valB = b.date;
           break;
         case 'time':
-          valA = a.time || formatTime(a.id);
-          valB = b.time || formatTime(b.id);
+          valA = parseTxTime(a);
+          valB = parseTxTime(b);
           break;
         case 'amount':
           valA = a.amount;
@@ -779,20 +891,20 @@ export default function Transactions() {
     <div className="p-6 md:p-8 w-full space-y-6 bg-transparent dark:bg-transparent min-h-screen text-foreground">
       
       {/* ── TOP-FIXED HEADER LAYOUT ── */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white dark:bg-card border border-border/80 rounded-2xl p-4 shadow-sm">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white dark:bg-[#111827]/90 border border-border/80 dark:border-slate-800/80 rounded-2xl p-4 backdrop-blur-md">
         <div className="flex items-center gap-3">
           <button 
             onClick={() => navigate('/dashboard/cashbooks')}
-            className="p-2.5 bg-[#f8fafc] dark:bg-[#15181f] border border-border rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-colors flex items-center justify-center shrink-0 shadow-sm"
+            className="p-2.5 bg-[#f8fafc] dark:bg-slate-800/80 border border-border dark:border-slate-700/80 rounded-xl text-muted-foreground dark:text-slate-300 hover:text-foreground dark:hover:text-white hover:bg-muted dark:hover:bg-slate-700 transition-colors flex items-center justify-center shrink-0"
             title="Back to Cashbooks"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div className="flex flex-col">
-            <h1 className="text-xl md:text-2xl font-bold tracking-tight text-[#1e293b] dark:text-foreground">
+            <h1 className="text-xl md:text-2xl font-bold tracking-tight text-[#1e293b] dark:text-slate-100">
               {cashbookName}
             </h1>
-            <p className="text-xs text-muted-foreground mt-0.5 font-medium">
+            <p className="text-xs text-muted-foreground dark:text-slate-400 mt-0.5 font-medium">
               {cashbookDesc}
             </p>
           </div>
@@ -801,14 +913,14 @@ export default function Transactions() {
         <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
           <button 
             onClick={() => setShowImportForm(true)}
-            className="flex items-center gap-1.5 px-4 py-2 border border-border bg-[#f8fafc] dark:bg-[#15181f] text-foreground font-semibold rounded-xl text-xs hover:bg-muted transition-colors shadow-sm"
+            className="flex items-center gap-1.5 px-4 py-2 border border-border dark:border-slate-700/80 bg-[#f8fafc] dark:bg-slate-800/90 text-foreground dark:text-slate-200 font-semibold rounded-xl text-xs hover:bg-muted dark:hover:bg-slate-700 transition-colors"
           >
-            <Upload className="w-3.5 h-3.5 text-primary" />
+            <Upload className="w-3.5 h-3.5 text-primary dark:text-indigo-400" />
             Import Transaction
           </button>
           <button 
             onClick={handleOpenAddForm}
-            className="flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground font-semibold rounded-xl text-xs hover:opacity-95 transition-all shadow-sm"
+            className="flex items-center gap-1.5 px-4 py-2 bg-primary dark:bg-indigo-600 text-primary-foreground font-semibold rounded-xl text-xs hover:opacity-95 dark:hover:bg-indigo-500 transition-all"
           >
             <Plus className="w-3.5 h-3.5" />
             Add Transaction
@@ -819,164 +931,238 @@ export default function Transactions() {
       {/* ── DYNAMIC METRICS CARDS ── */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
         {/* Total Balance */}
-        <div className="bg-white dark:bg-card border border-border/80 rounded-2xl p-5 shadow-sm flex items-center justify-between">
+        <div className="bg-white dark:bg-[#111827]/90 border border-border/80 dark:border-slate-800/80 rounded-2xl p-5 flex items-center justify-between transition-all hover:border-slate-700/80">
           <div className="space-y-1">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total Balance</p>
-            <p className={`text-2xl font-bold tracking-tight ${totalBalance < 0 ? 'text-[#ef4444]' : 'text-foreground'}`}>
+            <p className="text-xs font-semibold text-muted-foreground dark:text-slate-400 uppercase tracking-wider">Total Balance</p>
+            <p className={`text-2xl font-bold tracking-tight ${totalBalance < 0 ? 'text-[#ef4444] dark:text-rose-400' : 'text-foreground dark:text-slate-100'}`}>
               {formatCurrency(totalBalance)}
             </p>
           </div>
           <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
             totalBalance < 0 
-              ? 'bg-rose-50 dark:bg-rose-950/30 text-[#ef4444]' 
-              : 'bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400'
+              ? 'bg-rose-50 dark:bg-rose-500/10 text-[#ef4444] dark:text-rose-400 dark:border dark:border-rose-500/20' 
+              : 'bg-blue-50 dark:bg-indigo-500/10 text-blue-600 dark:text-indigo-400 dark:border dark:border-indigo-500/20'
           }`}>
             <Wallet className="w-5 h-5" />
           </div>
         </div>
 
         {/* Total Cash In */}
-        <div className="bg-white dark:bg-card border border-border/80 rounded-2xl p-5 shadow-sm flex items-center justify-between">
+        <div className="bg-white dark:bg-[#111827]/90 border border-border/80 dark:border-slate-800/80 rounded-2xl p-5 flex items-center justify-between transition-all hover:border-slate-700/80">
           <div className="space-y-1">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total Cash In</p>
-            <p className="text-2xl font-bold tracking-tight text-foreground">
+            <p className="text-xs font-semibold text-muted-foreground dark:text-slate-400 uppercase tracking-wider">Total Cash In</p>
+            <p className="text-2xl font-bold tracking-tight text-[#10b981] dark:text-emerald-400">
               {formatCurrency(totalCashIn)}
             </p>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 dark:border dark:border-emerald-500/20 flex items-center justify-center">
             <ArrowUp className="w-5 h-5" />
           </div>
         </div>
 
         {/* Total Cash Out */}
-        <div className="bg-white dark:bg-card border border-border/80 rounded-2xl p-5 shadow-sm flex items-center justify-between">
+        <div className="bg-white dark:bg-[#111827]/90 border border-border/80 dark:border-slate-800/80 rounded-2xl p-5 flex items-center justify-between transition-all hover:border-slate-700/80">
           <div className="space-y-1">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total Cash Out</p>
-            <p className="text-2xl font-bold tracking-tight text-[#ef4444]">
+            <p className="text-xs font-semibold text-muted-foreground dark:text-slate-400 uppercase tracking-wider">Total Cash Out</p>
+            <p className="text-2xl font-bold tracking-tight text-[#ef4444] dark:text-rose-400">
               {formatCurrency(totalCashOut)}
             </p>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/30 text-[#ef4444] flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-500/10 text-[#ef4444] dark:text-rose-400 dark:border dark:border-rose-500/20 flex items-center justify-center">
             <ArrowDown className="w-5 h-5" />
           </div>
         </div>
       </div>
 
+      {/* ── COLLABORATORS & USER ACTIVITY LIST ── */}
+      {userActivities.length > 0 && (
+        <div className="bg-white dark:bg-[#111827]/90 border border-border/80 dark:border-slate-800/80 rounded-2xl p-5 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Users className="w-4 h-4 text-primary dark:text-indigo-400" />
+              <h3 className="font-bold text-xs uppercase tracking-wider text-muted-foreground dark:text-slate-400">
+                Collaborators & User Activity ({userActivities.length} Active)
+              </h3>
+            </div>
+            <button
+              onClick={() => navigate('/dashboard/invitations')}
+              className="text-xs font-semibold text-primary dark:text-indigo-400 hover:underline flex items-center gap-1 cursor-pointer"
+            >
+              Manage Collaborators &rarr;
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+            {userActivities.map((act, idx) => (
+              <div 
+                key={idx} 
+                className="p-3.5 rounded-xl border border-border/60 dark:border-slate-800/90 bg-[#f8fafc] dark:bg-[#0b0f19] flex items-center justify-between gap-3"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-8.5 h-8.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold text-xs flex items-center justify-center border border-indigo-500/20 shrink-0">
+                    {act.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-bold text-xs text-foreground dark:text-slate-200 truncate">{act.name}</span>
+                      {act.email?.toLowerCase() === user?.email_id?.toLowerCase() && (
+                        <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">You</span>
+                      )}
+                    </div>
+                    <p className="text-[10px] text-muted-foreground dark:text-slate-400 font-medium mt-0.5 truncate">
+                      {act.totalEntries} {act.totalEntries === 1 ? 'entry' : 'entries'} logged
+                    </p>
+                  </div>
+                </div>
+
+                <div className="text-right shrink-0">
+                  <div className="text-[11px] font-bold text-[#10b981] dark:text-emerald-400">+{formatCurrency(act.cashIn)}</div>
+                  <div className="text-[11px] font-bold text-[#ef4444] dark:text-rose-400">-{formatCurrency(act.cashOut)}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* ── TRANSACTION LEDGER ── */}
-      <div className="bg-white dark:bg-card border border-border/80 rounded-2xl shadow-sm p-6 space-y-4">
+      <div className="bg-white dark:bg-[#111827]/90 border border-border/80 dark:border-slate-800/80 rounded-2xl p-6 space-y-4">
         
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <h2 className="font-bold text-sm text-foreground flex items-center gap-2">
+          <h2 className="font-bold text-sm text-foreground dark:text-slate-100 flex items-center gap-2">
             Transaction History 
-            <span className="text-muted-foreground font-normal">• {sortedTxs.length} Records</span>
+            <span className="text-muted-foreground dark:text-slate-400 font-normal">• {sortedTxs.length} Records</span>
           </h2>
           
-          {selectedIds.length > 0 && (
-            <button 
-              onClick={handleDeleteSelected}
-              className="flex items-center gap-1.5 px-3 py-1.5 border border-[#ef4444]/40 text-[#ef4444] rounded-lg text-xs font-bold bg-[#ef4444]/5 hover:bg-[#ef4444]/10 transition-colors shadow-sm"
+          <div className="flex items-center gap-2">
+            {selectedIds.length > 0 && (
+              <button 
+                onClick={handleDeleteSelected}
+                className="flex items-center gap-1.5 px-3 py-1.5 border border-[#ef4444]/40 text-[#ef4444] dark:text-rose-400 rounded-lg text-xs font-bold bg-[#ef4444]/5 dark:bg-rose-500/10 hover:bg-[#ef4444]/10 dark:hover:bg-rose-500/20 transition-colors"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                Delete Selected ({selectedIds.length})
+              </button>
+            )}
+
+            <button
+              onClick={() => {
+                if (isEditMode) {
+                  setIsEditMode(false);
+                  setSelectedIds([]);
+                } else {
+                  setIsEditMode(true);
+                }
+              }}
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold border transition-all ${
+                isEditMode 
+                  ? "border-primary dark:border-indigo-500 bg-primary/10 dark:bg-indigo-500/20 text-primary dark:text-indigo-400" 
+                  : "border-border/80 dark:border-slate-700/80 bg-background dark:bg-slate-800/80 text-muted-foreground dark:text-slate-300 hover:text-foreground dark:hover:text-white hover:bg-muted dark:hover:bg-slate-700"
+              }`}
             >
-              <Trash2 className="w-3.5 h-3.5" />
-              Delete Selected ({selectedIds.length})
+              <Edit className="w-3.5 h-3.5" />
+              {isEditMode ? "Done" : "Edit"}
             </button>
-          )}
+          </div>
         </div>
         
-        {/* Select All bar */}
-        <div className="flex items-center gap-2 select-none py-1">
-          <input
-            type="checkbox"
-            id="selectAllHeader"
-            checked={sortedTxs.length > 0 && selectedIds.length === sortedTxs.length}
-            onChange={(e) => {
-              if (e.target.checked) {
-                setSelectedIds(sortedTxs.map(t => t.id));
-              } else {
-                setSelectedIds([]);
-              }
-            }}
-            className="w-4 h-4 rounded text-primary focus:ring-primary border-border cursor-pointer"
-          />
-          <label htmlFor="selectAllHeader" className="text-xs font-semibold text-muted-foreground cursor-pointer">
-            Select All
-          </label>
-        </div>
+        {/* Select All bar (Shown ONLY when Edit button is selected) */}
+        {isEditMode && (
+          <motion.div 
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="flex items-center gap-2 select-none py-1.5 px-3 bg-muted/20 dark:bg-slate-800/50 rounded-xl border border-border/60 dark:border-slate-700/60"
+          >
+            <input
+              type="checkbox"
+              id="selectAllHeader"
+              checked={sortedTxs.length > 0 && selectedIds.length === sortedTxs.length}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  setSelectedIds(sortedTxs.map(t => t.id));
+                } else {
+                  setSelectedIds([]);
+                }
+              }}
+              className="w-4 h-4 rounded text-primary focus:ring-primary border-border dark:border-slate-700 cursor-pointer"
+            />
+            <label htmlFor="selectAllHeader" className="text-xs font-bold text-foreground dark:text-slate-200 cursor-pointer">
+              Select All
+            </label>
+          </motion.div>
+        )}
 
         {/* Ledger Table Container */}
-        <div className="overflow-x-auto w-full border border-border/60 rounded-xl bg-card">
-          <table className="w-full text-left border-collapse table-fixed min-w-[1600px]">
+        <div className="overflow-x-auto w-full border border-border/60 dark:border-slate-800/80 rounded-xl bg-card dark:bg-[#0b0f19]">
+          <table className="w-full text-left border-collapse table-fixed min-w-[1400px]">
             <thead>
               {/* Header Titles with Sort Toggles */}
-              <tr className="bg-muted/30 border-b border-border text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
-                <th className="px-4 py-3.5 w-[50px] text-center"></th>
-                <th className="px-4 py-3.5 w-[70px] cursor-pointer" onClick={() => handleSort('no')}>
+              <tr className="bg-muted/30 dark:bg-slate-900/80 border-b border-border dark:border-slate-800 text-[11px] font-bold text-muted-foreground dark:text-slate-400 uppercase tracking-wider">
+                {isEditMode && <th className="px-4 py-3.5 w-[50px] text-center"></th>}
+                <th className="px-4 py-3.5 w-[70px] cursor-pointer hover:text-foreground dark:hover:text-slate-200 transition-colors" onClick={() => handleSort('no')}>
                   <div className="flex items-center gap-1">
                     No {getSortIcon('no')}
                   </div>
                 </th>
-                <th className="px-4 py-3.5 w-[110px] cursor-pointer" onClick={() => handleSort('type')}>
+                <th className="px-4 py-3.5 w-[110px] cursor-pointer hover:text-foreground dark:hover:text-slate-200 transition-colors" onClick={() => handleSort('type')}>
                   <div className="flex items-center gap-1">
                     Type {getSortIcon('type')}
                   </div>
                 </th>
-                <th className="px-4 py-3.5 w-[130px] cursor-pointer" onClick={() => handleSort('date')}>
+                <th className="px-4 py-3.5 w-[130px] cursor-pointer hover:text-foreground dark:hover:text-slate-200 transition-colors" onClick={() => handleSort('date')}>
                   <div className="flex items-center gap-1">
                     Date {getSortIcon('date')}
                   </div>
                 </th>
-                <th className="px-4 py-3.5 w-[130px] cursor-pointer" onClick={() => handleSort('time')}>
+                <th className="px-4 py-3.5 w-[130px] cursor-pointer hover:text-foreground dark:hover:text-slate-200 transition-colors" onClick={() => handleSort('time')}>
                   <div className="flex items-center gap-1">
                     Time {getSortIcon('time')}
                   </div>
                 </th>
-                <th className="px-4 py-3.5 w-[130px] cursor-pointer" onClick={() => handleSort('amount')}>
+                <th className="px-4 py-3.5 w-[130px] cursor-pointer hover:text-foreground dark:hover:text-slate-200 transition-colors" onClick={() => handleSort('amount')}>
                   <div className="flex items-center gap-1">
                     Amount {getSortIcon('amount')}
                   </div>
                 </th>
-                <th className="px-4 py-3.5 w-[130px] cursor-pointer" onClick={() => handleSort('balance')}>
+                <th className="px-4 py-3.5 w-[130px] cursor-pointer hover:text-foreground dark:hover:text-slate-200 transition-colors" onClick={() => handleSort('balance')}>
                   <div className="flex items-center gap-1">
                     Balance {getSortIcon('balance')}
                   </div>
                 </th>
-                <th className="px-4 py-3.5 w-[160px] cursor-pointer" onClick={() => handleSort('category')}>
+                <th className="px-4 py-3.5 w-[160px] cursor-pointer hover:text-foreground dark:hover:text-slate-200 transition-colors" onClick={() => handleSort('category')}>
                   <div className="flex items-center gap-1">
                     Category {getSortIcon('category')}
                   </div>
                 </th>
-                <th className="px-4 py-3.5 w-[160px] cursor-pointer" onClick={() => handleSort('subcategory')}>
+                <th className="px-4 py-3.5 w-[160px] cursor-pointer hover:text-foreground dark:hover:text-slate-200 transition-colors" onClick={() => handleSort('subcategory')}>
                   <div className="flex items-center gap-1">
                     Subcategory {getSortIcon('subcategory')}
                   </div>
                 </th>
-                <th className="px-4 py-3.5 w-[160px] cursor-pointer" onClick={() => handleSort('paymentMode')}>
+                <th className="px-4 py-3.5 w-[160px] cursor-pointer hover:text-foreground dark:hover:text-slate-200 transition-colors" onClick={() => handleSort('paymentMode')}>
                   <div className="flex items-center gap-1">
                     Payment Mode {getSortIcon('paymentMode')}
                   </div>
                 </th>
-                <th className="px-4 py-3.5 w-[160px] cursor-pointer" onClick={() => handleSort('remark')}>
+                <th className="px-4 py-3.5 w-[200px] cursor-pointer hover:text-foreground dark:hover:text-slate-200 transition-colors" onClick={() => handleSort('createdBy')}>
                   <div className="flex items-center gap-1">
-                    Remark {getSortIcon('remark')}
-                  </div>
-                </th>
-                <th className="px-4 py-3.5 w-[200px] cursor-pointer" onClick={() => handleSort('createdBy')}>
-                  <div className="flex items-center gap-1">
-                    Created By {getSortIcon('createdBy')}
+                    By User {getSortIcon('createdBy')}
                   </div>
                 </th>
                 <th className="px-4 py-3.5 w-[100px] text-center">Actions</th>
               </tr>
               
               {/* Header Column Filters Row */}
-              <tr className="bg-muted/10 border-b border-border/40">
-                <th className="px-4 py-2"></th>
+              <tr className="bg-muted/10 dark:bg-slate-950/40 border-b border-border/40 dark:border-slate-800/60">
+                {isEditMode && <th className="px-4 py-2"></th>}
                 <th className="px-4 py-2">
                   <input
                     type="text"
                     placeholder="Search."
                     value={searchFilters.no}
                     onChange={(e) => handleFilterChange('no', e.target.value)}
-                    className="w-full px-2 py-1 text-xs border border-border bg-white dark:bg-card rounded-lg focus:outline-none focus:border-primary font-normal"
+                    className="w-full px-2 py-1 text-xs border border-border dark:border-slate-800 bg-white dark:bg-slate-900/90 rounded-lg focus:outline-none focus:border-primary dark:focus:border-indigo-500 font-normal text-foreground dark:text-slate-200 dark:placeholder:text-slate-500"
                   />
                 </th>
                 <th className="px-4 py-2">
@@ -985,7 +1171,7 @@ export default function Transactions() {
                     placeholder="Search."
                     value={searchFilters.type}
                     onChange={(e) => handleFilterChange('type', e.target.value)}
-                    className="w-full px-2 py-1 text-xs border border-border bg-white dark:bg-card rounded-lg focus:outline-none focus:border-primary font-normal"
+                    className="w-full px-2 py-1 text-xs border border-border dark:border-slate-800 bg-white dark:bg-slate-900/90 rounded-lg focus:outline-none focus:border-primary dark:focus:border-indigo-500 font-normal text-foreground dark:text-slate-200 dark:placeholder:text-slate-500"
                   />
                 </th>
                 <th className="px-4 py-2">
@@ -994,7 +1180,7 @@ export default function Transactions() {
                     placeholder="Search."
                     value={searchFilters.date}
                     onChange={(e) => handleFilterChange('date', e.target.value)}
-                    className="w-full px-2 py-1 text-xs border border-border bg-white dark:bg-card rounded-lg focus:outline-none focus:border-primary font-normal"
+                    className="w-full px-2 py-1 text-xs border border-border dark:border-slate-800 bg-white dark:bg-slate-900/90 rounded-lg focus:outline-none focus:border-primary dark:focus:border-indigo-500 font-normal text-foreground dark:text-slate-200 dark:placeholder:text-slate-500"
                   />
                 </th>
                 <th className="px-4 py-2">
@@ -1003,7 +1189,7 @@ export default function Transactions() {
                     placeholder="Search."
                     value={searchFilters.time}
                     onChange={(e) => handleFilterChange('time', e.target.value)}
-                    className="w-full px-2 py-1 text-xs border border-border bg-white dark:bg-card rounded-lg focus:outline-none focus:border-primary font-normal"
+                    className="w-full px-2 py-1 text-xs border border-border dark:border-slate-800 bg-white dark:bg-slate-900/90 rounded-lg focus:outline-none focus:border-primary dark:focus:border-indigo-500 font-normal text-foreground dark:text-slate-200 dark:placeholder:text-slate-500"
                   />
                 </th>
                 <th className="px-4 py-2">
@@ -1012,7 +1198,7 @@ export default function Transactions() {
                     placeholder="Search."
                     value={searchFilters.amount}
                     onChange={(e) => handleFilterChange('amount', e.target.value)}
-                    className="w-full px-2 py-1 text-xs border border-border bg-white dark:bg-card rounded-lg focus:outline-none focus:border-primary font-normal"
+                    className="w-full px-2 py-1 text-xs border border-border dark:border-slate-800 bg-white dark:bg-slate-900/90 rounded-lg focus:outline-none focus:border-primary dark:focus:border-indigo-500 font-normal text-foreground dark:text-slate-200 dark:placeholder:text-slate-500"
                   />
                 </th>
                 <th className="px-4 py-2">
@@ -1021,7 +1207,7 @@ export default function Transactions() {
                     placeholder="Search."
                     value={searchFilters.balance}
                     onChange={(e) => handleFilterChange('balance', e.target.value)}
-                    className="w-full px-2 py-1 text-xs border border-border bg-white dark:bg-card rounded-lg focus:outline-none focus:border-primary font-normal"
+                    className="w-full px-2 py-1 text-xs border border-border dark:border-slate-800 bg-white dark:bg-slate-900/90 rounded-lg focus:outline-none focus:border-primary dark:focus:border-indigo-500 font-normal text-foreground dark:text-slate-200 dark:placeholder:text-slate-500"
                   />
                 </th>
                 <th className="px-4 py-2">
@@ -1030,7 +1216,7 @@ export default function Transactions() {
                     placeholder="Search."
                     value={searchFilters.category}
                     onChange={(e) => handleFilterChange('category', e.target.value)}
-                    className="w-full px-2 py-1 text-xs border border-border bg-white dark:bg-card rounded-lg focus:outline-none focus:border-primary font-normal"
+                    className="w-full px-2 py-1 text-xs border border-border dark:border-slate-800 bg-white dark:bg-slate-900/90 rounded-lg focus:outline-none focus:border-primary dark:focus:border-indigo-500 font-normal text-foreground dark:text-slate-200 dark:placeholder:text-slate-500"
                   />
                 </th>
                 <th className="px-4 py-2">
@@ -1039,7 +1225,7 @@ export default function Transactions() {
                     placeholder="Search."
                     value={searchFilters.subcategory}
                     onChange={(e) => handleFilterChange('subcategory', e.target.value)}
-                    className="w-full px-2 py-1 text-xs border border-border bg-white dark:bg-card rounded-lg focus:outline-none focus:border-primary font-normal"
+                    className="w-full px-2 py-1 text-xs border border-border dark:border-slate-800 bg-white dark:bg-slate-900/90 rounded-lg focus:outline-none focus:border-primary dark:focus:border-indigo-500 font-normal text-foreground dark:text-slate-200 dark:placeholder:text-slate-500"
                   />
                 </th>
                 <th className="px-4 py-2">
@@ -1048,16 +1234,7 @@ export default function Transactions() {
                     placeholder="Search."
                     value={searchFilters.paymentMode}
                     onChange={(e) => handleFilterChange('paymentMode', e.target.value)}
-                    className="w-full px-2 py-1 text-xs border border-border bg-white dark:bg-card rounded-lg focus:outline-none focus:border-primary font-normal"
-                  />
-                </th>
-                <th className="px-4 py-2">
-                  <input
-                    type="text"
-                    placeholder="Search."
-                    value={searchFilters.remark}
-                    onChange={(e) => handleFilterChange('remark', e.target.value)}
-                    className="w-full px-2 py-1 text-xs border border-border bg-white dark:bg-card rounded-lg focus:outline-none focus:border-primary font-normal"
+                    className="w-full px-2 py-1 text-xs border border-border dark:border-slate-800 bg-white dark:bg-slate-900/90 rounded-lg focus:outline-none focus:border-primary dark:focus:border-indigo-500 font-normal text-foreground dark:text-slate-200 dark:placeholder:text-slate-500"
                   />
                 </th>
                 <th className="px-4 py-2">
@@ -1066,75 +1243,82 @@ export default function Transactions() {
                     placeholder="Search."
                     value={searchFilters.createdBy}
                     onChange={(e) => handleFilterChange('createdBy', e.target.value)}
-                    className="w-full px-2 py-1 text-xs border border-border bg-white dark:bg-card rounded-lg focus:outline-none focus:border-primary font-normal"
+                    className="w-full px-2 py-1 text-xs border border-border dark:border-slate-800 bg-white dark:bg-slate-900/90 rounded-lg focus:outline-none focus:border-primary dark:focus:border-indigo-500 font-normal text-foreground dark:text-slate-200 dark:placeholder:text-slate-500"
                   />
                 </th>
                 <th className="px-4 py-2"></th>
               </tr>
             </thead>
             
-            <tbody className="divide-y divide-border/60">
-              {sortedTxs.map((tx, idx) => {
-                const rowNo = displayTxs.length - displayTxs.indexOf(tx);
+            <tbody className="divide-y divide-border/60 dark:divide-slate-800/80">
+              {sortedTxs.map((tx) => {
+                const rowNo = displayTxs.indexOf(tx) + 1;
                 const isSelected = selectedIds.includes(tx.id);
                 
                 return (
-                  <tr key={tx.id} className={`hover:bg-muted/30 transition-colors text-xs font-semibold text-foreground ${isSelected ? 'bg-primary/5' : ''}`}>
-                    <td className="px-4 py-3.5 text-center">
-                      <input
-                        type="checkbox"
-                        checked={isSelected}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setSelectedIds([...selectedIds, tx.id]);
-                          } else {
-                            setSelectedIds(selectedIds.filter(id => id !== tx.id));
-                          }
-                        }}
-                        className="w-4 h-4 rounded text-primary focus:ring-primary border-border cursor-pointer"
-                      />
-                    </td>
-                    <td className="px-4 py-3.5 text-muted-foreground">{rowNo}</td>
+                  <tr key={tx.id} className={`hover:bg-muted/30 dark:hover:bg-slate-800/40 transition-colors text-xs font-semibold text-foreground dark:text-slate-200 ${isSelected ? 'bg-primary/5 dark:bg-indigo-500/10' : ''}`}>
+                    {isEditMode && (
+                      <td className="px-4 py-3.5 text-center">
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedIds([...selectedIds, tx.id]);
+                            } else {
+                              setSelectedIds(selectedIds.filter(id => id !== tx.id));
+                            }
+                          }}
+                          className="w-4 h-4 rounded text-primary focus:ring-primary border-border dark:border-slate-700 cursor-pointer"
+                        />
+                      </td>
+                    )}
+                    <td className="px-4 py-3.5 text-muted-foreground dark:text-slate-400 font-mono">{rowNo}</td>
                     <td className="px-4 py-3.5">
-                      <span className={tx.type === 'income' ? 'text-[#10b981]' : 'text-[#ef4444]'}>
+                      <span className={tx.type === 'income' ? 'text-[#10b981] dark:text-emerald-400 font-bold' : 'text-[#ef4444] dark:text-rose-400 font-bold'}>
                         {tx.type === 'income' ? 'Cash In' : 'Cash Out'}
                       </span>
                     </td>
-                    <td className="px-4 py-3.5">{formatDate(tx.date)}</td>
-                    <td className="px-4 py-3.5">{tx.time}</td>
-                    <td className={`px-4 py-3.5 font-bold ${tx.type === 'income' ? 'text-[#10b981]' : 'text-[#ef4444]'}`}>
+                    <td className="px-4 py-3.5 dark:text-slate-300">{formatDate(tx.date)}</td>
+                    <td className="px-4 py-3.5 text-muted-foreground dark:text-slate-400 font-mono">{tx.time}</td>
+                    <td className={`px-4 py-3.5 font-bold ${tx.type === 'income' ? 'text-[#10b981] dark:text-emerald-400' : 'text-[#ef4444] dark:text-rose-400'}`}>
                       {tx.type === 'income' ? '+' : ''}{formatCurrency(tx.type === 'income' ? tx.amount : -tx.amount)}
                     </td>
-                    <td className={`px-4 py-3.5 font-bold ${tx.runningBalance < 0 ? 'text-[#ef4444]' : 'text-[#10b981]'}`}>
+                    <td className={`px-4 py-3.5 font-bold ${tx.runningBalance < 0 ? 'text-[#ef4444] dark:text-rose-400' : 'text-[#10b981] dark:text-emerald-400'}`}>
                       {formatCurrency(tx.runningBalance)}
                     </td>
                     <td className="px-4 py-3.5">
-                      <span className="inline-block px-2.5 py-1 rounded-full bg-muted text-muted-foreground text-[10px] font-bold">
+                      <span className="inline-block px-2.5 py-1 rounded-full bg-muted dark:bg-slate-800 text-muted-foreground dark:text-slate-300 dark:border dark:border-slate-700/60 text-[10px] font-bold">
                         {tx.category}
                       </span>
                     </td>
-                    <td className="px-4 py-3.5 text-muted-foreground">{tx.subcategory || "-"}</td>
+                    <td className="px-4 py-3.5 text-muted-foreground dark:text-slate-400">{tx.subcategory || "-"}</td>
                     <td className="px-4 py-3.5">
-                      <span className="inline-block px-2 py-0.5 rounded border border-border text-[10px] font-bold text-muted-foreground bg-muted/20">
-                        {tx.paymentMode || 'Cash'}
+                      <span className="inline-block px-2 py-0.5 rounded border border-border dark:border-slate-700/60 text-[10px] font-bold text-muted-foreground dark:text-slate-400 bg-muted/20 dark:bg-slate-800/60">
+                        {formatPaymentMode(tx.paymentMode || 'Cash')}
                       </span>
                     </td>
-                    <td className="px-4 py-3.5 text-muted-foreground">{tx.remark || 'Null'}</td>
-                    <td className="px-4 py-3.5 text-muted-foreground truncate max-w-[150px]" title={tx.createdBy || 'Guest'}>
-                      {tx.createdBy || 'Guest'}
+                    <td className="px-4 py-3.5">
+                      <span 
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-indigo-500/30 text-[10px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 dark:bg-indigo-500/20 truncate max-w-[140px]" 
+                        title={tx.createdBy || tx.user_email || 'Guest'}
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0" />
+                        {tx.createdBy || (tx.user_email ? tx.user_email.split('@')[0] : 'Guest')}
+                      </span>
                     </td>
                     <td className="px-4 py-3.5 text-center">
                       <div className="flex items-center justify-center gap-1.5">
                         <button 
                           onClick={() => handleEditClick(tx)}
-                          className="p-1 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded transition-colors"
+                          className="p-1 text-muted-foreground dark:text-slate-400 hover:text-primary dark:hover:text-indigo-400 hover:bg-primary/10 dark:hover:bg-indigo-500/20 rounded transition-colors"
                           title="Edit Entry"
                         >
                           <Pencil className="w-3.5 h-3.5" />
                         </button>
                         <button 
                           onClick={() => handleDelete(tx.id)}
-                          className="p-1 text-muted-foreground hover:text-[#ef4444] hover:bg-[#ef4444]/10 rounded transition-colors"
+                          className="p-1 text-muted-foreground dark:text-slate-400 hover:text-[#ef4444] dark:hover:text-rose-400 hover:bg-[#ef4444]/10 dark:hover:bg-rose-500/20 rounded transition-colors"
                           title="Remove Entry"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -1147,7 +1331,7 @@ export default function Transactions() {
               
               {sortedTxs.length === 0 && (
                 <tr>
-                  <td colSpan="13" className="px-6 py-12 text-center text-muted-foreground font-medium">
+                  <td colSpan={isEditMode ? 12 : 11} className="px-6 py-12 text-center text-muted-foreground dark:text-slate-400 font-medium">
                     No logs found matching your search.
                   </td>
                 </tr>
@@ -1173,30 +1357,30 @@ export default function Transactions() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="relative bg-white dark:bg-card border border-border rounded-2xl shadow-xl p-6 w-full max-w-[460px] z-10 space-y-6 text-foreground"
+              className="relative bg-white dark:bg-[#111827] border border-border dark:border-slate-800 rounded-2xl shadow-2xl p-6 w-full max-w-[460px] z-10 space-y-6 text-foreground dark:text-slate-100"
             >
               <div className="flex justify-between items-center">
-                <h3 className="font-bold text-lg flex items-center gap-2">
-                  <Plus className="w-5 h-5 text-primary" />
+                <h3 className="font-bold text-lg flex items-center gap-2 dark:text-slate-100">
+                  <Plus className="w-5 h-5 text-primary dark:text-indigo-400" />
                   {editTxId ? 'Edit Entry' : 'Quick Entry'}
                 </h3>
                 <button
                   onClick={() => setShowAddForm(false)}
-                  className="p-1 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                  className="p-1 rounded-full hover:bg-muted dark:hover:bg-slate-800 text-muted-foreground dark:text-slate-400 hover:text-foreground dark:hover:text-slate-200 transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
               <form onSubmit={handleAddTransaction} className="space-y-4">
-                <div className="grid grid-cols-2 gap-2 p-1 rounded-xl bg-muted border border-border/50">
+                <div className="grid grid-cols-2 gap-2 p-1 rounded-xl bg-muted dark:bg-slate-900 border border-border/50 dark:border-slate-800">
                   <button
                     type="button"
                     onClick={() => setType('expense')}
                     className={`py-2 rounded-lg font-bold text-xs transition-all flex items-center justify-center gap-1.5 ${
                       type === 'expense'
-                        ? 'bg-white dark:bg-[#1a2475] text-expense dark:text-white shadow-sm'
-                        : 'text-muted-foreground hover:text-foreground'
+                        ? 'bg-white dark:bg-rose-500/20 text-expense dark:text-rose-400 dark:border dark:border-rose-500/30 shadow-sm'
+                        : 'text-muted-foreground dark:text-slate-400 hover:text-foreground dark:hover:text-slate-200'
                     }`}
                   >
                     <ArrowDown className="w-3.5 h-3.5" />
@@ -1207,8 +1391,8 @@ export default function Transactions() {
                     onClick={() => setType('income')}
                     className={`py-2 rounded-lg font-bold text-xs transition-all flex items-center justify-center gap-1.5 ${
                       type === 'income'
-                        ? 'bg-white dark:bg-[#1a2475] text-[#10b981] dark:text-white shadow-sm'
-                        : 'text-muted-foreground hover:text-foreground'
+                        ? 'bg-white dark:bg-emerald-500/20 text-[#10b981] dark:text-emerald-400 dark:border dark:border-emerald-500/30 shadow-sm'
+                        : 'text-muted-foreground dark:text-slate-400 hover:text-foreground dark:hover:text-slate-200'
                     }`}
                   >
                     <ArrowUp className="w-3.5 h-3.5" />
@@ -1294,34 +1478,22 @@ export default function Transactions() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide">Payment Mode</label>
-                    <Dropdown
-                      value={paymentMode}
-                      onChange={(e) => setPaymentMode(e.target.value)}
-                      onAddNew={handleAddNewPaymentMode}
-                    >
-                      {paymentModes.map(pm => (
-                        <option key={pm.id} value={pm.name}>{pm.name}</option>
-                      ))}
-                    </Dropdown>
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide">Remark</label>
-                    <input
-                      type="text"
-                      value={remark}
-                      onChange={(e) => setRemark(e.target.value)}
-                      placeholder="Remarks..."
-                      className="w-full px-4 py-2.5 rounded-xl border border-border focus:outline-none focus:border-primary text-sm font-medium text-foreground bg-white dark:bg-card"
-                    />
-                  </div>
+                <div className="space-y-1">
+                  <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide">Payment Mode</label>
+                  <Dropdown
+                    value={paymentMode}
+                    onChange={(e) => setPaymentMode(e.target.value)}
+                    onAddNew={handleAddNewPaymentMode}
+                  >
+                    {paymentModes.map(pm => (
+                      <option key={pm.id} value={pm.name}>{formatPaymentMode(pm.name)}</option>
+                    ))}
+                  </Dropdown>
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full py-3 bg-primary text-primary-foreground font-semibold rounded-xl text-sm hover:opacity-95 shadow-md shadow-primary/20 transition-all flex items-center justify-center gap-1.5 mt-2 cursor-pointer"
+                  className="w-full py-3 bg-primary text-primary-foreground font-semibold rounded-xl text-sm hover:opacity-95 transition-all flex items-center justify-center gap-1.5 mt-2 cursor-pointer"
                 >
                   <CheckCircle2 className="w-4 h-4" />
                   Save Entry
@@ -1351,7 +1523,7 @@ export default function Transactions() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="relative bg-white dark:bg-card border border-border rounded-2xl shadow-xl p-6 w-full max-w-[650px] z-10 space-y-6 text-foreground"
+              className="relative bg-white dark:bg-[#111827] border border-border dark:border-slate-800 rounded-2xl p-6 w-full max-w-[650px] z-10 space-y-6 text-foreground dark:text-slate-100"
             >
               <div className="flex justify-between items-center">
                 <h3 className="font-bold text-lg flex items-center gap-2">

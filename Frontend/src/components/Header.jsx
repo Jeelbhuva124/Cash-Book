@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { ThemeToggle } from './ThemeToggle';
 import { BookOpen, Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { DirectionHover } from './DirectionHover';
 
 export const UserNavbar = () => {
   const location = useLocation();
@@ -17,20 +18,19 @@ export const UserNavbar = () => {
   ];
 
   return (
-    <nav className="sticky top-0 z-50 bg-background/60 backdrop-blur-xl border-b border-border/50">
+    <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/40 transition-all">
       <div className="w-full px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2.5 group">
-            <img src="/logo.png" alt="Cash Book Logo" className="w-12 h-12 object-contain group-hover:scale-105 transition-transform" />
-            <div className="flex flex-col leading-tight">
-              <span className="text-base font-bold text-foreground tracking-tight">Cash Book</span>
-              <span className="text-[10px] text-muted-foreground font-medium -mt-0.5">Smart Finance Tracker</span>
-            </div>
+            <img src="/logo.png" alt="Cash Book Logo" className="w-7 h-7 sm:w-8 sm:h-8 object-contain group-hover:scale-105 transition-transform" />
+            <span className="text-base sm:text-lg font-extrabold text-foreground tracking-tight">
+              Cash Book
+            </span>
           </Link>
 
           {/* Desktop Nav Links */}
-          <div className="hidden md:flex items-center p-1.5 border border-border/80 rounded-full bg-background/30 shadow-sm backdrop-blur-md hover:shadow-lg hover:shadow-primary/10 transition-all duration-300">
+          <div className="hidden md:flex items-center p-1 border border-border/60 rounded-full bg-background/60 dark:bg-muted/30 backdrop-blur-xl shadow-sm">
             {navLinks.map((link) => {
               const isActive = location.pathname === link.path || (link.path === '/' && location.pathname === '/home');
 
@@ -38,17 +38,17 @@ export const UserNavbar = () => {
                 <Link
                   key={link.path}
                   to={link.path}
-                  className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors relative z-10 ${isActive
-                      ? 'text-primary'
-                      : 'text-muted-foreground hover:text-foreground'
+                  className={`px-4 py-1.5 rounded-full text-xs sm:text-sm transition-colors relative z-10 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${isActive
+                      ? 'text-primary dark:text-white font-semibold'
+                      : 'text-muted-foreground hover:text-foreground font-medium'
                     }`}
                 >
-                  {link.label}
+                  <span className="px-1">{link.label}</span>
                   {/* Active Indicator Pill */}
                   {isActive && (
                     <motion.div
                       layoutId="active-nav-pill"
-                      className="absolute inset-0 rounded-full bg-primary/10 border border-primary/20 -z-10"
+                      className="absolute inset-0 rounded-full bg-primary/10 dark:bg-primary/25 border border-primary/20 dark:border-primary/40 -z-10"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
@@ -61,12 +61,12 @@ export const UserNavbar = () => {
           </div>
 
           {/* Actions */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             <ThemeToggle />
             {localStorage.getItem("token") ? (
               <Link
                 to="/dashboard"
-                className="text-sm font-semibold bg-primary text-primary-foreground px-4 py-2 rounded-xl hover:opacity-90 transition-all shadow-md shadow-primary/25 hover:shadow-xl hover:shadow-primary/40 hover:-translate-y-0.5"
+                className="text-xs sm:text-sm font-semibold bg-primary text-primary-foreground px-4 py-2 rounded-full hover:opacity-95 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 transition-all shadow-sm hover:shadow-md"
               >
                 Dashboard
               </Link>
@@ -74,13 +74,13 @@ export const UserNavbar = () => {
               <>
                 <Link
                   to="/login"
-                  className="hidden sm:block text-sm font-medium text-muted-foreground hover:text-foreground transition-colors px-3 py-2"
+                  className="hidden sm:block text-xs sm:text-sm font-medium text-muted-foreground hover:text-foreground active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 transition-colors px-3 py-2"
                 >
                   Login
                 </Link>
                 <Link
                   to="/signup"
-                  className="text-sm font-semibold bg-primary text-primary-foreground px-4 py-2 rounded-xl hover:opacity-90 transition-all shadow-md shadow-primary/25 hover:shadow-xl hover:shadow-primary/40 hover:-translate-y-0.5"
+                  className="text-xs sm:text-sm font-semibold bg-primary text-primary-foreground px-4 py-2 rounded-full hover:opacity-95 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 transition-all shadow-sm hover:shadow-md"
                 >
                   Get Started
                 </Link>
@@ -89,7 +89,8 @@ export const UserNavbar = () => {
             {/* Mobile Menu Button */}
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="md:hidden p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              aria-label="Toggle Menu"
+              className="md:hidden p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
             >
               {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
@@ -113,8 +114,8 @@ export const UserNavbar = () => {
                   to={link.path}
                   onClick={() => setMobileOpen(false)}
                   className={`block px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors ${(location.pathname === link.path || (link.path === '/' && location.pathname === '/home'))
-                      ? 'bg-primary/10 text-primary'
-                      : 'text-muted-foreground hover:text-primary hover:bg-muted'
+                      ? 'bg-primary/10 dark:bg-primary/20 text-primary dark:text-white'
+                      : 'text-muted-foreground hover:text-primary dark:hover:text-white hover:bg-muted dark:hover:bg-muted/50'
                     }`}
                 >
                   {link.label}

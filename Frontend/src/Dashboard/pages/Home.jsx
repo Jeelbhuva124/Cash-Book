@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { formatCurrency } from '../../utils/currencyFormatter';
 import { useLocation } from 'react-router-dom';
+import { socket } from '../../utils/socket';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Wallet, ArrowUp, ArrowDown, TrendingUp, Info, 
@@ -10,6 +11,13 @@ import { useToast } from '../../context/ToastContext';
 import Dropdown from '../components/Dropdown';
 import ConfirmModal from '../components/ConfirmModal';
 
+const formatPaymentMode = (name) => {
+  if (!name) return '';
+  if (name.includes(' ** ')) {
+    return name.split(' ** ')[0];
+  }
+  return name;
+};
 
 export default function Home() {
   const { addToast } = useToast();
@@ -67,7 +75,6 @@ export default function Home() {
       const data = await res.json();
       if (data.success && data.data) {
         const filtered = data.data.filter(cat => 
-          cat.user_email?.toLowerCase() === userEmail &&
           cat.chalan_id === chalanId &&
           cat.active
         );
@@ -93,7 +100,6 @@ export default function Home() {
       const data = await res.json();
       if (data.success && data.data) {
         const filtered = data.data.filter(pm => 
-          pm.user_email?.toLowerCase() === userEmail &&
           pm.chalan_id === chalanId &&
           pm.active
         );
@@ -210,10 +216,11 @@ export default function Home() {
           paymentMode: tx.payment_mode,
           remark: tx.remark,
           createdBy: tx.created_by,
-          user_email: tx.user_email
+          user_email: tx.user_email,
+          is_deleted: !!tx.is_deleted || !!tx.deleted
         }));
         const userEmail = user?.email_id?.toLowerCase() || '';
-        const userTxs = mapped.filter(t => t.user_email?.toLowerCase() === userEmail);
+        const userTxs = mapped.filter(t => true);
         setTransactions(userTxs);
       }
     } catch (err) {
@@ -248,6 +255,22 @@ export default function Home() {
     loadTransactions();
     loadCategoriesAndModes(initialId || '1');
   }, [location.state]);
+
+  useEffect(() => {
+    const handleTxChange = () => {
+      loadTransactions();
+    };
+
+    socket.on('transaction_created', handleTxChange);
+    socket.on('transaction_updated', handleTxChange);
+    socket.on('transaction_deleted', handleTxChange);
+
+    return () => {
+      socket.off('transaction_created', handleTxChange);
+      socket.off('transaction_updated', handleTxChange);
+      socket.off('transaction_deleted', handleTxChange);
+    };
+  }, []);
 
   // Add transaction to backend database
   const handleAddTransaction = async (e) => {
@@ -348,11 +371,11 @@ export default function Home() {
   };
 
   // ── Metrics calculations scoped to active chalan ──
-  const activeTxs = activeChalanId === ''
+  const activeTxs = (activeChalanId === ''
     ? transactions
     : transactions.filter(tx => 
         tx.chalanId === activeChalanId || (activeChalanId === '1' && !tx.chalanId)
-      );
+      )).filter(t => !t.is_deleted && !t.deleted);
 
   const totalCashIn = activeTxs
     .filter(t => t.type === 'income')
@@ -390,7 +413,8 @@ export default function Home() {
 
   // Payment mode usage grouping
   const pmTotals = activeTxs.reduce((acc, curr) => {
-    acc[curr.paymentMode || 'Cash'] = (acc[curr.paymentMode || 'Cash'] || 0) + 1;
+    const formatted = formatPaymentMode(curr.paymentMode || 'Cash');
+    acc[formatted] = (acc[formatted] || 0) + 1;
     return acc;
   }, {});
   const sortedPaymentModes = Object.entries(pmTotals).sort((a, b) => b[1] - a[1]);
@@ -418,89 +442,104 @@ export default function Home() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         
         {/* Card 1: Total Balance */}
-        <div className="bg-white dark:bg-card border border-border/80 rounded-2xl p-5 shadow-sm flex items-center justify-between">
+        <div className="bg-white dark:bg-[#121827] border border-border/80 dark:border-slate-800 rounded-2xl p-5 flex items-center justify-between">
           <div className="space-y-1">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider truncate">Total Balance</p>
-            <p className="text-xl 2xl:text-2xl font-bold text-foreground whitespace-nowrap tracking-tight">
+            <p className="text-xs font-semibold text-muted-foreground dark:text-slate-400 uppercase tracking-wider truncate">Total Balance</p>
+            <p className="text-xl 2xl:text-2xl font-bold text-foreground dark:text-slate-100 whitespace-nowrap tracking-tight">
               {formatCurrency(totalBalance)}
             </p>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-indigo-500/10 text-blue-600 dark:text-indigo-400 flex items-center justify-center">
             <Wallet className="w-5 h-5" />
           </div>
         </div>
 
         {/* Card 2: Total Cash In */}
-        <div className="bg-white dark:bg-card border border-border/80 rounded-2xl p-5 shadow-sm flex items-center justify-between">
+        <div className="bg-white dark:bg-[#121827] border border-border/80 dark:border-slate-800 rounded-2xl p-5 flex items-center justify-between">
           <div className="space-y-1">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider truncate">Total Cash In</p>
-            <p className="text-xl 2xl:text-2xl font-bold text-foreground whitespace-nowrap tracking-tight">
+            <p className="text-xs font-semibold text-muted-foreground dark:text-slate-400 uppercase tracking-wider truncate">Total Cash In</p>
+            <p className="text-xl 2xl:text-2xl font-bold text-[#10b981] dark:text-emerald-400 whitespace-nowrap tracking-tight">
               {formatCurrency(totalCashIn)}
             </p>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
             <ArrowUp className="w-5 h-5" />
           </div>
         </div>
 
         {/* Card 3: Total Cash Out */}
-        <div className="bg-white dark:bg-card border border-border/80 rounded-2xl p-5 shadow-sm flex items-center justify-between">
+        <div className="bg-white dark:bg-[#121827] border border-border/80 dark:border-slate-800 rounded-2xl p-5 flex items-center justify-between">
           <div className="space-y-1">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider truncate">Total Cash Out</p>
-            <p className="text-xl 2xl:text-2xl font-bold text-expense whitespace-nowrap tracking-tight">
+            <p className="text-xs font-semibold text-muted-foreground dark:text-slate-400 uppercase tracking-wider truncate">Total Cash Out</p>
+            <p className="text-xl 2xl:text-2xl font-bold text-[#ef4444] dark:text-rose-400 whitespace-nowrap tracking-tight">
               {formatCurrency(totalCashOut)}
             </p>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/30 text-expense flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center">
             <ArrowDown className="w-5 h-5" />
           </div>
         </div>
 
         {/* Card 4: Cashbooks */}
-        <div className="bg-white dark:bg-card border border-border/80 rounded-2xl p-5 shadow-sm flex items-center justify-between">
+        <div className="bg-white dark:bg-[#121827] border border-border/80 dark:border-slate-800 rounded-2xl p-5 flex items-center justify-between">
           <div className="space-y-1">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider truncate">Cashbooks</p>
-            <p className="text-xl 2xl:text-2xl font-bold text-foreground whitespace-nowrap tracking-tight">
+            <p className="text-xs font-semibold text-muted-foreground dark:text-slate-400 uppercase tracking-wider truncate">Cashbooks</p>
+            <p className="text-xl 2xl:text-2xl font-bold text-foreground dark:text-slate-100 whitespace-nowrap tracking-tight">
               {cashbooksCount}
             </p>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
             <TrendingUp className="w-5 h-5" />
           </div>
         </div>
       </div>
 
       {/* Today's Summary Card */}
-      <div className="bg-white dark:bg-card border border-border/80 rounded-2xl p-6 shadow-sm space-y-4">
-        <div className="flex items-center gap-2 text-foreground font-bold text-base">
-          <Info className="w-5 h-5 text-muted-foreground" />
+      <div className="bg-white dark:bg-[#121827] border border-border/80 dark:border-slate-800 rounded-2xl p-6 space-y-4">
+        <div className="flex items-center gap-2 text-foreground dark:text-slate-100 font-bold text-base">
+          <Info className="w-5 h-5 text-muted-foreground dark:text-slate-400" />
           <span>Today's Summary</span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           
           {/* Subcard 1: Cash In Today */}
-          <div className="bg-[#f8fafc] dark:bg-[#15181f] border border-border/40 rounded-xl p-4">
-            <p className="text-xs text-muted-foreground font-semibold">Cash In Today</p>
-            <p className="text-lg font-bold text-foreground mt-1">
-              {formatCurrency(cashInToday)}
-            </p>
+          <div className="bg-[#f8fafc] dark:bg-[#0b0f19] border border-border/40 dark:border-slate-800 rounded-xl p-4 flex items-center justify-between">
+            <div className="space-y-0.5">
+              <p className="text-xs text-muted-foreground dark:text-slate-400 font-semibold">Cash In Today</p>
+              <p className="text-lg font-bold text-[#10b981] dark:text-emerald-400">
+                {formatCurrency(cashInToday)}
+              </p>
+            </div>
+            <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center">
+              <ArrowUp className="w-4 h-4" />
+            </div>
           </div>
 
           {/* Subcard 2: Cash Out Today */}
-          <div className="bg-[#f8fafc] dark:bg-[#15181f] border border-border/40 rounded-xl p-4">
-            <p className="text-xs text-muted-foreground font-semibold">Cash Out Today</p>
-            <p className="text-lg font-bold text-expense mt-1">
-              {formatCurrency(cashOutToday)}
-            </p>
+          <div className="bg-[#f8fafc] dark:bg-[#0b0f19] border border-border/40 dark:border-slate-800 rounded-xl p-4 flex items-center justify-between">
+            <div className="space-y-0.5">
+              <p className="text-xs text-muted-foreground dark:text-slate-400 font-semibold">Cash Out Today</p>
+              <p className="text-lg font-bold text-[#ef4444] dark:text-rose-400">
+                {formatCurrency(cashOutToday)}
+              </p>
+            </div>
+            <div className="w-9 h-9 rounded-xl bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 flex items-center justify-center">
+              <ArrowDown className="w-4 h-4" />
+            </div>
           </div>
 
           {/* Subcard 3: Transactions Today */}
-          <div className="bg-[#f8fafc] dark:bg-[#15181f] border border-border/40 rounded-xl p-4">
-            <p className="text-xs text-muted-foreground font-semibold">Transactions Today</p>
-            <p className="text-lg font-bold text-foreground mt-1">
-              {txsTodayCount}
-            </p>
+          <div className="bg-[#f8fafc] dark:bg-[#0b0f19] border border-border/40 dark:border-slate-800 rounded-xl p-4 flex items-center justify-between">
+            <div className="space-y-0.5">
+              <p className="text-xs text-muted-foreground dark:text-slate-400 font-semibold">Transactions Today</p>
+              <p className="text-lg font-bold text-foreground dark:text-slate-100">
+                {txsTodayCount}
+              </p>
+            </div>
+            <div className="w-9 h-9 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 flex items-center justify-center">
+              <Zap className="w-4 h-4" />
+            </div>
           </div>
         </div>
       </div>
@@ -509,13 +548,13 @@ export default function Home() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
         {/* Top Spending Categories Card */}
-        <div className="bg-white dark:bg-card border border-border/80 rounded-2xl p-6 shadow-sm space-y-4">
-          <h3 className="font-bold text-base text-[#1e293b] dark:text-foreground">
+        <div className="bg-white dark:bg-[#121827] border border-border/80 dark:border-slate-800 rounded-2xl p-6 space-y-4">
+          <h3 className="font-bold text-base text-[#1e293b] dark:text-slate-100">
             Top Spending Categories
           </h3>
 
           {sortedCategories.length === 0 ? (
-            <div className="flex items-center justify-center py-16 text-center text-muted-foreground text-sm font-medium">
+            <div className="flex items-center justify-center py-16 text-center text-muted-foreground dark:text-slate-400 text-sm font-medium">
               No expenses recorded yet
             </div>
           ) : (
@@ -525,12 +564,12 @@ export default function Home() {
                 return (
                   <div key={catName} className="space-y-1.5">
                     <div className="flex justify-between text-xs font-semibold">
-                      <span>{catName}</span>
-                      <span className="text-muted-foreground">{formatCurrency(amt)} ({pct}%)</span>
+                      <span className="text-foreground dark:text-slate-200">{catName}</span>
+                      <span className="text-muted-foreground dark:text-slate-400">{formatCurrency(amt)} ({pct}%)</span>
                     </div>
-                    <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+                    <div className="w-full h-2 bg-muted/60 dark:bg-slate-800 rounded-full overflow-hidden">
                       <div 
-                        className="h-full bg-primary rounded-full transition-all duration-300"
+                        className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-300"
                         style={{ width: `${pct}%` }}
                       />
                     </div>
@@ -542,13 +581,13 @@ export default function Home() {
         </div>
 
         {/* Payment Mode Usage Card */}
-        <div className="bg-white dark:bg-card border border-border/80 rounded-2xl p-6 shadow-sm space-y-4">
-          <h3 className="font-bold text-base text-[#1e293b] dark:text-foreground">
+        <div className="bg-white dark:bg-[#121827] border border-border/80 dark:border-slate-800 rounded-2xl p-6 space-y-4">
+          <h3 className="font-bold text-base text-[#1e293b] dark:text-slate-100">
             Payment Mode Usage
           </h3>
 
           {sortedPaymentModes.length === 0 ? (
-            <div className="flex items-center justify-center py-16 text-center text-muted-foreground text-sm font-medium">
+            <div className="flex items-center justify-center py-16 text-center text-muted-foreground dark:text-slate-400 text-sm font-medium">
               No transactions recorded yet
             </div>
           ) : (
@@ -559,12 +598,12 @@ export default function Home() {
                 return (
                   <div key={modeName} className="space-y-1.5">
                     <div className="flex justify-between text-xs font-semibold">
-                      <span>{modeName}</span>
-                      <span className="text-muted-foreground">{count} logs ({pct}%)</span>
+                      <span className="text-foreground dark:text-slate-200">{modeName}</span>
+                      <span className="text-muted-foreground dark:text-slate-400">{count} logs ({pct}%)</span>
                     </div>
-                    <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+                    <div className="w-full h-2 bg-muted/60 dark:bg-slate-800 rounded-full overflow-hidden">
                       <div 
-                        className="h-full bg-indigo-500 rounded-full transition-all duration-300"
+                        className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-300"
                         style={{ width: `${pct}%` }}
                       />
                     </div>
@@ -577,14 +616,14 @@ export default function Home() {
       </div>
 
       {/* Recent Activity Ledger for high functionality */}
-      <div className="bg-white dark:bg-card border border-border/80 rounded-2xl shadow-sm overflow-hidden p-6 space-y-4">
+      <div className="bg-white dark:bg-[#121827] border border-border/80 dark:border-slate-800 rounded-2xl p-6 space-y-4">
         <div className="flex justify-between items-center">
-          <h3 className="font-bold text-base text-[#1e293b] dark:text-foreground">
+          <h3 className="font-bold text-base text-[#1e293b] dark:text-slate-100">
             Recent Transactions
           </h3>
           <button 
             onClick={() => setShowAddForm(true)}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-primary text-primary-foreground font-semibold rounded-xl text-xs hover:opacity-95 transition-all shadow-sm"
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-primary dark:bg-indigo-600 text-primary-foreground font-semibold rounded-xl text-xs hover:opacity-95 dark:hover:bg-indigo-500 transition-all"
           >
             <Plus className="w-3.5 h-3.5" />
             Add Entry
@@ -592,48 +631,57 @@ export default function Home() {
         </div>
 
         {activeTxs.length === 0 ? (
-          <p className="text-center py-8 text-sm text-muted-foreground">No recent transaction records in this cashbook.</p>
+          <p className="text-center py-8 text-sm text-muted-foreground dark:text-slate-400">No recent transaction records in this cashbook.</p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+          <div className="overflow-x-auto w-full border border-border/60 dark:border-slate-800/80 rounded-xl bg-card dark:bg-[#0b0f19]">
+            <table className="w-full text-left border-collapse table-fixed min-w-[700px]">
               <thead>
-                <tr className="border-b border-border/60 text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                  <th className="pb-3">Title</th>
-                  <th className="pb-3">Category</th>
-                  <th className="pb-3">Payment Mode</th>
-                  <th className="pb-3">Date & Time</th>
-                  <th className="pb-3 text-right">Amount</th>
-                  <th className="pb-3 text-center">Action</th>
+                <tr className="bg-muted/30 dark:bg-slate-900/80 border-b border-border dark:border-slate-800 text-[11px] font-bold text-muted-foreground dark:text-slate-400 uppercase tracking-wider">
+                  <th className="px-4 py-3.5 w-[25%]">Title</th>
+                  <th className="px-4 py-3.5 w-[18%]">Category</th>
+                  <th className="px-4 py-3.5 w-[18%]">Payment Mode</th>
+                  <th className="px-4 py-3.5 w-[20%]">Date & Time</th>
+                  <th className="px-4 py-3.5 w-[14%] text-right">Amount</th>
+                  <th className="px-4 py-3.5 w-[5%] text-center">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border/40">
+              <tbody className="divide-y divide-border/60 dark:divide-slate-800/80">
                 {activeTxs.slice(0, 5).map((tx) => (
-                  <tr key={tx.id} className="text-sm">
-                    <td className="py-3 font-semibold text-foreground">
+                  <tr key={tx.id} className="hover:bg-muted/30 dark:hover:bg-slate-800/40 transition-colors text-xs font-semibold text-foreground dark:text-slate-200">
+                    <td className="px-4 py-3.5 font-semibold text-foreground dark:text-slate-100">
                       <div className="flex items-center gap-2">
-                        <span className={`w-1.5 h-1.5 rounded-full ${tx.type === 'income' ? 'bg-emerald-500' : 'bg-expense'}`} />
+                        <span className={`w-2 h-2 rounded-full ${tx.type === 'income' ? 'bg-[#10b981] dark:bg-emerald-400' : 'bg-[#ef4444] dark:bg-rose-400'}`} />
                         {tx.title}
                       </div>
                     </td>
-                    <td className="py-3 text-muted-foreground text-xs">{tx.category}</td>
-                    <td className="py-3 text-muted-foreground text-xs">{tx.paymentMode || 'Cash'}</td>
-                    <td className="py-3 text-muted-foreground text-xs">
+                    <td className="px-4 py-3.5">
+                      <span className="inline-block px-2.5 py-1 rounded-full bg-muted dark:bg-slate-800 text-muted-foreground dark:text-slate-300 dark:border dark:border-slate-700/60 text-[10px] font-bold">
+                        {tx.category}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3.5">
+                      <span className="inline-block px-2 py-0.5 rounded border border-border dark:border-slate-700/60 text-[10px] font-bold text-muted-foreground dark:text-slate-400 bg-muted/20 dark:bg-slate-800/60">
+                        {formatPaymentMode(tx.paymentMode || 'Cash')}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3.5 text-muted-foreground dark:text-slate-400">
                       <div className="flex flex-col">
                         <span>{tx.date}</span>
-                        <span className="opacity-70 text-[10px]">
+                        <span className="opacity-70 text-[10px] font-mono">
                           {new Date(parseInt(tx.id)).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
                       </div>
                     </td>
-                    <td className={`py-3 text-right font-bold ${tx.type === 'income' ? 'text-emerald-600' : 'text-expense'}`}>
-                      {tx.type  === 'income' ? '+' : ''}{formatCurrency(tx.type  === 'income' ? tx.amount : -tx.amount)}
+                    <td className={`px-4 py-3.5 text-right font-bold ${tx.type === 'income' ? 'text-[#10b981] dark:text-emerald-400' : 'text-[#ef4444] dark:text-rose-400'}`}>
+                      {tx.type === 'income' ? '+' : ''}{formatCurrency(tx.type === 'income' ? tx.amount : -tx.amount)}
                     </td>
-                    <td className="py-3 text-center">
+                    <td className="px-4 py-3.5 text-center">
                       <button
                         onClick={() => handleDeleteTransaction(tx.id)}
-                        className="p-1 rounded text-muted-foreground hover:text-expense hover:bg-expense-bg/30 transition-colors"
+                        className="p-1.5 text-muted-foreground dark:text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 hover:bg-rose-500/10 dark:hover:bg-rose-500/20 rounded transition-colors"
+                        title="Remove"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </td>
                   </tr>
@@ -793,7 +841,7 @@ export default function Home() {
                       onAddNew={handleAddNewPaymentMode}
                     >
                       {paymentModes.map(pm => (
-                        <option key={pm.id} value={pm.name}>{pm.name}</option>
+                        <option key={pm.id} value={pm.name}>{formatPaymentMode(pm.name)}</option>
                       ))}
                     </Dropdown>
                   </div>

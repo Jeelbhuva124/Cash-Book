@@ -19,7 +19,28 @@ export default function SignIn() {
   const [otpTimer, setOtpTimer] = useState(60);
   const [canResend, setCanResend] = useState(false);
 
+  const [phase, setPhase] = useState("typing"); // 'typing', 'exploding', 'orbiting', 'converging', 'success'
+
   useEffect(() => {
+    if (phase === "exploding") {
+      const timer = setTimeout(() => setPhase("orbiting"), 600);
+      return () => clearTimeout(timer);
+    } else if (phase === "orbiting") {
+      const timer = setTimeout(() => setPhase("converging"), 600);
+      return () => clearTimeout(timer);
+    } else if (phase === "converging") {
+      const timer = setTimeout(() => setPhase("success"), 600);
+      return () => clearTimeout(timer);
+    } else if (phase === "success") {
+      const timer = setTimeout(() => {
+        navigate("/dashboard");
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [phase, navigate]);
+
+  useEffect(() => {
+    sessionStorage.removeItem("dashboardSplashShown");
     if (localStorage.getItem("token")) {
       navigate("/dashboard");
     }
@@ -95,12 +116,15 @@ export default function SignIn() {
           setOtpValues(["", "", "", ""]);
           setOtpTimer(60);
           setCanResend(false);
+          setPhase("typing");
         } else {
           const username = response.user?.username || "User";
           addToast(`Welcome back, ${username}! 👋`, "success");
+          localStorage.removeItem("profile_data");
           localStorage.setItem("user", JSON.stringify(response.user));
           const token = response.token || response.user?.token || response.user?.firebaseToken || "auth-session";
           localStorage.setItem("token", token);
+          window.dispatchEvent(new Event("profileUpdated"));
           await recordNewSession();
           navigate("/dashboard");
         }
@@ -133,19 +157,22 @@ export default function SignIn() {
       if (response.success) {
         const username = response.user?.username || "User";
         addToast(`Welcome back, ${username}! 👋`, "success");
+        localStorage.removeItem("profile_data");
         localStorage.setItem("user", JSON.stringify(response.user));
         const token = response.token || response.user?.token || response.user?.firebaseToken || "auth-session";
         localStorage.setItem("token", token);
+        window.dispatchEvent(new Event("profileUpdated"));
         await recordNewSession();
-        navigate("/dashboard");
+        // Start animation sequence instead of navigating immediately
+        setPhase("exploding");
       } else {
         addToast(response.message || "Invalid verification code.", "error");
+        setIsLoading(false);
       }
     } catch (err) {
       console.error("OTP Verification Error:", err);
       const errMsg = err.response?.data?.message || err.message || "Verification failed.";
       addToast(errMsg, "error");
-    } finally {
       setIsLoading(false);
     }
   };
@@ -184,8 +211,10 @@ export default function SignIn() {
       if (response.success) {
         const username = response.user?.username || result.user.displayName || "User";
         addToast(`Welcome, ${username}! 🎉`, "success");
+        localStorage.removeItem("profile_data");
         localStorage.setItem("user", JSON.stringify(response.user));
         localStorage.setItem("token", response.user.firebaseToken);
+        window.dispatchEvent(new Event("profileUpdated"));
         await recordNewSession();
         navigate("/dashboard");
       } else {
@@ -202,6 +231,35 @@ export default function SignIn() {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const getBoxProps = (index) => {
+    if (phase === "typing") {
+      const spacing = 72;
+      const startX = -108; 
+      return {
+        x: startX + index * spacing,
+        y: 0,
+        scale: 1,
+        opacity: 1
+      };
+    }
+    
+    if (phase === "exploding" || phase === "orbiting") {
+      const radius = 80;
+      switch (index) {
+        case 0: return { x: 0, y: -radius, scale: 0.9, opacity: 1 };
+        case 1: return { x: radius, y: 0, scale: 0.9, opacity: 1 };
+        case 2: return { x: 0, y: radius, scale: 0.9, opacity: 1 };
+        case 3: return { x: -radius, y: 0, scale: 0.9, opacity: 1 };
+        default: return { x: 0, y: 0 };
+      }
+    }
+    
+    if (phase === "converging" || phase === "success") {
+      return { x: 0, y: 0, scale: 1, opacity: phase === "success" && index !== 0 ? 0 : 1 };
+    }
+    return { x: 0, y: 0 };
   };
 
   return (
@@ -389,61 +447,160 @@ export default function SignIn() {
                 </div>
 
                 <form onSubmit={handleVerifyOtp} className="space-y-6">
-                  {/* 4 Digit Inputs */}
-                  <div className="flex justify-center gap-4 my-4">
-                    {otpValues.map((value, idx) => (
-                      <motion.input
-                        key={idx}
-                        id={`otp-${idx}`}
-                        type="text"
-                        maxLength={1}
-                        value={value}
-                        onChange={(e) => handleOtpChange(e.target.value, idx)}
-                        onKeyDown={(e) => handleOtpKeyDown(e, idx)}
-                        onPaste={handleOtpPaste}
-                        whileFocus={{ scale: 1.05, y: -2 }}
-                        whileHover={{ scale: 1.02 }}
-                        transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                        className="w-14 h-16 text-center text-2xl font-bold rounded-2xl border border-border bg-muted/50 text-foreground focus:outline-none focus:border-primary focus:bg-card focus:ring-4 focus:ring-primary/10 transition-all shadow-sm focus:shadow-md"
-                      />
-                    ))}
+                  {/* Animated Central Area */}
+                  <div className="relative w-full h-[180px] flex items-center justify-center my-4">
+                    
+                    {/* Dashed Circle Background (visible during exploding/orbiting) */}
+                    <AnimatePresence>
+                      {(phase === 'exploding' || phase === 'orbiting') && (
+                        <motion.div 
+                          className="absolute w-[160px] h-[160px] rounded-full border border-dashed border-border"
+                          initial={{ opacity: 0, scale: 0.5 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.5 }}
+                          transition={{ duration: 0.4 }}
+                        />
+                      )}
+                    </AnimatePresence>
+
+                    {/* Rotating Container */}
+                    <motion.div
+                      className="relative w-full h-full flex items-center justify-center"
+                      animate={{ 
+                        rotate: phase === 'orbiting' ? 135 : 0 
+                      }}
+                      transition={{
+                        duration: 0.6,
+                        ease: "easeInOut"
+                      }}
+                    >
+                      {[0, 1, 2, 3].map((idx) => {
+                        const boxProps = getBoxProps(idx);
+                        const isSuccess = phase === 'success' && idx === 0;
+
+                        return (
+                          <motion.div
+                            key={idx}
+                            className={`absolute w-14 h-16 rounded-2xl flex items-center justify-center overflow-hidden transition-colors ${
+                              isSuccess ? 'bg-primary border-primary' : 'bg-muted/50 border-border'
+                            }`}
+                            initial={false}
+                            animate={{
+                              x: boxProps.x,
+                              y: boxProps.y,
+                              scale: boxProps.scale,
+                              opacity: boxProps.opacity,
+                              boxShadow: (phase === 'exploding' || phase === 'orbiting') 
+                                ? '4px 4px 15px hsla(var(--primary), 0.3)' 
+                                : isSuccess 
+                                  ? '0px 0px 30px hsla(var(--primary), 0.4)' 
+                                  : '0px 0px 0px rgba(0,0,0,0)',
+                              borderRightColor: (phase === 'exploding' || phase === 'orbiting') ? 'hsl(var(--primary))' : '',
+                              borderBottomColor: (phase === 'exploding' || phase === 'orbiting') ? 'hsl(var(--primary))' : '',
+                              borderWidth: phase !== 'typing' ? '2px' : '1px'
+                            }}
+                            transition={{
+                              type: "spring",
+                              stiffness: 200,
+                              damping: 15,
+                              opacity: { duration: 0.2 }
+                            }}
+                          >
+                            {phase === "typing" ? (
+                              <input
+                                id={`otp-${idx}`}
+                                type="text"
+                                maxLength={1}
+                                value={otpValues[idx]}
+                                onChange={(e) => handleOtpChange(e.target.value, idx)}
+                                onKeyDown={(e) => handleOtpKeyDown(e, idx)}
+                                onPaste={handleOtpPaste}
+                                className="w-full h-full text-center text-2xl font-bold bg-transparent text-foreground focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all"
+                              />
+                            ) : (
+                              <span className="text-foreground text-2xl font-bold">
+                                {otpValues[idx]}
+                              </span>
+                            )}
+
+                            {/* Success Checkmark */}
+                            {isSuccess && (
+                              <motion.div
+                                className="absolute inset-0 flex items-center justify-center bg-primary"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                              >
+                                <motion.div
+                                  initial={{ pathLength: 0, opacity: 0 }}
+                                  animate={{ pathLength: 1, opacity: 1 }}
+                                  transition={{ duration: 0.5, delay: 0.2 }}
+                                >
+                                  <CheckCircle className="w-8 h-8 text-white" />
+                                </motion.div>
+                              </motion.div>
+                            )}
+                          </motion.div>
+                        );
+                      })}
+                    </motion.div>
                   </div>
 
-                  {/* Submit Button */}
-                  <button
-                    type="submit"
-                    disabled={isLoading}
-                    className="w-full flex items-center justify-center gap-2 py-4 rounded-xl text-primary-foreground bg-primary hover:opacity-95 transition-all font-semibold text-sm shadow-sm disabled:opacity-70 disabled:cursor-not-allowed hover:scale-[1.01] active:scale-[0.99]"
-                  >
-                    {isLoading ? (
-                      <div className="h-5 w-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                    ) : (
-                      <>
-                        Verify & Access Dashboard
-                        <ArrowRight className="h-4 w-4" />
-                      </>
+                  {/* Submit Button (Hidden during animation) */}
+                  <AnimatePresence>
+                    {phase === "typing" && (
+                      <motion.button
+                        exit={{ opacity: 0, height: 0, overflow: "hidden", margin: 0, padding: 0 }}
+                        type="submit"
+                        disabled={isLoading}
+                        className="w-full flex items-center justify-center gap-2 py-4 rounded-xl text-primary-foreground bg-primary hover:opacity-95 transition-all font-semibold text-sm shadow-sm disabled:opacity-70 disabled:cursor-not-allowed hover:scale-[1.01] active:scale-[0.99]"
+                      >
+                        {isLoading ? (
+                          <div className="h-5 w-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                        ) : (
+                          <>
+                            Verify & Access Dashboard
+                            <ArrowRight className="h-4 w-4" />
+                          </>
+                        )}
+                      </motion.button>
                     )}
-                  </button>
+                  </AnimatePresence>
                 </form>
 
                 {/* Resend section */}
                 <div className="text-center pt-4 border-t border-border">
-                  {canResend ? (
-                    <div className="space-y-1">
-                      <p className="text-xs text-muted-foreground font-medium">Didn't receive the email?</p>
-                      <button
-                        type="button"
-                        onClick={handleResendOtp}
-                        className="text-sm font-bold text-primary hover:underline cursor-pointer"
+                  <AnimatePresence mode="wait">
+                    {phase === "success" ? (
+                      <motion.div
+                        key="secured"
+                        className="flex items-center justify-center gap-2 text-primary py-2"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
                       >
-                        Resend Verification Code
-                      </button>
-                    </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground font-medium">
-                      Resend code in <span className="font-bold text-foreground">{Math.floor(otpTimer / 60)}:{(otpTimer % 60).toString().padStart(2, '0')}</span>
-                    </p>
-                  )}
+                        <Lock className="w-4 h-4" />
+                        <span className="text-sm font-semibold uppercase tracking-wider">Verified & Secured</span>
+                      </motion.div>
+                    ) : (
+                      <motion.div key="resend" exit={{ opacity: 0 }}>
+                        {canResend ? (
+                          <div className="space-y-1">
+                            <p className="text-xs text-muted-foreground font-medium">Didn't receive the email?</p>
+                            <button
+                              type="button"
+                              onClick={handleResendOtp}
+                              className="text-sm font-bold text-primary hover:underline cursor-pointer"
+                            >
+                              Resend Verification Code
+                            </button>
+                          </div>
+                        ) : (
+                          <p className="text-sm text-muted-foreground font-medium">
+                            Resend code in <span className="font-bold text-foreground">{Math.floor(otpTimer / 60)}:{(otpTimer % 60).toString().padStart(2, '0')}</span>
+                          </p>
+                        )}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               </motion.div>
             )}

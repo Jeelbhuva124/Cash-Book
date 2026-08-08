@@ -126,6 +126,27 @@ export const About = () => {
     },
   ];
 
+  const founders = [
+    {
+      name: "Iron-Man",
+      role: "Co-Founder & CEO",
+      image: "https://images.unsplash.com/photo-1611604548018-d56bbd85d681?auto=format&fit=crop&q=80&w=400",
+      bio: "Genius, billionaire, playboy, philanthropist. Bringing Stark Industries-level tech to revolutionize digital finance."
+    },
+    {
+      name: "Prime Jash",
+      role: "Co-Founder & CTO",
+      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=400",
+      bio: "The mastermind architect. Forging lightning-fast sync engines and unbreakable backend systems."
+    },
+    {
+      name: "Prime Jeel",
+      role: "Co-Founder & Head of Product",
+      image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=400",
+      bio: "The visionary designer. Turning raw, complex financial data into a seamless and beautiful user experience."
+    }
+  ];
+
   const featuresOverview = [
     {
       icon: Wallet,
@@ -228,33 +249,6 @@ export const About = () => {
         </motion.div>
       </section>
 
-      {/* ── STATS SECTION ── */}
-      <section className="py-10 border-y border-border/60 bg-card/40 backdrop-blur-md relative z-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 divide-y md:divide-y-0 md:divide-x divide-border/50 text-center">
-            {stats.map((stat, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: false, amount: 0.3 }}
-                transition={{ duration: 0.5, delay: i * 0.1, ease: "easeOut" }}
-                className="flex flex-col items-center justify-center p-4"
-              >
-                <span className="text-3xl sm:text-5xl font-black text-foreground mb-1">
-                  {stat.value}
-                </span>
-                <span className="text-xs sm:text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-1">
-                  {stat.label}
-                </span>
-                <span className={`text-[11px] font-bold ${stat.badgeColor} ${stat.badgeBg} px-2.5 py-0.5 rounded-full border border-border/40`}>
-                  {stat.change}
-                </span>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* ── STORY / MISSION SECTION ── */}
       <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
@@ -306,7 +300,7 @@ export const About = () => {
           >
             <div className="bg-card border border-border rounded-3xl p-8 shadow-2xl relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-48 h-48 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-all duration-500 pointer-events-none" />
-              
+
               <div className="space-y-6 relative z-10">
                 <div className="flex items-center justify-between border-b border-border/60 pb-4">
                   <div className="flex items-center gap-3">
@@ -455,11 +449,10 @@ export const About = () => {
             <button
               key={idx}
               onClick={() => setActiveMilestone(idx)}
-              className={`px-6 py-2.5 rounded-full text-sm font-bold transition-all cursor-pointer ${
-                activeMilestone === idx
-                  ? "bg-primary text-primary-foreground shadow-md shadow-primary/25"
-                  : "bg-card border border-border text-muted-foreground hover:text-foreground"
-              }`}
+              className={`px-6 py-2.5 rounded-full text-sm font-bold transition-all cursor-pointer ${activeMilestone === idx
+                ? "bg-primary text-primary-foreground shadow-md shadow-primary/25"
+                : "bg-card border border-border text-muted-foreground hover:text-foreground"
+                }`}
             >
               {m.year} — {m.title}
             </button>
@@ -517,22 +510,20 @@ export const About = () => {
                   zIndex: zIndex,
                 }}
                 transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-                className={`absolute w-[92%] sm:w-[480px] lg:w-[520px] bg-card border ${
-                  isActive
-                    ? "border-primary shadow-2xl shadow-primary/25"
-                    : "border-border shadow-lg hover:border-primary/40"
-                } p-6 sm:p-8 rounded-3xl cursor-pointer select-none transition-colors duration-300`}
+                className={`absolute w-[92%] sm:w-[480px] lg:w-[520px] bg-card border ${isActive
+                  ? "border-primary shadow-2xl shadow-primary/25"
+                  : "border-border shadow-lg hover:border-primary/40"
+                  } p-6 sm:p-8 rounded-3xl cursor-pointer select-none transition-colors duration-300`}
               >
                 <div className="flex items-center justify-between mb-4">
                   <span className={`text-2xl font-black ${isActive ? "text-primary" : "text-muted-foreground"}`}>
                     {milestone.year}
                   </span>
                   <span
-                    className={`text-xs font-bold px-3 py-1 rounded-full border ${
-                      isActive
-                        ? "bg-primary/10 text-primary border-primary/20"
-                        : "bg-muted text-muted-foreground border-border"
-                    }`}
+                    className={`text-xs font-bold px-3 py-1 rounded-full border ${isActive
+                      ? "bg-primary/10 text-primary border-primary/20"
+                      : "bg-muted text-muted-foreground border-border"
+                      }`}
                   >
                     {milestone.badge}
                   </span>
@@ -553,11 +544,10 @@ export const About = () => {
                   {milestone.achievements.map((ach, aIdx) => (
                     <div key={aIdx} className="flex items-center gap-3 text-sm font-medium text-foreground/90">
                       <div
-                        className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 border ${
-                          isActive
-                            ? "bg-income-bg text-income border-income/30"
-                            : "bg-muted text-muted-foreground border-border"
-                        }`}
+                        className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 border ${isActive
+                          ? "bg-income-bg text-income border-income/30"
+                          : "bg-muted text-muted-foreground border-border"
+                          }`}
                       >
                         <CheckCircle2 className="w-3 h-3" />
                       </div>
@@ -568,6 +558,42 @@ export const About = () => {
               </motion.div>
             );
           })}
+        </div>
+      </section>
+
+      {/* ── FOUNDERS SECTION ── */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div className="text-center mb-14 space-y-3">
+          <span className="text-xs font-bold text-primary tracking-widest uppercase">
+            The Team
+          </span>
+          <h2 className="text-3xl sm:text-4xl font-extrabold">Meet the Founders</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {founders.map((founder, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ delay: i * 0.1, type: "spring", stiffness: 100 }}
+              className="bg-card/80 backdrop-blur-md border border-border rounded-3xl overflow-hidden group hover:shadow-2xl hover:shadow-primary/20 hover:-translate-y-2 transition-all duration-300"
+            >
+              <div className="relative h-72 overflow-hidden">
+                <img src={founder.image} alt={founder.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-[cubic-bezier(0.25,0.46,0.45,0.94)]" />
+                <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-300" />
+              </div>
+              <div className="relative p-8 text-center -mt-20">
+                <div className="bg-background/80 backdrop-blur-xl border border-border/50 rounded-2xl p-6 shadow-xl">
+                  <h3 className="text-2xl font-black text-foreground mb-1">{founder.name}</h3>
+                  <p className="text-sm font-bold text-primary tracking-wide uppercase mb-4">{founder.role}</p>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {founder.bio}
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          ))}
         </div>
       </section>
 
