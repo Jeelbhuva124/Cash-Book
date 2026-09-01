@@ -62,6 +62,34 @@ const transactionSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
+    interest_rate: {
+      type: Number,
+      default: 0,
+    },
+    party_type: {
+      type: String,
+      enum: ['creditor', 'debtor', ''],
+      default: '',
+    },
+    party_name: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    start_date: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    end_date: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    total_days: {
+      type: Number,
+      default: 0,
+    },
     is_deleted: {
       type: Boolean,
       default: false,

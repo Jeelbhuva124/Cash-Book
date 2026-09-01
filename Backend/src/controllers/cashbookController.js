@@ -7,7 +7,7 @@ import PaymentMode from '../models/paymentMode.js';
 // Create a new Cashbook
 export const createCashbook = async (req, res) => {
   try {
-    const { cashbook_name, description, hex_code, user_email, user_id } = req.body;
+    const { cashbook_name, description, hex_code, cashbook_type, user_email, user_id } = req.body;
 
     if (!cashbook_name) {
       return res.status(400).json({
@@ -21,6 +21,7 @@ export const createCashbook = async (req, res) => {
       cashbook_name: cashbook_name.trim(),
       description: description ? description.trim() : '',
       hex_code: hex_code ? hex_code.trim() : '#8B5CF6',
+      cashbook_type: cashbook_type ? cashbook_type.trim() : 'Normal',
       user_email: user_email ? user_email.toLowerCase().trim() : '',
       user_id: user_id ? user_id.trim() : '',
     });
@@ -74,7 +75,7 @@ export const getCashbooks = async (req, res) => {
 // Update Cashbook (via req.body ID)
 export const updateCashbook = async (req, res) => {
   try {
-    const { id, cashbook_name, description, hex_code } = req.body;
+    const { id, cashbook_name, description, hex_code, cashbook_type } = req.body;
 
     if (!id) {
       return res.status(400).json({
@@ -100,6 +101,9 @@ export const updateCashbook = async (req, res) => {
     }
     if (hex_code !== undefined) {
       updateFields.hex_code = hex_code.trim();
+    }
+    if (cashbook_type !== undefined) {
+      updateFields.cashbook_type = cashbook_type.trim();
     }
 
     if (Object.keys(updateFields).length === 0) {

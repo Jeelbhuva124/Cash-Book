@@ -287,8 +287,10 @@ const adminController = {
       const total_cashbooks = await Cashbook.countDocuments({});
 
       // Manually sum up transaction volumes to avoid string issues
-      const allTransactions = await Transaction.find({}, 'amount');
+      const allTransactions = await Transaction.find({}, 'amount category');
       let total_volume = 0;
+      const catCount = {};
+      
       for (const t of allTransactions) {
         if (t.amount) {
            const parsedAmount = parseFloat(t.amount.toString().replace(/,/g, ''));
@@ -296,7 +298,32 @@ const adminController = {
              total_volume += parsedAmount;
            }
         }
+        
+        // Count categories
+        if (t.category) {
+          const cat = t.category;
+          catCount[cat] = (catCount[cat] || 0) + 1;
+        }
       }
+
+      // Generate Category Breakdown
+      let totalCats = Object.values(catCount).reduce((a, b) => a + b, 0);
+      let categoryBreakdown = [];
+      const colors = ["bg-primary", "bg-emerald-500", "bg-amber-500", "bg-sky-500", "bg-rose-500"];
+      
+      if (totalCats > 0) {
+        const sortedCats = Object.entries(catCount).sort((a, b) => b[1] - a[1]).slice(0, 5);
+        categoryBreakdown = sortedCats.map((item, index) => ({
+          label: item[0],
+          percentage: Math.round((item[1] / totalCats) * 100),
+          color: colors[index % colors.length]
+        }));
+      } else {
+        categoryBreakdown = [
+          { label: "No Data", percentage: 0, color: "bg-muted" }
+        ];
+      }
+
 
       // Generate dynamic recent logs (audit trail)
       const recentUsers = await User.find({}).sort({ createdAt: -1 }).limit(3);
@@ -416,7 +443,8 @@ const adminController = {
             ram: memFormatted,
             cpu: cpuLoad,
             dbStorageGB
-          }
+          },
+          categoryBreakdown
         }
       });
     } catch (err) {

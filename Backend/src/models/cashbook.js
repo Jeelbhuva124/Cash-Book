@@ -7,6 +7,11 @@ const cashbookSchema = new mongoose.Schema(
       required: [true, 'Cashbook name is required'],
       trim: true,
     },
+    cashbook_type: {
+      type: String,
+      enum: ['regular', 'interest_based'],
+      default: 'regular',
+    },
     description: {
       type: String,
       default: '',

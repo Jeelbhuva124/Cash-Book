@@ -4,7 +4,7 @@ import { useLocation } from 'react-router-dom';
 import { socket } from '../../utils/socket';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Wallet, ArrowUp, ArrowDown, TrendingUp, Info, 
+  Wallet, ArrowUp, ArrowDown, TrendingUp, Info,
   Plus, X, Zap, CheckCircle2, Trash2, Calendar
 } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
@@ -35,17 +35,32 @@ export default function Home() {
     isOpen: false,
     title: '',
     message: '',
-    onConfirm: () => {}
+    onConfirm: () => { }
   });
 
   // Form states
   const [title, setTitle] = useState('');
   const [type, setType] = useState('expense'); // income, expense
   const [category, setCategory] = useState('');
+  const [subcategory, setSubcategory] = useState('');
   const [paymentMode, setPaymentMode] = useState('');
   const [amount, setAmount] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedChalanId, setSelectedChalanId] = useState('1');
+
+  // Interest based extra states
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [interestRate, setInterestRate] = useState('');
+  const [partyType, setPartyType] = useState('creditor');
+  const [partyName, setPartyName] = useState('');
+
+  const calculateTotalDays = (start, end) => {
+    if (!start || !end) return 0;
+    const s = new Date(start);
+    const e = new Date(end);
+    return Math.ceil(Math.abs(e - s) / (1000 * 60 * 60 * 24));
+  };
   const [clientIp, setClientIp] = useState('Fetching IP...');
 
   // Load user session
@@ -75,7 +90,7 @@ export default function Home() {
       const res = await fetch('http://localhost:5001/api/category/select');
       const data = await res.json();
       if (data.success && data.data) {
-        const filtered = data.data.filter(cat => 
+        const filtered = data.data.filter(cat =>
           cat.chalan_id === chalanId &&
           cat.active
         );
@@ -100,7 +115,7 @@ export default function Home() {
       const res = await fetch('http://localhost:5001/api/payment-mode/select');
       const data = await res.json();
       if (data.success && data.data) {
-        const filtered = data.data.filter(pm => 
+        const filtered = data.data.filter(pm =>
           pm.chalan_id === chalanId &&
           pm.active
         );
@@ -245,14 +260,14 @@ export default function Home() {
     // 1. Determine active chalan ID
     const stateId = location.state?.selectedCashbookId;
     let initialId = '';
-    
+
     if (stateId) {
       initialId = stateId;
       localStorage.setItem(activeChalanKey, stateId);
     } else {
       localStorage.removeItem(activeChalanKey);
     }
-    
+
     setActiveChalanId(initialId);
     setSelectedChalanId(initialId);
 
@@ -260,7 +275,7 @@ export default function Home() {
     const savedChalans = localStorage.getItem(chalansStorageKey);
     let loadedChalans = [];
     if (savedChalans) {
-      try { loadedChalans = JSON.parse(savedChalans); } catch (e) {}
+      try { loadedChalans = JSON.parse(savedChalans); } catch (e) { }
     }
     setChalans(loadedChalans);
 
@@ -293,19 +308,28 @@ export default function Home() {
       return;
     }
 
+    const selectedChalan = chalans.find(c => c.id === selectedChalanId);
+    const isInterestMode = selectedChalan?.cashbook_type === 'Interest';
+
     const payload = {
       title: title.trim(),
       type,
       amount: parseFloat(amount),
-      date,
+      date: isInterestMode ? (startDate || date) : date,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }),
       chalan_id: selectedChalanId || '1',
-      category,
-      subcategory: '',
+      category: isInterestMode ? 'Interest' : category,
+      subcategory: isInterestMode ? '' : subcategory,
       payment_mode: paymentMode,
       remark: 'Null',
       created_by: user?.username || 'Guest',
-      user_email: user?.email_id || ''
+      user_email: user?.email_id || '',
+      start_date: isInterestMode ? startDate : null,
+      end_date: isInterestMode ? endDate : null,
+      interest_rate: isInterestMode ? parseFloat(interestRate) : null,
+      party_type: isInterestMode ? partyType : null,
+      party_name: isInterestMode ? partyName : null,
+      total_days: isInterestMode ? calculateTotalDays(startDate, endDate) : null
     };
 
     try {
@@ -335,12 +359,17 @@ export default function Home() {
 
         setTransactions([savedTx, ...transactions]);
         addToast("Transaction recorded successfully!", "success");
-        
+
         // Reset Form
         setTitle('');
         setAmount('');
+        setSubcategory('');
+        setInterestRate('');
+        setPartyName('');
+        setStartDate('');
+        setEndDate('');
         setShowAddForm(false);
-        
+
         // Automatically switch dashboard view to the cashbook where entry was added
         if (selectedChalanId !== activeChalanId) {
           setActiveChalanId(selectedChalanId);
@@ -386,9 +415,9 @@ export default function Home() {
   // ── Metrics calculations scoped to active chalan ──
   const activeTxs = (activeChalanId === ''
     ? transactions
-    : transactions.filter(tx => 
-        tx.chalanId === activeChalanId || (activeChalanId === '1' && !tx.chalanId)
-      )).filter(t => !t.is_deleted && !t.deleted);
+    : transactions.filter(tx =>
+      tx.chalanId === activeChalanId || (activeChalanId === '1' && !tx.chalanId)
+    )).filter(t => !t.is_deleted && !t.deleted);
 
   const totalCashIn = activeTxs
     .filter(t => t.type === 'income')
@@ -405,7 +434,7 @@ export default function Home() {
 
   // Today metrics
   const todayStr = new Date().toISOString().split('T')[0];
-  
+
   const cashInToday = activeTxs
     .filter(t => t.type === 'income' && t.date === todayStr)
     .reduce((sum, t) => sum + t.amount, 0);
@@ -434,10 +463,12 @@ export default function Home() {
 
   // Get Active Chalan Name
   const activeChalanName = chalans.find(c => c.id === activeChalanId)?.name || "General Cashbook";
+  const selectedChalanForForm = chalans.find(c => c.id === selectedChalanId);
+  const isInterestBasedEntry = selectedChalanForForm?.cashbook_type === 'Interest';
 
   return (
     <div className="p-6 md:p-8 w-full space-y-6 text-foreground bg-transparent dark:bg-transparent min-h-screen">
-      
+
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
@@ -453,7 +484,7 @@ export default function Home() {
 
       {/* Row of 4 Metrics Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        
+
         {/* Card 1: Total Balance */}
         <div className="bg-white dark:bg-[#121827] border border-border/80 dark:border-slate-800 rounded-2xl p-5 flex items-center justify-between">
           <div className="space-y-1">
@@ -515,7 +546,7 @@ export default function Home() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          
+
           {/* Subcard 1: Cash In Today */}
           <div className="bg-[#f8fafc] dark:bg-[#0b0f19] border border-border/40 dark:border-slate-800 rounded-xl p-4 flex items-center justify-between">
             <div className="space-y-0.5">
@@ -559,7 +590,7 @@ export default function Home() {
 
       {/* Grid of Spending Categories & Payment Mode Usage */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
+
         {/* Top Spending Categories Card */}
         <div className="bg-white dark:bg-[#121827] border border-border/80 dark:border-slate-800 rounded-2xl p-6 space-y-4">
           <h3 className="font-bold text-base text-[#1e293b] dark:text-slate-100">
@@ -581,7 +612,7 @@ export default function Home() {
                       <span className="text-muted-foreground dark:text-slate-400">{formatCurrency(amt)} ({pct}%)</span>
                     </div>
                     <div className="w-full h-2 bg-muted/60 dark:bg-slate-800 rounded-full overflow-hidden">
-                      <div 
+                      <div
                         className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-300"
                         style={{ width: `${pct}%` }}
                       />
@@ -610,7 +641,7 @@ export default function Home() {
             const chronologicalTxs = [...activeTxs].sort((a, b) => {
               const dateCompare = a.date.localeCompare(b.date);
               if (dateCompare !== 0) return dateCompare;
-              
+
               const parseTime = (tStr) => {
                 if (!tStr) return 0;
                 try {
@@ -737,11 +768,10 @@ export default function Home() {
                           cx={p.x}
                           cy={p.y}
                           r={hoveredPointIdx === idx ? "5" : "3.5"}
-                          className={`transition-all duration-150 ${
-                            hoveredPointIdx === idx 
-                              ? "fill-indigo-500 stroke-white dark:stroke-slate-900 stroke-[1.5px] filter drop-shadow-[0_0_4px_rgba(99,102,241,0.6)]" 
+                          className={`transition-all duration-150 ${hoveredPointIdx === idx
+                              ? "fill-indigo-500 stroke-white dark:stroke-slate-900 stroke-[1.5px] filter drop-shadow-[0_0_4px_rgba(99,102,241,0.6)]"
                               : "fill-white dark:fill-slate-900 stroke-indigo-500 stroke-2"
-                          }`}
+                            }`}
                         />
                       </g>
                     ))}
@@ -759,7 +789,7 @@ export default function Home() {
           <h3 className="font-bold text-base text-[#1e293b] dark:text-slate-100">
             Recent Transactions
           </h3>
-          <button 
+          <button
             onClick={() => setShowAddForm(true)}
             className="flex items-center gap-1.5 px-3.5 py-2 bg-primary dark:bg-indigo-600 text-primary-foreground font-semibold rounded-xl text-xs hover:opacity-95 dark:hover:bg-indigo-500 transition-all"
           >
@@ -857,7 +887,7 @@ export default function Home() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="relative bg-white dark:bg-card border border-border rounded-2xl shadow-sm p-6 w-full max-w-[460px] z-10 space-y-6 text-foreground"
+              className="relative bg-white dark:bg-card border border-border rounded-2xl shadow-sm p-6 w-full max-w-[460px] max-h-[90vh] overflow-y-auto z-10 space-y-6 text-foreground custom-scrollbar"
             >
               <div className="flex justify-between items-center">
                 <h3 className="font-bold text-lg flex items-center gap-2">
@@ -878,11 +908,10 @@ export default function Home() {
                   <button
                     type="button"
                     onClick={() => setType('expense')}
-                    className={`py-2 rounded-lg font-bold text-xs transition-all flex items-center justify-center gap-1.5 ${
-                      type === 'expense'
+                    className={`py-2 rounded-lg font-bold text-xs transition-all flex items-center justify-center gap-1.5 ${type === 'expense'
                         ? 'bg-white dark:bg-[#1a2475] text-expense dark:text-white shadow-sm'
                         : 'text-muted-foreground hover:text-foreground'
-                    }`}
+                      }`}
                   >
                     <ArrowDown className="w-3.5 h-3.5" />
                     Expense
@@ -890,11 +919,10 @@ export default function Home() {
                   <button
                     type="button"
                     onClick={() => setType('income')}
-                    className={`py-2 rounded-lg font-bold text-xs transition-all flex items-center justify-center gap-1.5 ${
-                      type === 'income'
+                    className={`py-2 rounded-lg font-bold text-xs transition-all flex items-center justify-center gap-1.5 ${type === 'income'
                         ? 'bg-white dark:bg-[#1a2475] text-emerald-600 dark:text-white shadow-sm'
                         : 'text-muted-foreground hover:text-foreground'
-                    }`}
+                      }`}
                   >
                     <ArrowUp className="w-3.5 h-3.5" />
                     Income
@@ -933,7 +961,7 @@ export default function Home() {
                 </div>
 
                 {/* Amount & Date */}
-                <div className="grid grid-cols-2 gap-4">
+                <div className={`grid gap-4 ${isInterestBasedEntry ? 'grid-cols-1' : 'grid-cols-2'}`}>
                   <div className="space-y-1">
                     <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide">Amount (₹)</label>
                     <input
@@ -945,45 +973,143 @@ export default function Home() {
                       className="w-full px-4 py-2.5 rounded-xl border border-border focus:outline-none focus:border-primary text-sm font-bold text-foreground bg-white dark:bg-card"
                     />
                   </div>
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide">Date</label>
-                    <input
-                      type="date"
-                      required
-                      value={date}
-                      onChange={(e) => setDate(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl border border-border focus:outline-none focus:border-primary text-sm font-medium text-foreground bg-white dark:bg-card"
-                    />
-                  </div>
+                  {!isInterestBasedEntry && (
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide">Date</label>
+                      <input
+                        type="date"
+                        required
+                        value={date}
+                        onChange={(e) => setDate(e.target.value)}
+                        className="w-full px-4 py-2.5 rounded-xl border border-border focus:outline-none focus:border-primary text-sm font-medium text-foreground bg-white dark:bg-card"
+                      />
+                    </div>
+                  )}
                 </div>
 
-                {/* Category & Payment Mode */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide">Category</label>
-                    <Dropdown
-                      value={category}
-                      onChange={(e) => setCategory(e.target.value)}
-                      onAddNew={handleAddNewCategory}
-                    >
-                      {categories.map(c => (
-                        <option key={c.id} value={c.name}>{c.name}</option>
-                      ))}
-                    </Dropdown>
+                {/* Dynamic Fields */}
+                {isInterestBasedEntry ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-3 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-xl">
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wide flex justify-between">
+                        Interest Rate (%)
+                        <span className="text-amber-600/70 text-[9px]">Per Month</span>
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={interestRate}
+                        onChange={(e) => setInterestRate(e.target.value)}
+                        placeholder="e.g. 2.5"
+                        className="w-full px-4 py-2.5 rounded-xl border border-border focus:outline-none focus:border-amber-500 text-sm font-bold text-foreground bg-white dark:bg-card"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wide">Party Type</label>
+                      <Dropdown
+                        value={partyType}
+                        onChange={(e) => setPartyType(e.target.value)}
+                      >
+                        <option value="creditor">Creditor (Given to)</option>
+                        <option value="debtor">Debtor (Taken from)</option>
+                      </Dropdown>
+                    </div>
+                    <div className="space-y-1 md:col-span-2">
+                      <label className="text-[11px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wide">Party Name</label>
+                      <input
+                        type="text"
+                        value={partyName}
+                        onChange={(e) => setPartyName(e.target.value)}
+                        placeholder="Enter Name"
+                        className="w-full px-4 py-2.5 rounded-xl border border-border focus:outline-none focus:border-amber-500 text-sm font-bold text-foreground bg-white dark:bg-card"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wide">Start Date</label>
+                      <input
+                        type="date"
+                        required
+                        value={startDate}
+                        onChange={(e) => setStartDate(e.target.value)}
+                        className="w-full px-4 py-2.5 rounded-xl border border-border focus:outline-none focus:border-amber-500 text-sm font-bold text-foreground bg-white dark:bg-card"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wide">End Date</label>
+                      <input
+                        type="date"
+                        required
+                        value={endDate}
+                        onChange={(e) => setEndDate(e.target.value)}
+                        className="w-full px-4 py-2.5 rounded-xl border border-border focus:outline-none focus:border-amber-500 text-sm font-bold text-foreground bg-white dark:bg-card"
+                      />
+                    </div>
+                    <div className="space-y-1 md:col-span-2">
+                      <label className="text-[11px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wide flex justify-between">
+                        <span>Total Days</span>
+                        <span className="font-mono">{calculateTotalDays(startDate, endDate)} days</span>
+                      </label>
+                    </div>
                   </div>
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide">Payment Mode</label>
-                    <Dropdown
-                      value={paymentMode}
-                      onChange={(e) => setPaymentMode(e.target.value)}
-                      onAddNew={handleAddNewPaymentMode}
-                    >
-                      {paymentModes.map(pm => (
-                        <option key={pm.id} value={pm.name}>{formatPaymentMode(pm.name)}</option>
-                      ))}
-                    </Dropdown>
-                  </div>
+                ) : (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide">Category</label>
+                        <Dropdown
+                          value={category}
+                          onChange={(e) => setCategory(e.target.value)}
+                          onAddNew={handleAddNewCategory}
+                        >
+                          {categories.map(c => (
+                            <option key={c.id} value={c.name}>{c.name}</option>
+                          ))}
+                        </Dropdown>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide">Subcategory</label>
+                        <input
+                          type="text"
+                          value={subcategory}
+                          onChange={(e) => setSubcategory(e.target.value)}
+                          placeholder="e.g. rent', dinner"
+                          className="w-full px-4 py-2.5 rounded-xl border border-border focus:outline-none focus:border-primary text-sm font-medium text-foreground bg-white dark:bg-card"
+                        />
+                      </div>
+                    </div>
+                )}
+
+                <div className="space-y-1">
+                  <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide">Payment Mode</label>
+                  <Dropdown
+                    value={paymentMode}
+                    onChange={(e) => setPaymentMode(e.target.value)}
+                    onAddNew={handleAddNewPaymentMode}
+                  >
+                    {paymentModes.map(pm => (
+                      <option key={pm.id} value={pm.name}>{formatPaymentMode(pm.name)}</option>
+                    ))}
+                  </Dropdown>
                 </div>
+
+                {isInterestBasedEntry && (
+                  <div className="mt-4 p-4 bg-primary/5 rounded-xl border border-primary/20 flex items-center justify-between">
+                    <div>
+                      <h4 className="text-xs font-bold text-primary uppercase tracking-wider">Total Final Amount</h4>
+                      <p className="text-[10px] text-muted-foreground mt-0.5">Principal + Interest</p>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-lg font-black text-primary">
+                        {(() => {
+                          const p = parseFloat(amount) || 0;
+                          const r = parseFloat(interestRate) || 0;
+                          const d = calculateTotalDays(startDate, endDate);
+                          const interest = (p * r * d) / 3000;
+                          return formatCurrency(p + interest);
+                        })()}
+                      </span>
+                    </div>
+                  </div>
+                )}
 
                 {/* Submit Entry */}
                 <button

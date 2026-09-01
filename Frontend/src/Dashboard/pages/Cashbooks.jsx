@@ -47,6 +47,7 @@ export default function Cashbooks() {
   const [cashbookName, setCashbookName] = useState('');
   const [description, setDescription] = useState('');
   const [hexCode, setHexCode] = useState('#8B5CF6');
+  const [cashbookType, setCashbookType] = useState('Normal');
   const [loading, setLoading] = useState(false);
 
   // Storage key matching Home.jsx 'chalans'
@@ -88,7 +89,7 @@ export default function Cashbooks() {
     try {
       const response = await fetch('http://localhost:5001/api/cashbook/select', { signal });
       const data = await response.json();
-      
+
       if (data.success && data.data) {
         const filteredData = data.data.filter(cb => cb.user_email?.toLowerCase() === userEmail);
         ownCashbooks = filteredData.map(cb => ({
@@ -96,6 +97,7 @@ export default function Cashbooks() {
           name: cb.cashbook_name,
           description: cb.description || '',
           hex_code: cb.hex_code || '#8B5CF6',
+          cashbook_type: cb.cashbook_type || 'Normal',
           createdAt: cb.createdAt || new Date().toISOString(),
           isShared: false
         }));
@@ -113,7 +115,7 @@ export default function Cashbooks() {
 
       if (dataInv.success && Array.isArray(dataInv.data)) {
         setAllInvitations(dataInv.data);
-        const accepted = dataInv.data.filter(i => 
+        const accepted = dataInv.data.filter(i =>
           i.email?.toLowerCase() === userEmail && i.status === 'Accepted'
         );
 
@@ -122,6 +124,7 @@ export default function Cashbooks() {
           name: inv.cashbook_name,
           description: `Shared by ${inv.inviter_email}`,
           hex_code: '#10B981',
+          cashbook_type: inv.cashbook_type || 'Normal',
           createdAt: inv.createdAt || new Date().toISOString(),
           isShared: true,
           sharedBy: inv.inviter_email,
@@ -177,8 +180,8 @@ export default function Cashbooks() {
 
   const getCashbookMemberCount = (bookName) => {
     if (!bookName) return 1;
-    const acceptedForBook = allInvitations.filter(inv => 
-      inv.cashbook_name?.toLowerCase() === bookName.toLowerCase() && 
+    const acceptedForBook = allInvitations.filter(inv =>
+      inv.cashbook_name?.toLowerCase() === bookName.toLowerCase() &&
       inv.status === 'Accepted'
     );
     return 1 + acceptedForBook.length;
@@ -189,6 +192,7 @@ export default function Cashbooks() {
     setCashbookName('');
     setDescription('');
     setHexCode('#8B5CF6');
+    setCashbookType('Normal');
     setShowAddModal(true);
   };
 
@@ -197,6 +201,7 @@ export default function Cashbooks() {
     setCashbookName(book.name);
     setDescription(book.description || '');
     setHexCode(book.hex_code || '#8B5CF6');
+    setCashbookType(book.cashbook_type || 'Normal');
     setShowAddModal(true);
   };
 
@@ -215,7 +220,8 @@ export default function Cashbooks() {
         id: editingCashbookId,
         cashbook_name: cashbookName.trim(),
         description: description.trim(),
-        hex_code: hexCode
+        hex_code: hexCode,
+        cashbook_type: cashbookType
       };
 
       try {
@@ -227,7 +233,7 @@ export default function Cashbooks() {
         const data = await response.json();
 
         if (data.success && data.data) {
-          const updated = cashbooks.map(b => 
+          const updated = cashbooks.map(b =>
             b.id === editingCashbookId
               ? { ...b, name: cashbookName.trim(), description: description.trim(), hex_code: hexCode }
               : b
@@ -246,6 +252,7 @@ export default function Cashbooks() {
         setCashbookName('');
         setDescription('');
         setHexCode('#8B5CF6');
+        setCashbookType('Normal');
         setEditingCashbookId(null);
         setShowAddModal(false);
       }
@@ -254,6 +261,7 @@ export default function Cashbooks() {
         cashbook_name: cashbookName.trim(),
         description: description.trim(),
         hex_code: hexCode,
+        cashbook_type: cashbookType,
         user_email: user?.email_id || '',
         user_id: user?.id || ''
       };
@@ -272,6 +280,7 @@ export default function Cashbooks() {
             name: data.data.cashbook_name,
             description: data.data.description,
             hex_code: data.data.hex_code,
+            cashbook_type: data.data.cashbook_type || 'Normal',
             createdAt: data.data.createdAt || new Date().toISOString()
           };
 
@@ -290,6 +299,7 @@ export default function Cashbooks() {
         setCashbookName('');
         setDescription('');
         setHexCode('#8B5CF6');
+        setCashbookType('Normal');
         setShowAddModal(false);
       }
     }
@@ -301,9 +311,10 @@ export default function Cashbooks() {
       name: cashbookName.trim(),
       description: description.trim(),
       hex_code: hexCode,
-      createdAt: new Date().toISOString()
+      cashbook_type: cashbookType,
+      createdAt: new Date().toISOString(),
+      isShared: false
     };
-
     const updated = [newBook, ...cashbooks];
     setCashbooks(updated);
     localStorage.setItem(storageKey, JSON.stringify(updated));
@@ -311,7 +322,7 @@ export default function Cashbooks() {
   };
 
   const updateLocalBook = () => {
-    const updated = cashbooks.map(b => 
+    const updated = cashbooks.map(b =>
       b.id === editingCashbookId
         ? { ...b, name: cashbookName.trim(), description: description.trim(), hex_code: hexCode }
         : b
@@ -359,9 +370,9 @@ export default function Cashbooks() {
           </div>
           <p className="text-sm text-muted-foreground mt-0.5">Manage your daily chalans and transactions</p>
         </div>
-        
+
         <div className="flex items-center gap-3">
-          <button 
+          <button
             onClick={handleOpenAddModal}
             className="flex items-center gap-1.5 px-4 py-2.5 bg-primary text-primary-foreground font-semibold rounded-xl text-sm hover:opacity-95 transition-all shadow-sm"
           >
@@ -376,7 +387,7 @@ export default function Cashbooks() {
         <div className="p-4 border-b border-border/40 dark:border-slate-800 bg-muted/20 dark:bg-slate-900/60">
           <h2 className="font-bold text-sm text-foreground dark:text-slate-100">Cashbook List • <span className="text-muted-foreground dark:text-slate-400 font-normal">{cashbooks.length} Records</span></h2>
         </div>
-        
+
         <div className="overflow-x-auto w-full">
           <table className="w-full text-left border-collapse table-fixed">
             <thead>
@@ -418,15 +429,15 @@ export default function Cashbooks() {
                 const formattedDate = formatUpdatedDate(book.createdAt);
 
                 return (
-                  <tr 
-                    key={book.id} 
+                  <tr
+                    key={book.id}
                     onClick={() => handleSelectCashbook(book.id)}
                     className="cursor-pointer hover:bg-muted/10 dark:hover:bg-slate-800/40 transition-colors group bg-white dark:bg-[#121827]"
                   >
                     <td className="px-6 py-4 w-[45%] align-middle">
                       <div className="flex items-center gap-3">
-                        <div 
-                          className="w-2.5 h-2.5 rounded-full shrink-0" 
+                        <div
+                          className="w-2.5 h-2.5 rounded-full shrink-0"
                           style={{ backgroundColor: rowHex }}
                         />
                         <div className="min-w-0">
@@ -471,7 +482,7 @@ export default function Cashbooks() {
                     </td>
                     <td className="px-6 py-4 w-[13%] text-center align-middle">
                       <div className="flex items-center justify-center gap-2">
-                        <button 
+                        <button
                           onClick={(e) => {
                             e.stopPropagation();
                             handleSelectCashbook(book.id);
@@ -481,7 +492,7 @@ export default function Cashbooks() {
                         >
                           <Eye className="w-3.5 h-3.5" />
                         </button>
-                        <button 
+                        <button
                           onClick={(e) => {
                             e.stopPropagation();
                             handleEditClick(book);
@@ -492,7 +503,7 @@ export default function Cashbooks() {
                           <Edit className="w-3.5 h-3.5" />
                         </button>
                         {book.id !== '1' ? (
-                          <button 
+                          <button
                             onClick={(e) => {
                               e.stopPropagation();
                               handleDelete(book.id);
@@ -503,15 +514,15 @@ export default function Cashbooks() {
                             <Trash2 className="w-3.5 h-3.5 text-expense" />
                           </button>
                         ) : (
-                          <button 
+                          <button
                             onClick={(e) => e.stopPropagation()}
-                            disabled 
+                            disabled
                             className="p-1.5 rounded-lg border border-border/40 text-muted-foreground/30 cursor-not-allowed bg-muted/10"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         )}
-                        <button 
+                        <button
                           onClick={(e) => {
                             e.stopPropagation();
                             handleSelectCashbook(book.id);
@@ -542,7 +553,7 @@ export default function Cashbooks() {
               onClick={() => setShowAddModal(false)}
               className="absolute inset-0 bg-black/30 backdrop-blur-sm"
             />
-            
+
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -594,6 +605,21 @@ export default function Cashbooks() {
                   />
                 </div>
 
+                {/* Cashbook Type */}
+                <div className="space-y-1">
+                  <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide">
+                    Cashbook Type
+                  </label>
+                  <select
+                    value={cashbookType}
+                    onChange={(e) => setCashbookType(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-border focus:outline-none focus:border-primary text-sm font-medium text-foreground bg-white dark:bg-card"
+                  >
+                    <option value="Normal">Normal</option>
+                    <option value="Interest">Interest</option>
+                  </select>
+                </div>
+
                 {/* Hex Code / Color Theme */}
                 <div className="space-y-2">
                   <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide flex items-center justify-between">
@@ -613,15 +639,14 @@ export default function Cashbooks() {
                         type="button"
                         onClick={() => setHexCode(c.hex)}
                         style={{ backgroundColor: c.hex }}
-                        className={`w-7 h-7 rounded-full transition-transform ${
-                          hexCode === c.hex ? 'ring-2 ring-offset-2 ring-primary scale-110' : 'hover:scale-105'
-                        }`}
+                        className={`w-7 h-7 rounded-full transition-transform ${hexCode === c.hex ? 'ring-2 ring-offset-2 ring-primary scale-110' : 'hover:scale-105'
+                          }`}
                         title={c.name}
                       />
                     ))}
                   </div>
                 </div>
-                
+
                 <button
                   type="submit"
                   disabled={loading}

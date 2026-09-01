@@ -1,14 +1,47 @@
-import React from 'react';
-import { BarChart3, TrendingUp, Zap, Globe, Smartphone, Server } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { BarChart3, TrendingUp, Zap, Globe, Smartphone, Server, Users, Wallet } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export const SystemAnalytics = () => {
-  const categoryBreakdown = [
-    { label: "Kirana & Grocery", percentage: 38, color: "bg-primary" },
-    { label: "Business & Vendor Dues", percentage: 26, color: "bg-emerald-500" },
-    { label: "Fuel & Transport", percentage: 18, color: "bg-amber-500" },
-    { label: "Travel & Hospitality", percentage: 10, color: "bg-sky-500" },
-    { label: "Utilities & Personal", percentage: 8, color: "bg-rose-500" },
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await fetch('http://localhost:5001/api/admin/stats');
+        const data = await response.json();
+        if (data.success) {
+          setStats(data.data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch system analytics:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStats();
+  }, []);
+
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      maximumFractionDigits: 0
+    }).format(amount || 0);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-[50vh]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  // Fallbacks if data is missing
+  const categoryBreakdown = stats?.categoryBreakdown || [
+    { label: "No Data", percentage: 0, color: "bg-muted" }
   ];
 
   return (
@@ -27,30 +60,30 @@ export const SystemAnalytics = () => {
           </div>
           <div>
             <p className="text-xs font-semibold text-muted-foreground uppercase">Avg API Latency</p>
-            <h3 className="text-2xl font-black text-foreground">42 ms</h3>
-            <span className="text-xs font-bold text-emerald-500">+12% faster than last week</span>
+            <h3 className="text-2xl font-black text-foreground">{stats?.api_latency_ms || 42} ms</h3>
+            <span className="text-xs font-bold text-emerald-500">System Uptime: {stats?.system_uptime || '99.9%'}</span>
           </div>
         </div>
 
         <div className="bg-card border border-border rounded-2xl p-6 shadow-sm flex items-center gap-4">
           <div className="p-4 rounded-2xl bg-emerald-500/10 text-emerald-500">
-            <Smartphone className="w-6 h-6" />
+            <Wallet className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-xs font-semibold text-muted-foreground uppercase">Mobile Web Usage</p>
-            <h3 className="text-2xl font-black text-foreground">68.4%</h3>
-            <span className="text-xs font-bold text-muted-foreground">Mobile first users</span>
+            <p className="text-xs font-semibold text-muted-foreground uppercase">Total Trx Volume</p>
+            <h3 className="text-2xl font-black text-foreground">{formatCurrency(stats?.total_volume)}</h3>
+            <span className="text-xs font-bold text-muted-foreground">Across {stats?.total_cashbooks || 0} cashbooks</span>
           </div>
         </div>
 
         <div className="bg-card border border-border rounded-2xl p-6 shadow-sm flex items-center gap-4">
           <div className="p-4 rounded-2xl bg-sky-500/10 text-sky-500">
-            <Server className="w-6 h-6" />
+            <Users className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-xs font-semibold text-muted-foreground uppercase">Daily DB Writes</p>
-            <h3 className="text-2xl font-black text-foreground">1.42 M</h3>
-            <span className="text-xs font-bold text-emerald-500">Zero query deadlocks</span>
+            <p className="text-xs font-semibold text-muted-foreground uppercase">Total Users</p>
+            <h3 className="text-2xl font-black text-foreground">{stats?.total_users || 0}</h3>
+            <span className="text-xs font-bold text-emerald-500">{stats?.active_users || 0} Active Accounts</span>
           </div>
         </div>
       </div>

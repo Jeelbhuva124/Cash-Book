@@ -23,6 +23,12 @@ export const createTransaction = async (req, res) => {
           remark: tx.remark ? tx.remark.trim() : 'Null',
           created_by: tx.created_by ? tx.created_by.trim() : 'Guest',
           user_email: tx.user_email ? tx.user_email.toLowerCase().trim() : '',
+          interest_rate: tx.interest_rate !== undefined ? Number(tx.interest_rate) : 0,
+          party_type: tx.party_type ? tx.party_type.trim() : '',
+          party_name: tx.party_name ? tx.party_name.trim() : '',
+          start_date: tx.start_date ? tx.start_date.trim() : '',
+          end_date: tx.end_date ? tx.end_date.trim() : '',
+          total_days: tx.total_days !== undefined ? Number(tx.total_days) : 0,
         };
       });
 
@@ -45,7 +51,9 @@ export const createTransaction = async (req, res) => {
     // Handle Single Insert
     const { 
       title, type, amount, date, time, chalan_id, 
-      category, subcategory, payment_mode, remark, created_by, user_email 
+      category, subcategory, payment_mode, remark, created_by, user_email,
+      interest_rate, party_type, party_name,
+      start_date, end_date, total_days
     } = req.body;
 
     if (!title || !type || amount === undefined || !date || !time || !chalan_id) {
@@ -69,6 +77,12 @@ export const createTransaction = async (req, res) => {
       remark: remark ? remark.trim() : 'Null',
       created_by: created_by ? created_by.trim() : 'Guest',
       user_email: user_email ? user_email.toLowerCase().trim() : '',
+      interest_rate: interest_rate !== undefined ? Number(interest_rate) : 0,
+      party_type: party_type ? party_type.trim() : '',
+      party_name: party_name ? party_name.trim() : '',
+      start_date: start_date ? start_date.trim() : '',
+      end_date: end_date ? end_date.trim() : '',
+      total_days: total_days !== undefined ? Number(total_days) : 0,
     });
 
     await newTransaction.save();
@@ -96,7 +110,10 @@ export const createTransaction = async (req, res) => {
 // Get All Transactions
 export const getTransactions = async (req, res) => {
   try {
-    const transactions = await Transaction.find({}).sort({ createdAt: -1 });
+    const transactions = await Transaction.find({
+      is_deleted: { $ne: true },
+      deleted: { $ne: true }
+    }).sort({ createdAt: -1 });
 
     return res.status(200).json({
       success: true,
@@ -117,7 +134,9 @@ export const updateTransaction = async (req, res) => {
   try {
     const { 
       id, title, type, amount, date, time, chalan_id, 
-      category, subcategory, payment_mode, remark, created_by 
+      category, subcategory, payment_mode, remark, created_by,
+      interest_rate, party_type, party_name,
+      start_date, end_date, total_days
     } = req.body;
 
     if (!id) {
@@ -147,6 +166,12 @@ export const updateTransaction = async (req, res) => {
     if (payment_mode !== undefined) updateFields.payment_mode = payment_mode.trim();
     if (remark !== undefined) updateFields.remark = remark.trim();
     if (created_by !== undefined) updateFields.created_by = created_by.trim();
+    if (interest_rate !== undefined) updateFields.interest_rate = Number(interest_rate);
+    if (party_type !== undefined) updateFields.party_type = party_type.trim();
+    if (party_name !== undefined) updateFields.party_name = party_name.trim();
+    if (start_date !== undefined) updateFields.start_date = start_date.trim();
+    if (end_date !== undefined) updateFields.end_date = end_date.trim();
+    if (total_days !== undefined) updateFields.total_days = Number(total_days);
 
     const updatedTransaction = await Transaction.findByIdAndUpdate(
       id,
@@ -197,9 +222,8 @@ export const deleteTransaction = async (req, res) => {
         });
       }
 
-      await Transaction.updateMany(
-        { _id: { $in: validIds } },
-        { is_deleted: true }
+      await Transaction.deleteMany(
+        { _id: { $in: validIds } }
       );
 
       const io = req.app.get('io');
@@ -209,7 +233,7 @@ export const deleteTransaction = async (req, res) => {
 
       return res.status(200).json({
         success: true,
-        message: `${validIds.length} transactions soft-deleted successfully`,
+        message: `${validIds.length} transactions permanently deleted successfully`,
       });
     }
 
@@ -228,11 +252,7 @@ export const deleteTransaction = async (req, res) => {
       });
     }
 
-    const deletedTransaction = await Transaction.findByIdAndUpdate(
-      id,
-      { is_deleted: true },
-      { new: true }
-    );
+    const deletedTransaction = await Transaction.findByIdAndDelete(id);
 
     if (!deletedTransaction) {
       return res.status(404).json({

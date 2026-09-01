@@ -74,6 +74,23 @@ export default function Transactions() {
   const [paymentModes, setPaymentModes] = useState([]);
   const [editTxId, setEditTxId] = useState(null);
 
+  // Interest based extra states
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [interestRate, setInterestRate] = useState('');
+  const [partyType, setPartyType] = useState('creditor');
+  const [partyName, setPartyName] = useState('');
+
+  const calculateTotalDays = (start, end) => {
+    if (!start || !end) return 0;
+    const s = new Date(start);
+    const e = new Date(end);
+    return Math.ceil(Math.abs(e - s) / (1000 * 60 * 60 * 24));
+  };
+  
+  const selectedChalan = chalans.find(c => c.id === selectedChalanId);
+  const isInterestBasedEntry = selectedChalan?.cashbook_type === 'Interest';
+
   // Column level filters state
   const [searchFilters, setSearchFilters] = useState({
     no: '',
@@ -446,6 +463,11 @@ export default function Transactions() {
     setType('expense');
     setSubcategory('');
     setRemark('');
+    setStartDate('');
+    setEndDate('');
+    setInterestRate('');
+    setPartyType('creditor');
+    setPartyName('');
     if (categories.length > 0) setCategory(categories[0].name);
     if (paymentModes.length > 0) setPaymentMode(paymentModes[0].name);
     setShowAddForm(true);
@@ -478,22 +500,32 @@ export default function Transactions() {
       : 'http://localhost:5001/api/transaction/insert';
     const method = isEdit ? 'PUT' : 'POST';
 
+    const isInterest = isInterestBasedEntry;
     const payload = {
       title: title.trim(),
       type,
       amount: parseFloat(amount),
-      date,
+      date: isInterest ? (startDate || date) : date,
       time: !isEdit 
         ? new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })
         : (transactions.find(t => t.id === editTxId)?.time || formatTime(editTxId)),
       chalan_id: selectedChalanId,
-      category,
-      subcategory: subcategory.trim(),
+      category: isInterest ? 'Interest' : category,
+      subcategory: isInterest ? '' : subcategory.trim(),
       payment_mode: paymentMode,
       remark: remark.trim() || 'Null',
       created_by: username,
       user_email: user?.email_id || ''
     };
+
+    if (isInterest) {
+      payload.interest_rate = parseFloat(interestRate) || 0;
+      payload.party_type = partyType;
+      payload.party_name = partyName;
+      payload.start_date = startDate;
+      payload.end_date = endDate;
+      payload.total_days = calculateTotalDays(startDate, endDate);
+    }
 
     if (isEdit) {
       payload.id = editTxId;
@@ -790,8 +822,8 @@ export default function Transactions() {
     return Object.values(activityMap);
   }, [rawActiveTxs]);
 
-  // Display in ascending order (chronological order 1, 2, 3...)
-  const displayTxs = [...txsWithBalance];
+  // Display in descending order (newest first, 1, 2, 3...)
+  const displayTxs = [...txsWithBalance].reverse();
 
   // Apply column-level searching filters
   const filteredTxs = displayTxs.filter((tx, index) => {
@@ -1357,7 +1389,7 @@ export default function Transactions() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="relative bg-white dark:bg-[#111827] border border-border dark:border-slate-800 rounded-2xl shadow-2xl p-6 w-full max-w-[460px] z-10 space-y-6 text-foreground dark:text-slate-100"
+              className="relative bg-white dark:bg-[#111827] border border-border dark:border-slate-800 rounded-2xl shadow-2xl p-6 w-full max-w-[460px] max-h-[90vh] overflow-y-auto z-10 space-y-6 text-foreground dark:text-slate-100 custom-scrollbar"
             >
               <div className="flex justify-between items-center">
                 <h3 className="font-bold text-lg flex items-center gap-2 dark:text-slate-100">
@@ -1429,7 +1461,7 @@ export default function Transactions() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className={`grid gap-4 ${isInterestBasedEntry ? 'grid-cols-1' : 'grid-cols-2'}`}>
                   <div className="space-y-1">
                     <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide">Amount (₹)</label>
                     <input
@@ -1441,42 +1473,109 @@ export default function Transactions() {
                       className="w-full px-4 py-2.5 rounded-xl border border-border focus:outline-none focus:border-primary text-sm font-bold text-foreground bg-white dark:bg-card"
                     />
                   </div>
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide">Date</label>
-                    <input
-                      type="date"
-                      required
-                      value={date}
-                      onChange={(e) => setDate(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl border border-border focus:outline-none focus:border-primary text-sm font-medium text-foreground bg-white dark:bg-card"
-                    />
-                  </div>
+                  {!isInterestBasedEntry && (
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide">Date</label>
+                      <input
+                        type="date"
+                        required
+                        value={date}
+                        onChange={(e) => setDate(e.target.value)}
+                        className="w-full px-4 py-2.5 rounded-xl border border-border focus:outline-none focus:border-primary text-sm font-medium text-foreground bg-white dark:bg-card"
+                      />
+                    </div>
+                  )}
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide">Category</label>
-                    <Dropdown
-                      value={category}
-                      onChange={(e) => setCategory(e.target.value)}
-                      onAddNew={handleAddNewCategory}
-                    >
-                      {categories.map(c => (
-                         <option key={c.id} value={c.name}>{c.name}</option>
-                      ))}
-                    </Dropdown>
+                {isInterestBasedEntry ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-3 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-xl">
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wide flex justify-between">
+                        Interest Rate (%)
+                        <span className="text-amber-600/70 text-[9px]">Per Month</span>
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={interestRate}
+                        onChange={(e) => setInterestRate(e.target.value)}
+                        placeholder="e.g. 2.5"
+                        className="w-full px-4 py-2.5 rounded-xl border border-border focus:outline-none focus:border-amber-500 text-sm font-bold text-foreground bg-white dark:bg-card"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wide">Party Type</label>
+                      <Dropdown
+                        value={partyType}
+                        onChange={(e) => setPartyType(e.target.value)}
+                      >
+                        <option value="creditor">Creditor (Given to)</option>
+                        <option value="debtor">Debtor (Taken from)</option>
+                      </Dropdown>
+                    </div>
+                    <div className="space-y-1 md:col-span-2">
+                      <label className="text-[11px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wide">Party Name</label>
+                      <input
+                        type="text"
+                        value={partyName}
+                        onChange={(e) => setPartyName(e.target.value)}
+                        placeholder="Enter Name"
+                        className="w-full px-4 py-2.5 rounded-xl border border-border focus:outline-none focus:border-amber-500 text-sm font-bold text-foreground bg-white dark:bg-card"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wide">Start Date</label>
+                      <input
+                        type="date"
+                        required
+                        value={startDate}
+                        onChange={(e) => setStartDate(e.target.value)}
+                        className="w-full px-4 py-2.5 rounded-xl border border-border focus:outline-none focus:border-amber-500 text-sm font-bold text-foreground bg-white dark:bg-card"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wide">End Date</label>
+                      <input
+                        type="date"
+                        required
+                        value={endDate}
+                        onChange={(e) => setEndDate(e.target.value)}
+                        className="w-full px-4 py-2.5 rounded-xl border border-border focus:outline-none focus:border-amber-500 text-sm font-bold text-foreground bg-white dark:bg-card"
+                      />
+                    </div>
+                    <div className="space-y-1 md:col-span-2">
+                      <label className="text-[11px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wide flex justify-between">
+                        <span>Total Days</span>
+                        <span className="font-mono">{calculateTotalDays(startDate, endDate)} days</span>
+                      </label>
+                    </div>
                   </div>
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide">Subcategory</label>
-                    <input
-                      type="text"
-                      value={subcategory}
-                      onChange={(e) => setSubcategory(e.target.value)}
-                      placeholder="e.g. rent', dinner"
-                      className="w-full px-4 py-2.5 rounded-xl border border-border focus:outline-none focus:border-primary text-sm font-medium text-foreground bg-white dark:bg-card"
-                    />
+                ) : (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide">Category</label>
+                      <Dropdown
+                        value={category}
+                        onChange={(e) => setCategory(e.target.value)}
+                        onAddNew={handleAddNewCategory}
+                      >
+                        {categories.map(c => (
+                           <option key={c.id} value={c.name}>{c.name}</option>
+                        ))}
+                      </Dropdown>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide">Subcategory</label>
+                      <input
+                        type="text"
+                        value={subcategory}
+                        onChange={(e) => setSubcategory(e.target.value)}
+                        placeholder="e.g. rent', dinner"
+                        className="w-full px-4 py-2.5 rounded-xl border border-border focus:outline-none focus:border-primary text-sm font-medium text-foreground bg-white dark:bg-card"
+                      />
+                    </div>
                   </div>
-                </div>
+                )}
 
                 <div className="space-y-1">
                   <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide">Payment Mode</label>
@@ -1490,6 +1589,26 @@ export default function Transactions() {
                     ))}
                   </Dropdown>
                 </div>
+
+                {isInterestBasedEntry && (
+                  <div className="mt-4 p-4 bg-primary/5 rounded-xl border border-primary/20 flex items-center justify-between">
+                    <div>
+                      <h4 className="text-xs font-bold text-primary uppercase tracking-wider">Total Final Amount</h4>
+                      <p className="text-[10px] text-muted-foreground mt-0.5">Principal + Interest</p>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-lg font-black text-primary">
+                        {(() => {
+                          const p = parseFloat(amount) || 0;
+                          const r = parseFloat(interestRate) || 0;
+                          const d = calculateTotalDays(startDate, endDate);
+                          const interest = (p * r * d) / 3000;
+                          return formatCurrency(p + interest);
+                        })()}
+                      </span>
+                    </div>
+                  </div>
+                )}
 
                 <button
                   type="submit"
