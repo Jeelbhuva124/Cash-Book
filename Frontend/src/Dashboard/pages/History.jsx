@@ -153,7 +153,7 @@ export default function History() {
     let validTxs = loadedTxs.filter(t => activeChalanIds.has(t.chalanId));
 
     // Merge with Local Storage fallback
-    const savedTxs = localStorage.getItem(txsStorageKey);
+    const savedTxs = localStorage.getItem(txsStorageKey); 
     if (savedTxs) {
       try {
         const localTxs = JSON.parse(savedTxs);
