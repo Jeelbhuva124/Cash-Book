@@ -5,7 +5,7 @@ import { socket } from '../../utils/socket';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Receipt, Search, Filter, ArrowLeft, Wallet, ArrowUp, ArrowDown, 
-  Plus, Trash2, X, CheckCircle2, Pencil, Edit, ChevronsUpDown, Upload, Users 
+  Plus, Trash2, X, CheckCircle2, Pencil, Edit, ChevronsUpDown, Upload, Users, TrendingUp 
 } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
 import Dropdown from '../components/Dropdown';
@@ -349,6 +349,20 @@ export default function Transactions() {
   }, []);
 
   const loadTransactions = async () => {
+    const userEmail = user?.email_id?.toLowerCase() || '';
+    const storageKey = `cashbook_txs_${userEmail || 'guest'}`;
+
+    // 1. Immediately load cached data for fast initial render
+    const cachedData = localStorage.getItem(storageKey);
+    if (cachedData) {
+      try {
+        const parsedCache = JSON.parse(cachedData);
+        if (Array.isArray(parsedCache)) {
+          setTransactions(prev => prev.length === 0 ? parsedCache : prev);
+        }
+      } catch (e) {}
+    }
+
     try {
       const response = await fetch('http://localhost:5001/api/transaction/select');
       const data = await response.json();
@@ -368,10 +382,14 @@ export default function Transactions() {
           remark: tx.remark,
           createdBy: tx.created_by,
           user_email: tx.user_email,
+          totalDays: tx.total_days,
+          interestRate: tx.interest_rate,
+          partyType: tx.party_type,
+          partyName: tx.party_name,
+          startDate: tx.start_date,
+          endDate: tx.end_date,
           is_deleted: !!tx.is_deleted || !!tx.deleted
         }));
-
-        const userEmail = user?.email_id?.toLowerCase() || '';
 
         // Fetch accepted invitations to get collaborator emails for shared cashbooks
         let allowedEmails = new Set([userEmail]);
@@ -391,11 +409,15 @@ export default function Transactions() {
         } catch (e) {}
 
         const userTxs = mapped.filter(t => allowedEmails.has(t.user_email?.toLowerCase()));
+        
+        // 2. Update state and cache with fresh data
         setTransactions(userTxs);
+        localStorage.setItem(storageKey, JSON.stringify(userTxs));
       }
     } catch (err) {
       console.error("Failed to load transactions from backend:", err);
-      addToast("Failed to fetch transactions from database", "error");
+      // Removed addToast error because if it fails, the user still sees cached data
+      // and doesn't get an annoying error popup every time the connection flickers.
     }
   };
 
@@ -794,6 +816,10 @@ export default function Transactions() {
 
   const totalBalance = totalCashIn - totalCashOut;
 
+  const totalInterestExpected = txsWithBalance
+    .filter(t => t.type === 'expense' && t.interestRate > 0)
+    .reduce((sum, t) => sum + (t.amount * t.interestRate * (t.totalDays || 0) / 3000), 0);
+
   // Calculate per-user activity stats for this cashbook
   const userActivities = React.useMemo(() => {
     const activityMap = {};
@@ -961,7 +987,7 @@ export default function Transactions() {
       </div>
 
       {/* ── DYNAMIC METRICS CARDS ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+      <div className={`grid grid-cols-1 sm:grid-cols-2 ${isInterestBasedEntry ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} gap-6`}>
         {/* Total Balance */}
         <div className="bg-white dark:bg-[#111827]/90 border border-border/80 dark:border-slate-800/80 rounded-2xl p-5 flex items-center justify-between transition-all hover:border-slate-700/80">
           <div className="space-y-1">
@@ -1004,6 +1030,20 @@ export default function Transactions() {
             <ArrowDown className="w-5 h-5" />
           </div>
         </div>
+        {/* Remaining Amount (With Interest) */}
+        {isInterestBasedEntry && (
+          <div className="bg-white dark:bg-[#111827]/90 border border-border/80 dark:border-slate-800/80 rounded-2xl p-5 flex items-center justify-between transition-all hover:border-slate-700/80">
+            <div className="space-y-1">
+              <p className="text-xs font-semibold text-amber-600 dark:text-amber-500 uppercase tracking-wider">Remaining</p>
+              <p className="text-2xl font-bold tracking-tight text-amber-600 dark:text-amber-500">
+                {formatCurrency(totalCashOut + totalInterestExpected - totalCashIn)}
+              </p>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-500 dark:border dark:border-amber-500/20 flex items-center justify-center">
+              <TrendingUp className="w-5 h-5" />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ── COLLABORATORS & USER ACTIVITY LIST ── */}
@@ -1169,7 +1209,7 @@ export default function Transactions() {
                 </th>
                 <th className="px-4 py-3.5 w-[160px] cursor-pointer hover:text-foreground dark:hover:text-slate-200 transition-colors" onClick={() => handleSort('subcategory')}>
                   <div className="flex items-center gap-1">
-                    Subcategory {getSortIcon('subcategory')}
+                    {isInterestBasedEntry ? 'Duration' : 'Subcategory'} {getSortIcon('subcategory')}
                   </div>
                 </th>
                 <th className="px-4 py-3.5 w-[160px] cursor-pointer hover:text-foreground dark:hover:text-slate-200 transition-colors" onClick={() => handleSort('paymentMode')}>
@@ -1314,7 +1354,12 @@ export default function Transactions() {
                     <td className="px-4 py-3.5 dark:text-slate-300">{formatDate(tx.date)}</td>
                     <td className="px-4 py-3.5 text-muted-foreground dark:text-slate-400 font-mono">{tx.time}</td>
                     <td className={`px-4 py-3.5 font-bold ${tx.type === 'income' ? 'text-[#10b981] dark:text-emerald-400' : 'text-[#ef4444] dark:text-rose-400'}`}>
-                      {tx.type === 'income' ? '+' : ''}{formatCurrency(tx.type === 'income' ? tx.amount : -tx.amount)}
+                      <div>{tx.type === 'income' ? '+' : ''}{formatCurrency(tx.type === 'income' ? tx.amount : -tx.amount)}</div>
+                      {isInterestBasedEntry && tx.interestRate > 0 && (
+                        <div className="text-[10px] font-semibold text-amber-600 dark:text-amber-500 mt-1 tracking-wide">
+                          Final: {formatCurrency(tx.amount + (tx.amount * tx.interestRate * (tx.totalDays || 0) / 3000))}
+                        </div>
+                      )}
                     </td>
                     <td className={`px-4 py-3.5 font-bold ${tx.runningBalance < 0 ? 'text-[#ef4444] dark:text-rose-400' : 'text-[#10b981] dark:text-emerald-400'}`}>
                       {formatCurrency(tx.runningBalance)}
@@ -1324,7 +1369,9 @@ export default function Transactions() {
                         {tx.category}
                       </span>
                     </td>
-                    <td className="px-4 py-3.5 text-muted-foreground dark:text-slate-400">{tx.subcategory || "-"}</td>
+                    <td className="px-4 py-3.5 text-muted-foreground dark:text-slate-400">
+                      {isInterestBasedEntry ? (tx.totalDays ? `${(tx.totalDays / 30).toFixed(1)} Months` : '-') : (tx.subcategory || "-")}
+                    </td>
                     <td className="px-4 py-3.5">
                       <span className="inline-block px-2 py-0.5 rounded border border-border dark:border-slate-700/60 text-[10px] font-bold text-muted-foreground dark:text-slate-400 bg-muted/20 dark:bg-slate-800/60">
                         {formatPaymentMode(tx.paymentMode || 'Cash')}
@@ -1416,7 +1463,7 @@ export default function Transactions() {
                     }`}
                   >
                     <ArrowDown className="w-3.5 h-3.5" />
-                    Expense
+                    Debit Amount
                   </button>
                   <button
                     type="button"
@@ -1428,7 +1475,7 @@ export default function Transactions() {
                     }`}
                   >
                     <ArrowUp className="w-3.5 h-3.5" />
-                    Income
+                    Credit Amount
                   </button>
                 </div>
 

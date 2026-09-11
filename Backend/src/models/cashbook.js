@@ -9,8 +9,7 @@ const cashbookSchema = new mongoose.Schema(
     },
     cashbook_type: {
       type: String,
-      enum: ['regular', 'interest_based'],
-      default: 'regular',
+      default: 'Normal',
     },
     description: {
       type: String,

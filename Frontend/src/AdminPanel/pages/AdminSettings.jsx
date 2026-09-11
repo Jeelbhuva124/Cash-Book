@@ -4,14 +4,19 @@ import { useToast } from '../../context/ToastContext';
 
 export const AdminSettings = () => {
   const { toast } = useToast();
-  const [maintenanceMode, setMaintenanceMode] = useState(false);
-  const [autoBackup, setAutoBackup] = useState(true);
-  const [enforce2FA, setEnforce2FA] = useState(false);
-  const [supportEmail, setSupportEmail] = useState('support@cashbook.io');
-  const [appName, setAppName] = useState('Cash Book');
+  const [maintenanceMode, setMaintenanceMode] = useState(() => JSON.parse(localStorage.getItem('admin_maintenanceMode') || 'false'));
+  const [autoBackup, setAutoBackup] = useState(() => JSON.parse(localStorage.getItem('admin_autoBackup') || 'true'));
+  const [enforce2FA, setEnforce2FA] = useState(() => JSON.parse(localStorage.getItem('admin_enforce2FA') || 'false'));
+  const [supportEmail, setSupportEmail] = useState(() => localStorage.getItem('admin_supportEmail') || 'support@cashbook.io');
+  const [appName, setAppName] = useState(() => localStorage.getItem('admin_appName') || 'Cash Book');
 
   const handleSave = (e) => {
     e.preventDefault();
+    localStorage.setItem('admin_maintenanceMode', JSON.stringify(maintenanceMode));
+    localStorage.setItem('admin_autoBackup', JSON.stringify(autoBackup));
+    localStorage.setItem('admin_enforce2FA', JSON.stringify(enforce2FA));
+    localStorage.setItem('admin_supportEmail', supportEmail);
+    localStorage.setItem('admin_appName', appName);
     toast.success("Admin settings saved successfully!");
   };
 

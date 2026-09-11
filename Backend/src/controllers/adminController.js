@@ -492,13 +492,42 @@ const adminController = {
   transactions: async (req, res) => {
     try {
       const { chalan_id } = req.query;
-      let query = {};
+      let query = {
+        is_deleted: { $ne: true },
+        deleted: { $ne: true }
+      };
       if (chalan_id) query.chalan_id = chalan_id;
 
-      const transactions = await Transaction.find(query).sort({ createdAt: -1 }).limit(200); // Limit to latest 200 for performance
+      const transactions = await Transaction.find(query).sort({ createdAt: -1 }).limit(200).lean();
+      
+      const chalanIds = [...new Set(transactions.map(t => t.chalan_id).filter(Boolean))];
+      const validChalanIds = chalanIds.filter(id => mongoose.Types.ObjectId.isValid(id));
+      
+      const cashbooks = await Cashbook.find({ _id: { $in: validChalanIds } }).lean();
+      const cbMap = {};
+      cashbooks.forEach(cb => {
+        cbMap[cb._id.toString()] = {
+          name: cb.cashbook_name,
+          type: cb.cashbook_type || 'Normal'
+        };
+      });
+
+      // Filter out transactions that belong to deleted cashbooks
+      const validTransactions = transactions.filter(t => cbMap[t.chalan_id]);
+
+      const enrichedTransactions = validTransactions.map(t => {
+        const cbInfo = cbMap[t.chalan_id];
+        return {
+          ...t,
+          id: t._id.toString(),
+          cashbook_name: cbInfo.name,
+          cashbook_type: cbInfo.type
+        };
+      });
+
       return res.status(200).json({
         success: true,
-        data: transactions
+        data: enrichedTransactions
       });
     } catch (err) {
       console.error("Admin Get Transactions Error:", err.message);

@@ -8,6 +8,13 @@ export const TransactionManagement = () => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
+  const formatDate = (dateStr) => {
+    if (!dateStr) return '';
+    const parts = dateStr.split('-');
+    if (parts.length === 3) return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    return dateStr;
+  };
+
   const fetchTransactions = async () => {
     setLoading(true);
     try {
@@ -99,6 +106,20 @@ export const TransactionManagement = () => {
                           <p className="text-[11px] text-muted-foreground flex items-center gap-1 mt-0.5">
                             <Tag className="w-3 h-3" /> {txn.category || "Uncategorized"}
                           </p>
+                          {(txn.cashbook_name || txn.cashbook_type) && (
+                            <div className="flex items-center gap-2 mt-1.5">
+                              {txn.cashbook_name && (
+                                <span className="px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-primary/10 text-primary rounded-md border border-primary/20">
+                                  {txn.cashbook_name}
+                                </span>
+                              )}
+                              {txn.cashbook_type && (
+                                <span className="px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-muted text-muted-foreground rounded-md border border-border">
+                                  {txn.cashbook_type}
+                                </span>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </td>
@@ -123,7 +144,7 @@ export const TransactionManagement = () => {
                       <div className="flex items-center gap-1.5 text-muted-foreground">
                         <Clock className="w-3.5 h-3.5" />
                         <div className="text-[12px] font-medium leading-tight">
-                          <p className="text-foreground/90">{txn.date}</p>
+                          <p className="text-foreground/90">{formatDate(txn.date)}</p>
                           <p className="text-[10px]">{txn.time}</p>
                         </div>
                       </div>
