@@ -38,6 +38,9 @@ const Chalans = lazy(() => import('./Dashboard/pages/Chalans'));
 const Invitations = lazy(() => import('./Dashboard/pages/Invitations'));
 const Cashbooks = lazy(() => import('./Dashboard/pages/Cashbooks'));
 const Profile = lazy(() => import('./Dashboard/pages/Profile'));
+const PartyLedger = lazy(() => import('./Dashboard/pages/PartyLedger'));
+const Tracker = lazy(() => import('./Dashboard/pages/Tracker'));
+const ReceiptVault = lazy(() => import('./Dashboard/pages/ReceiptVault'));
 
 import { SettingsPage } from './Dashboard/pages/SettingsPage';
 import { Preferences } from './Dashboard/pages/Preferences';
@@ -112,6 +115,9 @@ function App() {
                   <Route path="payment-modes" element={<PaymentModes />} />
                   <Route path="invitations" element={<Invitations />} />
                   <Route path="cashbooks" element={<Cashbooks />} />
+                  <Route path="party-ledger" element={<PartyLedger />} />
+                  <Route path="tracker" element={<Tracker />} />
+                  <Route path="receipts-vault" element={<ReceiptVault />} />
 
                   <Route path="budgets" element={<Landing />} />
                   <Route path="savings" element={<Savings />} />

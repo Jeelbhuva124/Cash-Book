@@ -280,3 +280,73 @@ export const deleteTransaction = async (req, res) => {
     });
   }
 };
+
+// Get Party Ledger (Udhaar Book Aggregation)
+export const getPartyLedger = async (req, res) => {
+  try {
+    const partyLedger = await Transaction.aggregate([
+      {
+        $match: {
+          party_name: { $exists: true, $ne: '' },
+          is_deleted: { $ne: true },
+          deleted: { $ne: true }
+        }
+      },
+      {
+        $group: {
+          _id: "$party_name",
+          net_balance: {
+            $sum: {
+              $cond: [
+                { $eq: ["$party_type", "debtor"] }, 
+                "$amount", 
+                {
+                  $cond: [
+                    { $eq: ["$party_type", "creditor"] }, 
+                    { $multiply: ["$amount", -1] }, 
+                    0
+                  ]
+                }
+              ]
+            }
+          },
+          transactions: {
+            $push: {
+              id: "$_id",
+              title: "$title",
+              amount: "$amount",
+              type: "$type",
+              party_type: "$party_type",
+              date: "$date",
+              time: "$time",
+              payment_mode: "$payment_mode"
+            }
+          }
+        }
+      },
+      {
+        $project: {
+          party_name: "$_id",
+          net_balance: 1,
+          transactions: 1,
+          _id: 0
+        }
+      },
+      {
+        $sort: { party_name: 1 } 
+      }
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      data: partyLedger,
+    });
+  } catch (error) {
+    console.error('Party Ledger Aggregation Error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch party ledger',
+      error: error.message,
+    });
+  }
+};

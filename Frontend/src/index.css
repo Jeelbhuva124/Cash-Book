@@ -303,3 +303,76 @@ body {
 .inv-border-light { border-color: #e2e8f0; }
 .inv-border-slate { border-color: #334155; }
 .inv-border-dark { border-color: #1f2937; }
+
+/* ── Global Glass Effect for Main Buttons ── */
+button.bg-primary, a.bg-primary,
+button.bg-red-500, a.bg-red-500, button.bg-red-600, a.bg-red-600, button.bg-destructive, a.bg-destructive, button.bg-expense, a.bg-expense,
+button.bg-green-500, a.bg-green-500, button.bg-green-600, a.bg-green-600, button.bg-income, a.bg-income {
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  border: none !important;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Dark mode border adjustments for glass */
+.dark button.bg-primary, .dark a.bg-primary,
+.dark button.bg-red-500, .dark a.bg-red-500, .dark button.bg-red-600, .dark a.bg-red-600, .dark button.bg-destructive, .dark a.bg-destructive, .dark button.bg-expense, .dark a.bg-expense,
+.dark button.bg-green-500, .dark a.bg-green-500, .dark button.bg-green-600, .dark a.bg-green-600, .dark button.bg-income, .dark a.bg-income {
+  border: none !important;
+}
+
+/* Primary Glass */
+button.bg-primary, a.bg-primary {
+  background-color: color-mix(in srgb, var(--primary) 45%, rgba(255,255,255,0.2)) !important;
+  color: #1e3a8a !important; /* Dark text for contrast on light mode */
+  font-weight: 800 !important;
+}
+.dark button.bg-primary, .dark a.bg-primary {
+  background-color: color-mix(in srgb, var(--primary) 50%, transparent) !important;
+  color: var(--primary-foreground) !important;
+}
+button.bg-primary:hover, a.bg-primary:hover {
+  background-color: color-mix(in srgb, var(--primary) 60%, rgba(255,255,255,0.3)) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15) !important;
+  transform: translateY(-2px) !important;
+}
+.dark button.bg-primary:hover, .dark a.bg-primary:hover {
+  background-color: color-mix(in srgb, var(--primary) 70%, transparent) !important;
+}
+
+/* Red/Destructive Glass */
+button.bg-red-500, a.bg-red-500, button.bg-red-600, a.bg-red-600, button.bg-destructive, a.bg-destructive, button.bg-expense, a.bg-expense {
+  background-color: color-mix(in srgb, var(--destructive) 45%, rgba(255,255,255,0.2)) !important;
+  color: #991b1b !important;
+  font-weight: 800 !important;
+}
+.dark button.bg-red-500, .dark a.bg-red-500, .dark button.bg-red-600, .dark a.bg-red-600, .dark button.bg-destructive, .dark a.bg-destructive, .dark button.bg-expense, .dark a.bg-expense {
+  background-color: color-mix(in srgb, var(--destructive) 50%, transparent) !important;
+  color: #fca5a5 !important;
+}
+button.bg-red-500:hover, a.bg-red-500:hover, button.bg-red-600:hover, a.bg-red-600:hover, button.bg-destructive:hover, a.bg-destructive:hover, button.bg-expense:hover, a.bg-expense:hover {
+  background-color: color-mix(in srgb, var(--destructive) 60%, rgba(255,255,255,0.3)) !important;
+  transform: translateY(-2px) !important;
+}
+.dark button.bg-red-500:hover, .dark a.bg-red-500:hover, .dark button.bg-red-600:hover, .dark a.bg-red-600:hover, .dark button.bg-destructive:hover, .dark a.bg-destructive:hover, .dark button.bg-expense:hover, .dark a.bg-expense:hover {
+  background-color: color-mix(in srgb, var(--destructive) 70%, transparent) !important;
+}
+
+/* Green/Income Glass */
+button.bg-green-500, a.bg-green-500, button.bg-green-600, a.bg-green-600, button.bg-income, a.bg-income {
+  background-color: color-mix(in srgb, var(--income) 45%, rgba(255,255,255,0.2)) !important;
+  color: #166534 !important;
+  font-weight: 800 !important;
+}
+.dark button.bg-green-500, .dark a.bg-green-500, .dark button.bg-green-600, .dark a.bg-green-600, .dark button.bg-income, .dark a.bg-income {
+  background-color: color-mix(in srgb, var(--income) 50%, transparent) !important;
+  color: #86efac !important;
+}
+button.bg-green-500:hover, a.bg-green-500:hover, button.bg-green-600:hover, a.bg-green-600:hover, button.bg-income:hover, a.bg-income:hover {
+  background-color: color-mix(in srgb, var(--income) 60%, rgba(255,255,255,0.3)) !important;
+  transform: translateY(-2px) !important;
+}
+.dark button.bg-green-500:hover, .dark a.bg-green-500:hover, .dark button.bg-green-600:hover, .dark a.bg-green-600:hover, .dark button.bg-income:hover, .dark a.bg-income:hover {
+  background-color: color-mix(in srgb, var(--income) 70%, transparent) !important;
+}

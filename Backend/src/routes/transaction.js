@@ -4,12 +4,16 @@ import {
   getTransactions,
   updateTransaction,
   deleteTransaction,
+  getPartyLedger,
 } from '../controllers/transactionController.js';
 
 const router = express.Router();
 
 // GET all transactions
 router.get('/select', getTransactions);
+
+// GET party ledger
+router.get('/party-ledger', getPartyLedger);
 
 // POST create new transaction
 router.post('/insert', createTransaction);

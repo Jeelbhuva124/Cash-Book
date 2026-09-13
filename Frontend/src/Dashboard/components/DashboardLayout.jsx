@@ -178,7 +178,7 @@ export const DashboardLayout = () => {
       <div className="flex-grow flex flex-col min-w-0 overflow-hidden relative bg-transparent dark:bg-transparent">
 
         {/* Unified Top Navbar Header */}
-        <header className="flex items-center justify-between px-6 py-3 bg-transparent dark:bg-card sticky top-0 z-20 h-[64px]">
+        <header className="flex items-center justify-between px-6 py-3 bg-background/30 dark:bg-card/30 backdrop-blur-sm border-b border-border/40 sticky top-0 z-20 h-[64px]">
 
           {/* Left Area: Sidebar toggle and Brand logo */}
           <div className="flex items-center gap-4">
