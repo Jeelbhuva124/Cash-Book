@@ -32,7 +32,6 @@ const Reports = lazy(() => import('./Dashboard/pages/Reports'));
 const History = lazy(() => import('./Dashboard/pages/History'));
 const Savings = lazy(() => import('./Dashboard/pages/Savings'));
 const Reminders = lazy(() => import('./Dashboard/pages/Reminders'));
-const Categories = lazy(() => import('./Dashboard/pages/Categories'));
 const PaymentModes = lazy(() => import('./Dashboard/pages/PaymentModes'));
 const Chalans = lazy(() => import('./Dashboard/pages/Chalans'));
 const Invitations = lazy(() => import('./Dashboard/pages/Invitations'));
@@ -111,7 +110,6 @@ function App() {
 
                   {/* Reference Dashboard Routes */}
                   <Route path="chalans" element={<Chalans />} />
-                  <Route path="categories" element={<Categories />} />
                   <Route path="payment-modes" element={<PaymentModes />} />
                   <Route path="invitations" element={<Invitations />} />
                   <Route path="cashbooks" element={<Cashbooks />} />

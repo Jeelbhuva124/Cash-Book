@@ -13,7 +13,6 @@ const SIDEBAR_ITEMS = [
   { label: 'Party Ledger', icon: BookOpen, path: '/dashboard/party-ledger' },
   { label: 'EMI & Subs', icon: RefreshCw, path: '/dashboard/tracker' },
   { label: 'Receipts Vault', icon: FileText, path: '/dashboard/receipts-vault' },
-  { label: 'Category', icon: Tag, path: '/dashboard/categories' },
   { label: 'Payment Mode', icon: CreditCard, path: '/dashboard/payment-modes' },
   { label: 'Invitations', icon: Users, path: '/dashboard/invitations' },
   { label: 'Reports', icon: BarChart3, path: '/dashboard/reports' },

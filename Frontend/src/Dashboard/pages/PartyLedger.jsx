@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Users, TrendingUp, TrendingDown, MessageCircle, ChevronDown, ChevronUp, Plus, X, Loader2, CheckCircle2 } from 'lucide-react';
 import { formatCurrency } from '../../utils/currencyFormatter';
+import { useToast } from '../../context/ToastContext';
 
 export default function PartyLedger() {
   const [partyData, setPartyData] = useState([]);
@@ -140,6 +141,7 @@ export default function PartyLedger() {
             <Users className="w-8 h-8 text-primary" />
           </div>
         </div>
+      </div>
 
       {partyData.length === 0 ? (
         <div className="text-center py-20 bg-card rounded-2xl border border-border shadow-sm">
