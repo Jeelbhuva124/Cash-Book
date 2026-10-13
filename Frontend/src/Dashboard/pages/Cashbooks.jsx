@@ -416,7 +416,19 @@ export default function Cashbooks() {
   };
 
   const handleSelectCashbook = (id) => {
-    navigate('/dashboard/transactions', { state: { selectedCashbookId: id } });
+    const selectedBook = cashbooks.find(b => b.id === id);
+    const isBookViewOnly = !!(selectedBook?.isShared && (
+      selectedBook?.permission === 'View Only' ||
+      selectedBook?.permission?.toLowerCase() === 'view only'
+    ));
+    navigate('/dashboard/transactions', { 
+      state: { 
+        selectedCashbookId: id,
+        cashbook: selectedBook,
+        permission: selectedBook?.permission,
+        isViewOnly: isBookViewOnly
+      } 
+    });
   };
 
   return (
@@ -511,8 +523,13 @@ export default function Cashbooks() {
                               {getCashbookMemberCount(book.name)} {getCashbookMemberCount(book.name) === 1 ? 'User' : 'Users'}
                             </span>
                             {book.isShared && (
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-[#10b981] dark:text-emerald-400 border border-emerald-500/20">
-                                Shared by {book.sharedBy} ({book.permission})
+                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                                (book.permission === 'View Only' || book.permission?.toLowerCase() === 'view only')
+                                  ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30'
+                                  : 'bg-emerald-500/10 text-[#10b981] dark:text-emerald-400 border-emerald-500/20'
+                              }`}>
+                                {(book.permission === 'View Only' || book.permission?.toLowerCase() === 'view only') && <Eye className="w-2.5 h-2.5" />}
+                                Shared by {book.sharedBy} • {book.permission}
                               </span>
                             )}
                             <span className="w-1 h-1 rounded-full bg-muted-foreground/40 shrink-0" />
@@ -553,17 +570,21 @@ export default function Cashbooks() {
                         >
                           <Eye className="w-3.5 h-3.5" />
                         </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEditClick(book);
-                          }}
-                          className="p-1.5 rounded-lg border border-border/80 dark:border-slate-700 bg-[#f8fafc] dark:bg-slate-800 text-muted-foreground dark:text-slate-300 hover:text-primary dark:hover:text-indigo-400 hover:bg-[#4f46e5]/10 transition-colors"
-                          title="Edit Cashbook"
-                        >
-                          <Edit className="w-3.5 h-3.5" />
-                        </button>
-                        {book.id !== '1' ? (
+                        {/* Edit Button: Hidden for View Only */}
+                        {!(book.isShared && (book.permission === 'View Only' || book.permission?.toLowerCase() === 'view only')) && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditClick(book);
+                            }}
+                            className="p-1.5 rounded-lg border border-border/80 dark:border-slate-700 bg-[#f8fafc] dark:bg-slate-800 text-muted-foreground dark:text-slate-300 hover:text-primary dark:hover:text-indigo-400 hover:bg-[#4f46e5]/10 transition-colors"
+                            title="Edit Cashbook"
+                          >
+                            <Edit className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                        {/* Delete Button: Hidden for View Only and Default */}
+                        {book.id !== '1' && !(book.isShared && (book.permission === 'View Only' || book.permission?.toLowerCase() === 'view only')) && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -573,14 +594,6 @@ export default function Cashbooks() {
                             title="Delete"
                           >
                             <Trash2 className="w-3.5 h-3.5 text-expense" />
-                          </button>
-                        ) : (
-                          <button
-                            onClick={(e) => e.stopPropagation()}
-                            disabled
-                            className="p-1.5 rounded-lg border border-border/40 text-muted-foreground/30 cursor-not-allowed bg-muted/10"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         )}
                         <button

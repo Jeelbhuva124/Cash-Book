@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, UserPlus, Shield, Ban, CheckCircle, Mail, Phone, Trash2, RefreshCw, X, Book, Activity, Calendar } from 'lucide-react';
+import { Search, Filter, UserPlus, Trash2, RefreshCw } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
 import ConfirmModal from '../../Dashboard/components/ConfirmModal';
 
@@ -8,13 +8,13 @@ export const UserManagement = () => {
   const [roleFilter, setRoleFilter] = useState('ALL');
   const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState([]);
-  
+
   // User Details Modal State
   const [selectedUser, setSelectedUser] = useState(null);
   const [userDetails, setUserDetails] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loadingDetails, setLoadingDetails] = useState(false);
-  
+
   // Confirmation Modal State
   const [confirmModal, setConfirmModal] = useState({
     isOpen: false,
@@ -23,7 +23,7 @@ export const UserManagement = () => {
     message: '',
     isLoading: false
   });
-  
+
   const { toast } = useToast();
 
   const getAdminId = () => {
@@ -34,7 +34,7 @@ export const UserManagement = () => {
         const adminObj = Array.isArray(parsed) ? parsed[0] : parsed;
         return (adminObj?.id || adminObj?._id || adminObj?.admin_id || '').toString().trim();
       }
-    } catch (e) {}
+    } catch (e) { }
     return '';
   };
 
@@ -49,32 +49,50 @@ export const UserManagement = () => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ admin_id: adminId })
         });
-      } catch (e) {}
+      } catch (e) { }
 
       if (!response || !response.ok) {
         response = await fetch('http://localhost:5001/api/admin/select');
       }
 
       const data = await response.json();
-      if (data.success && data.data && data.data.users) {
-        setUsers(data.data.users);
+      let fetchedUsers = [];
+      if (data.success && data.data && Array.isArray(data.data.users)) {
+        fetchedUsers = data.data.users;
       } else {
         // Fallback to user/select API
         const fallbackRes = await fetch('http://localhost:5001/api/user/select');
         const fallbackData = await fallbackRes.json();
         if (fallbackData.success && Array.isArray(fallbackData.data)) {
-          setUsers(fallbackData.data);
+          fetchedUsers = fallbackData.data;
         }
+      }
+
+      if (fetchedUsers.length > 0) {
+        const normalized = fetchedUsers.map((u, idx) => {
+          const idStr = (u.id || u._id || `usr-${idx}`).toString();
+          let created_at = u.created_at || u.createdAt;
+          if (!created_at && idStr.length === 24) {
+            try {
+              created_at = new Date(parseInt(idStr.substring(0, 8), 16) * 1000).toISOString();
+            } catch (e) { }
+          }
+          return {
+            ...u,
+            id: idStr,
+            _id: idStr,
+            username: u.username || u.name || (u.email_id || u.email || 'User').split('@')[0],
+            email_id: u.email_id || u.email || '',
+            user_role: u.user_role || u.role || (u.is_admin ? 'admin' : 'user'),
+            account_status: u.account_status || 'active',
+            created_at: created_at,
+            createdAt: created_at
+          };
+        });
+        setUsers(normalized);
       }
     } catch (err) {
       console.warn("Failed to fetch users from server", err.message);
-      // Demo fallback users
-      setUsers([
-        { id: 'usr-1', username: 'Rahul Sharma', email_id: 'rahul@kirana.in', user_role: 'user', account_status: 'active', created_at: '2026-01-15' },
-        { id: 'usr-2', username: 'Priya Patel', email_id: 'priya.dev@gmail.com', user_role: 'user', account_status: 'active', created_at: '2026-02-04' },
-        { id: 'usr-3', username: 'Admin Root', email_id: 'superadmin@cashbook.io', user_role: 'admin', account_status: 'active', created_at: '2025-11-18' },
-        { id: 'usr-4', username: 'Suresh Kumar', email_id: 'suresh@shop.com', user_role: 'user', account_status: 'suspended', created_at: '2025-12-22' },
-      ]);
     } finally {
       setLoading(false);
     }
@@ -243,8 +261,8 @@ export const UserManagement = () => {
                 key={role}
                 onClick={() => setRoleFilter(role)}
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all uppercase ${roleFilter === role
-                    ? 'bg-primary text-primary-foreground shadow-sm'
-                    : 'bg-muted text-muted-foreground hover:bg-card'
+                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  : 'bg-muted text-muted-foreground hover:bg-card'
                   }`}
               >
                 {role}
@@ -264,7 +282,6 @@ export const UserManagement = () => {
                 <th className="p-4">User Role</th>
                 <th className="p-4">Account Status</th>
                 <th className="p-4">Created At</th>
-                <th className="p-4 text-center">Activities</th>
                 <th className="p-4 text-right">Actions</th>
               </tr>
             </thead>
@@ -286,7 +303,7 @@ export const UserManagement = () => {
                       localAvatar = parsed.avatar;
                     }
                   }
-                } catch(e) {}
+                } catch (e) { }
 
                 const displayAvatar = localAvatar || user.avatar;
 
@@ -296,7 +313,7 @@ export const UserManagement = () => {
                       <div className="flex items-center gap-3">
                         {displayAvatar ? (
                           <div className="w-10 h-10 rounded-full bg-muted overflow-hidden shrink-0 border border-border shadow-sm">
-                            <img 
+                            <img
                               src={displayAvatar}
                               alt="Profile"
                               className="w-full h-full object-cover"
@@ -321,29 +338,34 @@ export const UserManagement = () => {
                     </td>
                     <td className="p-4">
                       <span className={`px-2.5 py-1 rounded-full text-xs font-bold uppercase border ${status === 'active'
-                          ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
-                          : 'bg-rose-500/10 text-rose-500 border-rose-500/20'
+                        ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
+                        : 'bg-rose-500/10 text-rose-500 border-rose-500/20'
                         }`}>
                         {status}
                       </span>
                     </td>
-                    <td className="p-4 text-xs text-muted-foreground">
-                      {user.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}
-                    </td>
-                    <td className="p-4 text-center">
-                      <button
-                        onClick={() => openUserDetails(user)}
-                        className="px-3 py-1.5 rounded-xl text-xs font-bold bg-primary/10 text-primary border border-primary/20 hover:bg-primary hover:text-primary-foreground transition-all"
-                      >
-                        See Activities
-                      </button>
+                    <td className="p-4 text-xs text-muted-foreground font-medium">
+                      {(() => {
+                        let dateVal = user.created_at || user.createdAt;
+                        if (!dateVal && (user.id || user._id)) {
+                          const idStr = (user.id || user._id).toString();
+                          if (idStr.length === 24) {
+                            try {
+                              dateVal = new Date(parseInt(idStr.substring(0, 8), 16) * 1000);
+                            } catch (e) { }
+                          }
+                        }
+                        if (!dateVal) return 'N/A';
+                        const d = new Date(dateVal);
+                        return isNaN(d.getTime()) ? 'N/A' : d.toLocaleDateString();
+                      })()}
                     </td>
                     <td className="p-4 text-right space-x-2">
                       <button
                         onClick={(e) => toggleUserStatus(e, user)}
                         className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${status === 'active'
-                            ? 'border-rose-500/30 text-rose-500 hover:bg-rose-500/10'
-                            : 'border-emerald-500/30 text-emerald-500 hover:bg-emerald-500/10'
+                          ? 'border-rose-500/30 text-rose-500 hover:bg-rose-500/10'
+                          : 'border-emerald-500/30 text-emerald-500 hover:bg-emerald-500/10'
                           }`}
                       >
                         {status === 'active' ? 'Suspend' : 'Activate'}
@@ -378,7 +400,7 @@ export const UserManagement = () => {
                 localAvatar = parsed.avatar;
               }
             }
-          } catch(e) {}
+          } catch (e) { }
           const modalAvatar = localAvatar || selectedUser.avatar;
 
           return (
@@ -389,7 +411,7 @@ export const UserManagement = () => {
                   <div className="flex items-center gap-4">
                     {modalAvatar ? (
                       <div className="w-16 h-16 rounded-full bg-muted overflow-hidden shrink-0 border-2 border-border shadow-md">
-                        <img 
+                        <img
                           src={modalAvatar}
                           alt="Profile"
                           className="w-full h-full object-cover"
@@ -400,132 +422,132 @@ export const UserManagement = () => {
                         {(selectedUser.username || selectedUser.email_id || 'U').substring(0, 2)}
                       </div>
                     )}
-                <div>
-                  <h2 className="text-2xl font-black text-foreground">{selectedUser.username || 'User Profile'}</h2>
-                  <p className="text-sm text-muted-foreground flex items-center gap-2">
-                    <Mail className="w-3.5 h-3.5" /> {selectedUser.email_id}
-                  </p>
+                    <div>
+                      <h2 className="text-2xl font-black text-foreground">{selectedUser.username || 'User Profile'}</h2>
+                      <p className="text-sm text-muted-foreground flex items-center gap-2">
+                        <Mail className="w-3.5 h-3.5" /> {selectedUser.email_id}
+                      </p>
+                    </div>
+                  </div>
+                  <button onClick={() => setIsModalOpen(false)} className="p-2 rounded-xl hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+
+                {/* Modal Body */}
+                <div className="p-6 overflow-y-auto flex-1 space-y-8 custom-scrollbar">
+                  {loadingDetails ? (
+                    <div className="flex flex-col items-center justify-center h-40 space-y-4">
+                      <RefreshCw className="w-8 h-8 text-primary animate-spin" />
+                      <p className="text-sm text-muted-foreground">Loading user activities...</p>
+                    </div>
+                  ) : userDetails ? (
+                    <>
+                      {/* Basic Info Cards */}
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="p-4 rounded-xl bg-muted/50 border border-border">
+                          <p className="text-xs text-muted-foreground mb-1 uppercase font-bold">Role</p>
+                          <p className="font-bold text-foreground capitalize">{userDetails.user.user_role || (userDetails.user.is_admin ? 'admin' : 'user')}</p>
+                        </div>
+                        <div className="p-4 rounded-xl bg-muted/50 border border-border">
+                          <p className="text-xs text-muted-foreground mb-1 uppercase font-bold">Status</p>
+                          <p className="font-bold text-foreground capitalize">{userDetails.user.account_status || 'active'}</p>
+                        </div>
+                        <div className="p-4 rounded-xl bg-muted/50 border border-border">
+                          <p className="text-xs text-muted-foreground mb-1 uppercase font-bold">Cashbooks</p>
+                          <p className="font-bold text-foreground">{userDetails.cashbooks.length}</p>
+                        </div>
+                        <div className="p-4 rounded-xl bg-muted/50 border border-border">
+                          <p className="text-xs text-muted-foreground mb-1 uppercase font-bold">Transactions</p>
+                          <p className="font-bold text-foreground">{userDetails.transactions.length}</p>
+                        </div>
+                      </div>
+
+                      {/* Cashbooks Section */}
+                      <div>
+                        <h3 className="text-lg font-black text-foreground mb-4 flex items-center gap-2">
+                          <Book className="w-5 h-5 text-primary" /> User's Cashbooks
+                        </h3>
+                        {userDetails.cashbooks.length > 0 ? (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {userDetails.cashbooks.map(cb => (
+                              <div key={cb.id || cb._id} className="p-4 rounded-xl border border-border bg-card shadow-sm flex items-start gap-3">
+                                <div className="w-3 h-full rounded-full" style={{ backgroundColor: cb.hex_code || '#8B5CF6' }} />
+                                <div>
+                                  <p className="font-bold text-foreground">{cb.cashbook_name}</p>
+                                  <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{cb.description || 'No description'}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-sm text-muted-foreground p-4 bg-muted/30 rounded-xl border border-border">No cashbooks created yet.</p>
+                        )}
+                      </div>
+
+                      {/* Transactions Section */}
+                      <div>
+                        <h3 className="text-lg font-black text-foreground mb-4 flex items-center gap-2">
+                          <Activity className="w-5 h-5 text-primary" /> Recent Transactions
+                        </h3>
+                        {userDetails.transactions.length > 0 ? (
+                          <div className="rounded-xl border border-border overflow-hidden">
+                            <table className="w-full text-left text-sm">
+                              <thead className="bg-muted/50 text-muted-foreground font-bold text-xs uppercase">
+                                <tr>
+                                  <th className="p-3">Title</th>
+                                  <th className="p-3">Type</th>
+                                  <th className="p-3 text-right">Amount</th>
+                                  <th className="p-3">Date</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-border">
+                                {userDetails.transactions.map(tx => (
+                                  <tr key={tx.id || tx._id} className="hover:bg-muted/20">
+                                    <td className="p-3 font-medium text-foreground">{tx.title}</td>
+                                    <td className="p-3">
+                                      <span className={`text-xs font-bold uppercase ${tx.type === 'income' ? 'text-emerald-500' : 'text-rose-500'}`}>
+                                        {tx.type}
+                                      </span>
+                                    </td>
+                                    <td className={`p-3 text-right font-bold ${tx.type === 'income' ? 'text-emerald-500' : 'text-rose-500'}`}>
+                                      {tx.type === 'income' ? '+' : '-'}₹{tx.amount}
+                                    </td>
+                                    <td className="p-3 text-xs text-muted-foreground flex items-center gap-1">
+                                      <Calendar className="w-3 h-3" /> {tx.date}
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        ) : (
+                          <p className="text-sm text-muted-foreground p-4 bg-muted/30 rounded-xl border border-border">No transactions found.</p>
+                        )}
+                      </div>
+                    </>
+                  ) : null}
                 </div>
               </div>
-              <button onClick={() => setIsModalOpen(false)} className="p-2 rounded-xl hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
-                <X className="w-6 h-6" />
-              </button>
             </div>
+          );
+        })()
+      )}
 
-            {/* Modal Body */}
-            <div className="p-6 overflow-y-auto flex-1 space-y-8 custom-scrollbar">
-              {loadingDetails ? (
-                <div className="flex flex-col items-center justify-center h-40 space-y-4">
-                  <RefreshCw className="w-8 h-8 text-primary animate-spin" />
-                  <p className="text-sm text-muted-foreground">Loading user activities...</p>
-                </div>
-              ) : userDetails ? (
-                <>
-                  {/* Basic Info Cards */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="p-4 rounded-xl bg-muted/50 border border-border">
-                      <p className="text-xs text-muted-foreground mb-1 uppercase font-bold">Role</p>
-                      <p className="font-bold text-foreground capitalize">{userDetails.user.user_role || (userDetails.user.is_admin ? 'admin' : 'user')}</p>
-                    </div>
-                    <div className="p-4 rounded-xl bg-muted/50 border border-border">
-                      <p className="text-xs text-muted-foreground mb-1 uppercase font-bold">Status</p>
-                      <p className="font-bold text-foreground capitalize">{userDetails.user.account_status || 'active'}</p>
-                    </div>
-                    <div className="p-4 rounded-xl bg-muted/50 border border-border">
-                      <p className="text-xs text-muted-foreground mb-1 uppercase font-bold">Cashbooks</p>
-                      <p className="font-bold text-foreground">{userDetails.cashbooks.length}</p>
-                    </div>
-                    <div className="p-4 rounded-xl bg-muted/50 border border-border">
-                      <p className="text-xs text-muted-foreground mb-1 uppercase font-bold">Transactions</p>
-                      <p className="font-bold text-foreground">{userDetails.transactions.length}</p>
-                    </div>
-                  </div>
-
-                  {/* Cashbooks Section */}
-                  <div>
-                    <h3 className="text-lg font-black text-foreground mb-4 flex items-center gap-2">
-                      <Book className="w-5 h-5 text-primary" /> User's Cashbooks
-                    </h3>
-                    {userDetails.cashbooks.length > 0 ? (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {userDetails.cashbooks.map(cb => (
-                          <div key={cb.id || cb._id} className="p-4 rounded-xl border border-border bg-card shadow-sm flex items-start gap-3">
-                            <div className="w-3 h-full rounded-full" style={{ backgroundColor: cb.hex_code || '#8B5CF6' }} />
-                            <div>
-                              <p className="font-bold text-foreground">{cb.cashbook_name}</p>
-                              <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{cb.description || 'No description'}</p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-sm text-muted-foreground p-4 bg-muted/30 rounded-xl border border-border">No cashbooks created yet.</p>
-                    )}
-                  </div>
-
-                  {/* Transactions Section */}
-                  <div>
-                    <h3 className="text-lg font-black text-foreground mb-4 flex items-center gap-2">
-                      <Activity className="w-5 h-5 text-primary" /> Recent Transactions
-                    </h3>
-                    {userDetails.transactions.length > 0 ? (
-                      <div className="rounded-xl border border-border overflow-hidden">
-                        <table className="w-full text-left text-sm">
-                          <thead className="bg-muted/50 text-muted-foreground font-bold text-xs uppercase">
-                            <tr>
-                              <th className="p-3">Title</th>
-                              <th className="p-3">Type</th>
-                              <th className="p-3 text-right">Amount</th>
-                              <th className="p-3">Date</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-border">
-                            {userDetails.transactions.map(tx => (
-                              <tr key={tx.id || tx._id} className="hover:bg-muted/20">
-                                <td className="p-3 font-medium text-foreground">{tx.title}</td>
-                                <td className="p-3">
-                                  <span className={`text-xs font-bold uppercase ${tx.type === 'income' ? 'text-emerald-500' : 'text-rose-500'}`}>
-                                    {tx.type}
-                                  </span>
-                                </td>
-                                <td className={`p-3 text-right font-bold ${tx.type === 'income' ? 'text-emerald-500' : 'text-rose-500'}`}>
-                                  {tx.type === 'income' ? '+' : '-'}₹{tx.amount}
-                                </td>
-                                <td className="p-3 text-xs text-muted-foreground flex items-center gap-1">
-                                  <Calendar className="w-3 h-3" /> {tx.date}
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    ) : (
-                      <p className="text-sm text-muted-foreground p-4 bg-muted/30 rounded-xl border border-border">No transactions found.</p>
-                    )}
-                  </div>
-                </>
-              ) : null}
-            </div>
-          </div>
-        </div>
-      );
-    })()
-  )}
-
-  {/* Dynamic Delete User Confirmation Modal */}
-  <ConfirmModal
-    isOpen={confirmModal.isOpen}
-    onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
-    onConfirm={handleConfirmDeleteUser}
-    title={confirmModal.title}
-    message={confirmModal.message}
-    confirmText="Delete User"
-    cancelText="Cancel"
-    type="danger"
-    isLoading={confirmModal.isLoading}
-  />
-</div>
-);
+      {/* Dynamic Delete User Confirmation Modal */}
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={handleConfirmDeleteUser}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmText="Delete User"
+        cancelText="Cancel"
+        type="danger"
+        isLoading={confirmModal.isLoading}
+      />
+    </div>
+  );
 };
 
 export default UserManagement;

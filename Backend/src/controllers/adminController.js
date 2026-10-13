@@ -38,6 +38,14 @@ const adminController = {
         return res.status(401).json({ success: false, message: "Invalid password" });
       }
 
+      if (adminUser.account_status === 'suspended') {
+        return res.status(403).json({
+          success: false,
+          is_suspended: true,
+          message: "Sorry, you are suspended from the Cash-Book Team."
+        });
+      }
+
       if (!adminUser.is_admin && adminUser.user_role !== 'admin') {
         return res.status(403).json({ success: false, message: "Access denied. Administrative rights required." });
       }
@@ -65,12 +73,60 @@ const adminController = {
   // GET / POST /api/admin/select (Fetch all users and system metadata)
   select: async (req, res) => {
     try {
+<<<<<<< HEAD
+      const rawUsers = await User.find({}).sort({ createdAt: -1, created_at: -1 }).lean();
+      const rawAdmins = await Admin.find({}).sort({ createdAt: -1, created_at: -1 }).lean();
+      const rawCashbooks = await Cashbook.find({}).sort({ createdAt: -1, created_at: -1 }).lean();
+=======
       const { admin_id, admin_email } = { ...(req.query || {}), ...(req.body || {}) };
       const users = await User.find({}).sort({ createdAt: -1 }).lean();
       const admins = await Admin.find({}).sort({ createdAt: -1 }).lean();
       const rawCashbooks = await Cashbook.find({}).sort({ createdAt: -1 }).lean();
+>>>>>>> 6f294b21f25fb66fb881a867cc6bee2b2d774196
       const allTxns = await Transaction.find({}, 'chalan_id type amount').lean();
       
+      const users = rawUsers.map(u => {
+        const idStr = (u._id || u.id || '').toString();
+        let created_at = u.created_at || u.createdAt;
+        if (!created_at && idStr && idStr.length === 24) {
+          try {
+            created_at = new Date(parseInt(idStr.substring(0, 8), 16) * 1000).toISOString();
+          } catch (e) {}
+        }
+        return {
+          ...u,
+          id: idStr,
+          _id: idStr,
+          created_at: created_at,
+          createdAt: created_at,
+          username: u.username || u.name || (u.email_id || u.email || 'User').split('@')[0],
+          email_id: u.email_id || u.email || '',
+          user_role: u.user_role || u.role || (u.is_admin ? 'admin' : 'user'),
+          account_status: u.account_status || 'active'
+        };
+      });
+
+      const admins = rawAdmins.map(a => {
+        const idStr = (a._id || a.id || '').toString();
+        let created_at = a.created_at || a.createdAt;
+        if (!created_at && idStr && idStr.length === 24) {
+          try {
+            created_at = new Date(parseInt(idStr.substring(0, 8), 16) * 1000).toISOString();
+          } catch (e) {}
+        }
+        return {
+          ...a,
+          id: idStr,
+          _id: idStr,
+          created_at: created_at,
+          createdAt: created_at,
+          username: a.username || (a.email_id || 'Admin').split('@')[0],
+          email_id: a.email_id || '',
+          user_role: a.user_role || 'admin',
+          account_status: a.account_status || 'active'
+        };
+      });
+
       const cashbooks = rawCashbooks.map(cb => {
         const idStr = cb._id.toString();
         const cbTxns = allTxns.filter(t => t.chalan_id === idStr);
@@ -84,7 +140,8 @@ const adminController = {
           ...cb,
           id: idStr,
           owner_email: cb.user_email || '',
-          created_at: cb.createdAt,
+          created_at: cb.created_at || cb.createdAt,
+          createdAt: cb.created_at || cb.createdAt,
           total_income: income,
           total_expense: expense
         };
@@ -328,42 +385,47 @@ const adminController = {
 
 
       // Generate dynamic recent logs (audit trail)
-      const recentUsers = await User.find({}).sort({ createdAt: -1 }).limit(3);
-      const recentCashbooks = await Cashbook.find({}).sort({ createdAt: -1 }).limit(3);
-      const recentTransactions = await Transaction.find({}).sort({ createdAt: -1 }).limit(5);
+      const recentUsers = await User.find({}).sort({ createdAt: -1, created_at: -1 }).limit(6).lean();
+      const recentCashbooks = await Cashbook.find({}).sort({ createdAt: -1, created_at: -1 }).limit(3).lean();
+      const recentTransactions = await Transaction.find({}).sort({ createdAt: -1, created_at: -1 }).limit(5).lean();
 
       const logs = [];
       recentUsers.forEach(u => {
+        const uEmail = u.email_id || u.email || '';
+        const uName = u.username || u.name || (uEmail ? uEmail.split('@')[0] : 'User');
+        const uDate = u.created_at || u.createdAt;
         logs.push({
           id: `u-${u._id}`,
-          user: u.username || 'Unknown User',
-          action: `Registered new account (${u.email})`,
+          user: uName,
+          action: `Registered new account (${uEmail})`,
           ip: "Frontend Web",
           status: "success",
-          timestamp: new Date(u.createdAt).getTime(),
-          time: new Date(u.createdAt).toLocaleString()
+          timestamp: uDate ? new Date(uDate).getTime() : Date.now(),
+          time: uDate ? new Date(uDate).toLocaleString() : 'Just now'
         });
       });
       recentCashbooks.forEach(c => {
+        const cDate = c.created_at || c.createdAt;
         logs.push({
           id: `c-${c._id}`,
-          user: c.owner_email || 'System',
+          user: c.user_email || c.owner_email || 'System',
           action: `Created Cashbook '${c.cashbook_name || c.name || "Unnamed"}'`,
           ip: "Frontend Web",
           status: "info",
-          timestamp: new Date(c.createdAt).getTime(),
-          time: new Date(c.createdAt).toLocaleString()
+          timestamp: cDate ? new Date(cDate).getTime() : Date.now(),
+          time: cDate ? new Date(cDate).toLocaleString() : 'Just now'
         });
       });
       recentTransactions.forEach(t => {
+        const tDate = t.created_at || t.createdAt;
         logs.push({
           id: `t-${t._id}`,
           user: t.user_email || t.created_by || 'Unknown',
           action: `Added ${t.type?.toLowerCase() === 'income' ? 'IN' : 'OUT'} txn of ₹${t.amount}`,
           ip: "Frontend Web",
           status: t.type?.toLowerCase() === 'income' ? 'success' : 'warning',
-          timestamp: new Date(t.createdAt).getTime(),
-          time: new Date(t.createdAt).toLocaleString()
+          timestamp: tDate ? new Date(tDate).getTime() : Date.now(),
+          time: tDate ? new Date(tDate).toLocaleString() : 'Just now'
         });
       });
 
@@ -371,36 +433,55 @@ const adminController = {
       logs.sort((a, b) => b.timestamp - a.timestamp);
       const recentLogs = logs.slice(0, 5);
 
-      // Generate registration growth (last 14 days)
-      const fourteenDaysAgo = new Date();
-      fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
-      
-      const userGrowth = await User.aggregate([
-        {
-          $match: {
-            created_at: { $gte: fourteenDaysAgo }
-          }
-        },
-        {
-          $group: {
-            _id: { $dateToString: { format: "%Y-%m-%d", date: "$created_at" } },
-            count: { $sum: 1 }
-          }
-        },
-        { $sort: { _id: 1 } }
-      ]);
-      
+      // Generate registration growth (last 14 days) accurately across all users
+      const allUsers = await User.find({}, 'createdAt created_at _id').lean();
       const growthChartData = [];
       let newUsersLast14Days = 0;
+      
       for (let i = 13; i >= 0; i--) {
         const d = new Date();
         d.setDate(d.getDate() - i);
         const dateStr = d.toISOString().split('T')[0];
-        const dayData = userGrowth.find(x => x._id === dateStr);
-        const count = dayData ? dayData.count : 0;
+        
+        const count = allUsers.filter(u => {
+          let uDate = u.createdAt || u.created_at;
+          if (!uDate && u._id) {
+            try {
+              const idStr = u._id.toString();
+              if (idStr.length === 24) {
+                uDate = new Date(parseInt(idStr.substring(0, 8), 16) * 1000);
+              }
+            } catch (e) {}
+          }
+          if (!uDate) return false;
+          return new Date(uDate).toISOString().split('T')[0] === dateStr;
+        }).length;
+
         growthChartData.push(count);
         newUsersLast14Days += count;
       }
+
+      // Format recent users with full profiles for Admin Dashboard
+      const recent_users = recentUsers.map(u => {
+        const idStr = (u._id || u.id || '').toString();
+        let uDate = u.created_at || u.createdAt;
+        if (!uDate && idStr.length === 24) {
+          try {
+            uDate = new Date(parseInt(idStr.substring(0, 8), 16) * 1000).toISOString();
+          } catch (e) {}
+        }
+        return {
+          id: idStr,
+          _id: idStr,
+          username: u.username || u.name || (u.email_id || u.email || 'User').split('@')[0],
+          email_id: u.email_id || u.email || '',
+          user_role: u.user_role || u.role || (u.is_admin ? 'admin' : 'user'),
+          account_status: u.account_status || 'active',
+          created_at: uDate,
+          createdAt: uDate,
+          avatar: u.avatar || ''
+        };
+      });
       
       // Server Diagnostics
       const totalMem = os.totalmem();
@@ -421,10 +502,7 @@ const adminController = {
       } catch(e) {
         console.error("DB stats error:", e);
       }
-      // For MongoDB Atlas free tier, max is usually 512MB (0.5GB), for standard it's more. We'll assume a 100GB limit for display as per original UI.
       const dbStorageGB = (dbStats.storageSize / (1024 * 1024 * 1024)).toFixed(3);
-      
-      // Mock CPU Load (10-30%) since cross-platform Node doesn't expose easy % without external libs
       const cpuLoad = (Math.random() * 15 + 10).toFixed(1); 
 
       return res.status(200).json({
@@ -441,6 +519,7 @@ const adminController = {
           recentLogs,
           growthChartData,
           newUsersLast14Days,
+          recent_users,
           serverDiagnostics: {
             ram: memFormatted,
             cpu: cpuLoad,

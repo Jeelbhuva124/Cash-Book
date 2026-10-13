@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { BookOpen, Shield, CheckCircle, Mail, Lock, Eye, EyeOff, ArrowRight, ArrowLeft } from "lucide-react";
+import { BookOpen, Shield, CheckCircle, Mail, Lock, Eye, EyeOff, ArrowRight, ArrowLeft, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { userAPI } from "../api/api.jsx";
 import { useToast } from "../context/ToastContext";
@@ -11,6 +11,7 @@ import { auth, googleProvider } from "../config/firebase";
 export default function SignIn() {
   const [formData, setFormData] = useState({ email: "" });
   const [isLoading, setIsLoading] = useState(false);
+  const [suspendedError, setSuspendedError] = useState("");
   const { addToast } = useToast();
   const navigate = useNavigate();
 
@@ -103,6 +104,7 @@ export default function SignIn() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSuspendedError("");
     setIsLoading(true);
     try {
       const response = await userAPI.login({
@@ -129,12 +131,24 @@ export default function SignIn() {
           navigate("/dashboard");
         }
       } else {
-        addToast(response.message || "Authentication failed.", "error");
+        if (response.is_suspended || response.message?.toLowerCase().includes("suspend")) {
+          const msg = response.message || "Sorry, you are suspended from the Cash-Book Team.";
+          setSuspendedError(msg);
+          addToast(msg, "error");
+        } else {
+          addToast(response.message || "Authentication failed.", "error");
+        }
       }
     } catch (err) {
       console.error("Login Error:", err);
       const errMsg = err.response?.data?.message || err.message || "Unable to connect to the backend server.";
-      addToast(errMsg, "error");
+      if (err.response?.data?.is_suspended || err.response?.status === 403 || errMsg.toLowerCase().includes("suspend")) {
+        const msg = err.response?.data?.message || "Sorry, you are suspended from the Cash-Book Team.";
+        setSuspendedError(msg);
+        addToast(msg, "error");
+      } else {
+        addToast(errMsg, "error");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -166,13 +180,27 @@ export default function SignIn() {
         // Start animation sequence instead of navigating immediately
         setPhase("exploding");
       } else {
-        addToast(response.message || "Invalid verification code.", "error");
+        if (response.is_suspended || response.message?.toLowerCase().includes("suspend")) {
+          const msg = response.message || "Sorry, you are suspended from the Cash-Book Team.";
+          setStep("credentials");
+          setSuspendedError(msg);
+          addToast(msg, "error");
+        } else {
+          addToast(response.message || "Invalid verification code.", "error");
+        }
         setIsLoading(false);
       }
     } catch (err) {
       console.error("OTP Verification Error:", err);
       const errMsg = err.response?.data?.message || err.message || "Verification failed.";
-      addToast(errMsg, "error");
+      if (err.response?.data?.is_suspended || err.response?.status === 403 || errMsg.toLowerCase().includes("suspend")) {
+        const msg = err.response?.data?.message || "Sorry, you are suspended from the Cash-Book Team.";
+        setStep("credentials");
+        setSuspendedError(msg);
+        addToast(msg, "error");
+      } else {
+        addToast(errMsg, "error");
+      }
       setIsLoading(false);
     }
   };
@@ -190,11 +218,25 @@ export default function SignIn() {
         setOtpTimer(60);
         setCanResend(false);
       } else {
-        addToast(response.message || "Failed to resend verification code.", "error");
+        if (response.is_suspended || response.message?.toLowerCase().includes("suspend")) {
+          const msg = response.message || "Sorry, you are suspended from the Cash-Book Team.";
+          setStep("credentials");
+          setSuspendedError(msg);
+          addToast(msg, "error");
+        } else {
+          addToast(response.message || "Failed to resend verification code.", "error");
+        }
       }
     } catch (err) {
       const errMsg = err.response?.data?.message || err.message || "Failed to resend verification code.";
-      addToast(errMsg, "error");
+      if (err.response?.data?.is_suspended || err.response?.status === 403 || errMsg.toLowerCase().includes("suspend")) {
+        const msg = err.response?.data?.message || "Sorry, you are suspended from the Cash-Book Team.";
+        setStep("credentials");
+        setSuspendedError(msg);
+        addToast(msg, "error");
+      } else {
+        addToast(errMsg, "error");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -202,6 +244,7 @@ export default function SignIn() {
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
+    setSuspendedError("");
     try {
       const result = await signInWithPopup(auth, googleProvider);
       const idToken = await result.user.getIdToken();
@@ -218,12 +261,24 @@ export default function SignIn() {
         await recordNewSession();
         navigate("/dashboard");
       } else {
-        addToast(response.message || "Google Authentication failed.", "error");
+        if (response.is_suspended || response.message?.toLowerCase().includes("suspend")) {
+          const msg = response.message || "Sorry, you are suspended from the Cash-Book Team.";
+          setSuspendedError(msg);
+          addToast(msg, "error");
+        } else {
+          addToast(response.message || "Google Authentication failed.", "error");
+        }
       }
     } catch (err) {
       console.error("Google Sign-In Error:", err);
       const errMsg = err.response?.data?.message || err.message || "Google Authentication failed.";
-      addToast(errMsg, "error");
+      if (err.response?.data?.is_suspended || err.response?.status === 403 || errMsg.toLowerCase().includes("suspend")) {
+        const msg = err.response?.data?.message || "Sorry, you are suspended from the Cash-Book Team.";
+        setSuspendedError(msg);
+        addToast(msg, "error");
+      } else {
+        addToast(errMsg, "error");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -231,6 +286,7 @@ export default function SignIn() {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    if (suspendedError) setSuspendedError("");
   };
 
   const getBoxProps = (index) => {
@@ -344,6 +400,22 @@ export default function SignIn() {
                     Enter your email to receive an OTP code.
                   </p>
                 </div>
+
+                {suspendedError && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-500 flex items-start gap-3 shadow-sm"
+                  >
+                    <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 text-rose-500" />
+                    <div>
+                      <p className="font-bold text-sm text-rose-600 dark:text-rose-400">Account Suspended</p>
+                      <p className="text-xs text-rose-600/90 dark:text-rose-400/90 mt-0.5 font-medium leading-relaxed">
+                        {suspendedError}
+                      </p>
+                    </div>
+                  </motion.div>
+                )}
 
                 <form onSubmit={handleSubmit} className="space-y-5">
                   {/* Username/Email Input */}

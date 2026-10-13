@@ -77,7 +77,7 @@ export const AdminHeader = ({ setMobileOpen, isCollapsed, setIsCollapsed }) => {
 
 
   return (
-    <header className="sticky top-0 z-40 h-[64px] bg-transparent dark:bg-card px-4 sm:px-8 flex items-center justify-between gap-4">
+    <header className="sticky top-0 z-40 h-[56px] bg-transparent dark:bg-card px-4 sm:px-6 flex items-center justify-between gap-4 border-b border-border/40">
       {/* Left: Mobile Menu Toggle & Search Bar */}
       <div className="flex items-center gap-4 flex-1 max-w-md">
         <button
