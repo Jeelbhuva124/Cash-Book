@@ -27,7 +27,7 @@ export const UserFooter = () => {
               <span className="text-2xl font-bold text-foreground">Cash Book</span>
             </Link>
             <p className="text-sm text-muted-foreground leading-relaxed max-w-xs mt-2 mb-2">
-              India's leading smart finance app. Digitize your khata book and manage daily budgets effortlessly.
+              Smart finance and accounting application. Digitize your credit books and manage daily budgets effortlessly.
             </p>
 
             <div className="flex flex-col gap-4">

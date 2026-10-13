@@ -150,7 +150,7 @@ export const About = () => {
   const featuresOverview = [
     {
       icon: Wallet,
-      title: "Digital Khata Management",
+      title: "Digital Credit & Ledger Management",
       desc: "Track daily sales, customer credit, and vendor payments digitally with instant balance totals.",
     },
     {

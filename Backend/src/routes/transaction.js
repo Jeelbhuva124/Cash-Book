@@ -9,11 +9,13 @@ import {
 
 const router = express.Router();
 
-// GET all transactions
+// GET and POST transactions
 router.get('/select', getTransactions);
+router.post('/select', getTransactions);
 
-// GET party ledger
+// GET and POST party ledger
 router.get('/party-ledger', getPartyLedger);
+router.post('/party-ledger', getPartyLedger);
 
 // POST create new transaction
 router.post('/insert', createTransaction);

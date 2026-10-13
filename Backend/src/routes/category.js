@@ -9,6 +9,7 @@ import {
 const router = express.Router();
 
 router.get('/select', getCategories);
+router.post('/select', getCategories);
 router.post('/insert', createCategory);
 router.put('/update', updateCategory);
 router.delete('/delete', deleteCategory);

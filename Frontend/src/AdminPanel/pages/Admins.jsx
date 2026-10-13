@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Search, Filter, ShieldAlert, UserCheck, ShieldCheck, Mail, Phone, Trash2, RefreshCw, X, AlertTriangle, Plus, ShieldCheck as ShieldIcon, Pencil, Lock } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
 import Dropdown from '../../Dashboard/components/Dropdown';
+import ConfirmModal from '../../Dashboard/components/ConfirmModal';
 
 export const Admins = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -12,6 +13,17 @@ export const Admins = () => {
   // Modals state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [addMode, setAddMode] = useState('promote'); // 'promote' or 'create'
+  
+  // Dynamic Confirmation Modal State
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    confirmText: 'Confirm',
+    type: 'danger',
+    onConfirm: null,
+    isLoading: false
+  });
   
   // Security PIN state
   const [isUnlocked, setIsUnlocked] = useState(false);
@@ -60,10 +72,38 @@ export const Admins = () => {
     }
   }, []);
 
+  const getAdminId = () => {
+    if (currentAdmin?.id || currentAdmin?._id || currentAdmin?.admin_id) {
+      return (currentAdmin?.id || currentAdmin?._id || currentAdmin?.admin_id).toString().trim();
+    }
+    try {
+      const stored = sessionStorage.getItem('cashbook_admin_user') || localStorage.getItem('cashbook_admin_user');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        const obj = Array.isArray(parsed) ? parsed[0] : parsed;
+        return (obj?.id || obj?._id || obj?.admin_id || '').toString().trim();
+      }
+    } catch (e) {}
+    return '';
+  };
+
   const fetchUsers = async () => {
     setLoading(true);
+    const adminId = getAdminId();
     try {
-      const response = await fetch('http://localhost:5001/api/admin/select');
+      let response;
+      try {
+        response = await fetch('http://localhost:5001/api/admin/select', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ admin_id: adminId })
+        });
+      } catch (e) {}
+
+      if (!response || !response.ok) {
+        response = await fetch(`http://localhost:5001/api/admin/select?admin_id=${encodeURIComponent(adminId)}`);
+      }
+
       const data = await response.json();
       if (data.success && data.data) {
         const combined = [...(data.data.users || []), ...(data.data.admins || [])];
@@ -131,7 +171,8 @@ export const Admins = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           user_id: user.id || user._id,
-          account_status: nextStatus
+          account_status: nextStatus,
+          admin_id: getAdminId()
         })
       });
       const data = await res.json();
@@ -146,64 +187,90 @@ export const Admins = () => {
     }
   };
 
-  const handleDemoteAdmin = async (user) => {
+  const handleDemoteAdmin = (user) => {
     const isSelf = currentAdmin && (user.id === currentAdmin.id || user._id === currentAdmin.id || user.email_id?.toLowerCase() === currentAdmin.email_id?.toLowerCase());
     if (isSelf) {
       toast.error("You cannot demote your own admin account. Please use another administrator account.");
       return;
     }
 
-    if (!confirm(`Are you sure you want to demote ${user.username || user.email_id} back to a regular user?`)) return;
-
-    try {
-      const res = await fetch('http://localhost:5001/api/admin/update', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          user_id: user.id || user._id,
-          user_role: 'user',
-          is_admin: false
-        })
-      });
-      const data = await res.json();
-      if (data.success) {
-        toast.success(`User ${user.username || user.email_id} demoted to regular user.`);
-        fetchUsers();
-      } else {
-        toast.error(data.message || "Failed to demote administrator.");
+    const adminName = user.username || user.email_id;
+    setConfirmModal({
+      isOpen: true,
+      title: "Demote Administrator",
+      message: `Are you sure you want to demote ${adminName} back to a regular user? Administrative permissions will be revoked immediately.`,
+      confirmText: "Demote User",
+      type: "warning",
+      isLoading: false,
+      onConfirm: async () => {
+        try {
+          setConfirmModal(prev => ({ ...prev, isLoading: true }));
+          const res = await fetch('http://localhost:5001/api/admin/update', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              user_id: user.id || user._id,
+              user_role: 'user',
+              is_admin: false,
+              admin_id: getAdminId()
+            })
+          });
+          const data = await res.json();
+          if (data.success) {
+            toast.success(`User ${adminName} demoted to regular user.`);
+            fetchUsers();
+          } else {
+            toast.error(data.message || "Failed to demote administrator.");
+          }
+        } catch (err) {
+          toast.error("An error occurred while demoting.");
+        } finally {
+          setConfirmModal(prev => ({ ...prev, isOpen: false, isLoading: false }));
+        }
       }
-    } catch (err) {
-      toast.error("An error occurred while demoting.");
-    }
+    });
   };
 
-  const handleDeleteAdmin = async (user) => {
+  const handleDeleteAdmin = (user) => {
     const isSelf = currentAdmin && (user.id === currentAdmin.id || user._id === currentAdmin.id || user.email_id?.toLowerCase() === currentAdmin.email_id?.toLowerCase());
     if (isSelf) {
       toast.error("You cannot delete your own admin account.");
       return;
     }
 
-    if (!confirm(`CRITICAL WARNING: Are you sure you want to permanently delete admin account ${user.username || user.email_id}?`)) return;
-
-    try {
-      const res = await fetch('http://localhost:5001/api/admin/delete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          user_id: user.id || user._id
-        })
-      });
-      const data = await res.json();
-      if (data.success) {
-        toast.success("Administrator account deleted successfully.");
-        fetchUsers();
-      } else {
-        toast.error(data.message || "Failed to delete administrator account.");
+    const adminName = user.username || user.email_id;
+    setConfirmModal({
+      isOpen: true,
+      title: "CRITICAL: Delete Admin Account",
+      message: `CRITICAL WARNING: Are you sure you want to permanently delete admin account "${adminName}"? This action cannot be undone.`,
+      confirmText: "Permanently Delete",
+      type: "danger",
+      isLoading: false,
+      onConfirm: async () => {
+        try {
+          setConfirmModal(prev => ({ ...prev, isLoading: true }));
+          const res = await fetch('http://localhost:5001/api/admin/delete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              user_id: user.id || user._id,
+              admin_id: getAdminId()
+            })
+          });
+          const data = await res.json();
+          if (data.success) {
+            toast.success("Administrator account deleted successfully.");
+            fetchUsers();
+          } else {
+            toast.error(data.message || "Failed to delete administrator account.");
+          }
+        } catch (err) {
+          toast.error("An error occurred while deleting.");
+        } finally {
+          setConfirmModal(prev => ({ ...prev, isOpen: false, isLoading: false }));
+        }
       }
-    } catch (err) {
-      toast.error("An error occurred while deleting.");
-    }
+    });
   };
 
   const handlePromoteExisting = async (e) => {
@@ -221,7 +288,8 @@ export const Admins = () => {
         body: JSON.stringify({
           user_id: selectedUserId,
           user_role: 'admin',
-          is_admin: true
+          is_admin: true,
+          admin_id: getAdminId()
         })
       });
       const data = await res.json();
@@ -258,7 +326,8 @@ export const Admins = () => {
           password: newPassword,
           user_role: 'admin',
           phone_number: newPhone,
-          security_pin: newSecurityPin || '1234'
+          security_pin: newSecurityPin || '1234',
+          admin_id: getAdminId()
         })
       });
       const data = await res.json();
@@ -311,7 +380,8 @@ export const Admins = () => {
           email_id: editEmail,
           password: editPassword,
           phone_number: editPhone,
-          security_pin: editSecurityPin
+          security_pin: editSecurityPin,
+          admin_id: getAdminId()
         })
       });
       const data = await res.json();
@@ -887,6 +957,19 @@ export const Admins = () => {
           </div>
         </div>
       )}
+
+      {/* Dynamic Admin Actions Confirmation Modal */}
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmText={confirmModal.confirmText}
+        cancelText="Cancel"
+        type={confirmModal.type}
+        isLoading={confirmModal.isLoading}
+      />
     </div>
   );
 };

@@ -62,6 +62,11 @@ const transactionSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
+    user_id: {
+      type: String,
+      trim: true,
+      default: '',
+    },
     interest_rate: {
       type: Number,
       default: 0,

@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import Transaction from '../models/transaction.js';
+<<<<<<< HEAD
 import Invitation from '../models/invitation.js';
 import Cashbook from '../models/cashbook.js';
 
@@ -38,6 +39,9 @@ const isViewOnlyUser = async (userEmail, chalanId) => {
     return false;
   }
 };
+=======
+import User from '../models/user.js';
+>>>>>>> 6f294b21f25fb66fb881a867cc6bee2b2d774196
 
 // Create a new Transaction (Supports single object or array of objects for bulk insert)
 export const createTransaction = async (req, res) => {
@@ -70,6 +74,7 @@ export const createTransaction = async (req, res) => {
           remark: tx.remark ? tx.remark.trim() : 'Null',
           created_by: tx.created_by ? tx.created_by.trim() : 'Guest',
           user_email: tx.user_email ? tx.user_email.toLowerCase().trim() : '',
+          user_id: tx.user_id ? String(tx.user_id).trim() : '',
           interest_rate: tx.interest_rate !== undefined ? Number(tx.interest_rate) : 0,
           party_type: tx.party_type ? tx.party_type.trim() : '',
           party_name: tx.party_name ? tx.party_name.trim() : '',
@@ -98,7 +103,7 @@ export const createTransaction = async (req, res) => {
     // Handle Single Insert
     const { 
       title, type, amount, date, time, chalan_id, 
-      category, subcategory, payment_mode, remark, created_by, user_email,
+      category, subcategory, payment_mode, remark, created_by, user_email, user_id,
       interest_rate, party_type, party_name,
       start_date, end_date, total_days
     } = req.body;
@@ -131,6 +136,7 @@ export const createTransaction = async (req, res) => {
       remark: remark ? remark.trim() : 'Null',
       created_by: created_by ? created_by.trim() : 'Guest',
       user_email: user_email ? user_email.toLowerCase().trim() : '',
+      user_id: user_id ? String(user_id).trim() : '',
       interest_rate: interest_rate !== undefined ? Number(interest_rate) : 0,
       party_type: party_type ? party_type.trim() : '',
       party_name: party_name ? party_name.trim() : '',
@@ -161,13 +167,94 @@ export const createTransaction = async (req, res) => {
   }
 };
 
-// Get All Transactions
+// Get Transactions (Supports GET and POST with payload for user_id/user_email/chalan_id filtering)
 export const getTransactions = async (req, res) => {
   try {
-    const transactions = await Transaction.find({
+    const { 
+      user_id, 
+      user_email, 
+      email_id, 
+      email, 
+      chalan_id, 
+      collaborator_emails 
+    } = {
+      ...(req.query || {}),
+      ...(req.body || {}),
+    };
+
+    let filter = {
       is_deleted: { $ne: true },
-      deleted: { $ne: true }
-    }).sort({ createdAt: -1 });
+      deleted: { $ne: true },
+    };
+
+    const targetUserId = user_id ? String(user_id).trim() : '';
+    const rawEmail = user_email || email_id || email || '';
+    const targetEmail = rawEmail ? String(rawEmail).toLowerCase().trim() : '';
+
+    const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+    // Auto-backfill user_id on historical transactions matching targetEmail
+    if (targetUserId && targetEmail) {
+      await Transaction.updateMany(
+        {
+          user_email: new RegExp(`^${escapeRegex(targetEmail)}$`, 'i'),
+          $or: [{ user_id: '' }, { user_id: { $exists: false } }, { user_id: null }]
+        },
+        { $set: { user_id: targetUserId } }
+      );
+    }
+
+    const emailsList = new Set();
+    if (targetEmail) {
+      emailsList.add(targetEmail);
+    }
+    if (Array.isArray(collaborator_emails)) {
+      collaborator_emails.forEach(e => {
+        if (e && typeof e === 'string') emailsList.add(e.toLowerCase().trim());
+      });
+    }
+
+    // If targetUserId was provided without email, resolve user's email to match historical records
+    if (targetUserId && emailsList.size === 0) {
+      try {
+        const foundUser = await User.findById(targetUserId);
+        if (foundUser) {
+          const resolvedEmail = (foundUser.email_id || foundUser.email || '').toLowerCase().trim();
+          if (resolvedEmail) {
+            emailsList.add(resolvedEmail);
+          }
+        }
+      } catch (e) {
+        // Invalid ObjectId or user not found, continue
+      }
+    }
+
+    const userConditions = [];
+    if (targetUserId) {
+      userConditions.push({ user_id: targetUserId });
+    }
+
+    // Shared collaborator emails (accepted invitations)
+    const otherCollaborators = Array.from(emailsList).filter(e => e !== targetEmail);
+    if (otherCollaborators.length > 0) {
+      const emailPatterns = otherCollaborators.map(e => new RegExp(`^${escapeRegex(e)}$`, 'i'));
+      userConditions.push({ user_email: { $in: emailPatterns } });
+    } else if (!targetUserId && emailsList.size > 0) {
+      const emailPatterns = Array.from(emailsList).map(e => new RegExp(`^${escapeRegex(e)}$`, 'i'));
+      userConditions.push({ user_email: { $in: emailPatterns } });
+    }
+
+    if (userConditions.length === 1) {
+      Object.assign(filter, userConditions[0]);
+    } else if (userConditions.length > 1) {
+      filter.$or = userConditions;
+    }
+
+    if (chalan_id) {
+      filter.chalan_id = String(chalan_id).trim();
+    }
+
+    const transactions = await Transaction.find(filter).sort({ createdAt: -1 });
 
     return res.status(200).json({
       success: true,
@@ -189,6 +276,7 @@ export const updateTransaction = async (req, res) => {
     const { 
       id, title, type, amount, date, time, chalan_id, 
       category, subcategory, payment_mode, remark, created_by,
+      user_email, user_id,
       interest_rate, party_type, party_name,
       start_date, end_date, total_days
     } = req.body;
@@ -220,6 +308,8 @@ export const updateTransaction = async (req, res) => {
     if (payment_mode !== undefined) updateFields.payment_mode = payment_mode.trim();
     if (remark !== undefined) updateFields.remark = remark.trim();
     if (created_by !== undefined) updateFields.created_by = created_by.trim();
+    if (user_email !== undefined) updateFields.user_email = user_email ? user_email.toLowerCase().trim() : '';
+    if (user_id !== undefined) updateFields.user_id = String(user_id).trim();
     if (interest_rate !== undefined) updateFields.interest_rate = Number(interest_rate);
     if (party_type !== undefined) updateFields.party_type = party_type.trim();
     if (party_name !== undefined) updateFields.party_name = party_name.trim();
@@ -365,18 +455,33 @@ export const deleteTransaction = async (req, res) => {
   }
 };
 
-// Get Party Ledger (Udhaar Book Aggregation)
+// Get Party Ledger (Credit Book Aggregation)
 export const getPartyLedger = async (req, res) => {
   try {
-    const { user_email } = req.query;
+    const { user_email, user_id, email, email_id } = {
+      ...(req.query || {}),
+      ...(req.body || {}),
+    };
+    const targetUserId = user_id ? String(user_id).trim() : '';
+    const rawEmail = user_email || email_id || email || '';
+    const targetEmail = rawEmail ? String(rawEmail).toLowerCase().trim() : '';
+    const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
     const matchQuery = {
       party_name: { $exists: true, $ne: '' },
       is_deleted: { $ne: true },
       deleted: { $ne: true }
     };
 
-    if (user_email) {
-      matchQuery.user_email = user_email.toLowerCase().trim();
+    if (targetUserId && targetEmail) {
+      matchQuery.$or = [
+        { user_id: targetUserId },
+        { user_email: new RegExp(`^${escapeRegex(targetEmail)}$`, 'i') }
+      ];
+    } else if (targetUserId) {
+      matchQuery.user_id = targetUserId;
+    } else if (targetEmail) {
+      matchQuery.user_email = new RegExp(`^${escapeRegex(targetEmail)}$`, 'i');
     }
 
     const partyLedger = await Transaction.aggregate([

@@ -188,13 +188,36 @@ export default function Transactions() {
     // Fetch Payment Modes
     let mappedModes = [];
     try {
-      const res = await fetch('http://localhost:5001/api/payment-mode/select');
+      const currentUserId = (user?.id || user?._id || '').trim();
+      let res;
+      try {
+        res = await fetch('http://localhost:5001/api/payment-mode/select', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: currentUserId,
+            user_email: userEmail,
+            chalan_id: chalanId
+          })
+        });
+      } catch (e) {}
+
+      if (!res || !res.ok) {
+        res = await fetch(`http://localhost:5001/api/payment-mode/select?user_id=${encodeURIComponent(currentUserId)}&user_email=${encodeURIComponent(userEmail)}&chalan_id=${encodeURIComponent(chalanId)}`);
+      }
+
       const data = await res.json();
       if (data.success && data.data) {
-        const filtered = data.data.filter(pm => 
-          pm.chalan_id === chalanId &&
-          pm.active
-        );
+        const filtered = data.data.filter(pm => {
+          if (!pm.active) return false;
+          if (pm.chalan_id !== chalanId) return false;
+          const pmUserId = (pm.user_id || '').trim();
+          const pmEmail = (pm.user_email || '').toLowerCase().trim();
+          if (currentUserId && pmUserId) return pmUserId === currentUserId;
+          if (!pmUserId && userEmail && pmEmail) return pmEmail === userEmail;
+          if (!pmUserId && !pmEmail) return true;
+          return false;
+        });
         mappedModes = filtered.map(p => ({
           id: p.id,
           name: p.payment_mode,
@@ -367,7 +390,9 @@ export default function Transactions() {
   }, []);
 
   const loadTransactions = async () => {
-    const userEmail = user?.email_id?.toLowerCase() || '';
+    const currentUser = user || (localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")) : null);
+    const userEmail = (currentUser?.email_id || currentUser?.email || '').toLowerCase().trim();
+    const userId = currentUser?.id || currentUser?._id || '';
     const storageKey = `cashbook_txs_${userEmail || 'guest'}`;
 
     // 1. Immediately load cached data for fast initial render
@@ -382,15 +407,30 @@ export default function Transactions() {
     }
 
     try {
-      const response = await fetch('http://localhost:5001/api/transaction/select');
+      let response;
+      try {
+        response = await fetch('http://localhost:5001/api/transaction/select', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: userId,
+            user_email: userEmail
+          })
+        });
+      } catch (postErr) {}
+
+      if (!response || !response.ok) {
+        response = await fetch('http://localhost:5001/api/transaction/select');
+      }
+
       const data = await response.json();
       
-      if (data.success && data.data) {
+      if (data.success && Array.isArray(data.data)) {
         const mapped = data.data.map(tx => ({
           id: tx.id,
           title: tx.title,
           type: tx.type,
-          amount: tx.amount,
+          amount: Number(tx.amount) || 0,
           date: tx.date,
           time: tx.time,
           chalanId: tx.chalan_id,
@@ -400,6 +440,7 @@ export default function Transactions() {
           remark: tx.remark,
           createdBy: tx.created_by,
           user_email: tx.user_email,
+          user_id: tx.user_id || '',
           totalDays: tx.total_days,
           interestRate: tx.interest_rate,
           partyType: tx.party_type,
@@ -420,8 +461,8 @@ export default function Transactions() {
               i.status === 'Accepted'
             );
             accepted.forEach(a => {
-              if (a.email) allowedEmails.add(a.email.toLowerCase());
-              if (a.inviter_email) allowedEmails.add(a.inviter_email.toLowerCase());
+              if (a.email) allowedEmails.add(a.email.toLowerCase().trim());
+              if (a.inviter_email) allowedEmails.add(a.inviter_email.toLowerCase().trim());
             });
 
             // Enforce View Only if the user has View Only permission for this cashbook
@@ -440,7 +481,15 @@ export default function Transactions() {
           }
         } catch (e) {}
 
-        const userTxs = mapped.filter(t => allowedEmails.has(t.user_email?.toLowerCase()));
+        const userTxs = mapped.filter(t => {
+          if (!userId && !userEmail) return true;
+          const txUserId = (t.user_id || '').trim();
+          const txEmail = (t.user_email || '').toLowerCase().trim();
+          if (userId && txUserId) return txUserId === userId;
+          if (userEmail && txEmail && allowedEmails.has(txEmail) && txEmail !== userEmail) return true;
+          if (!txUserId && userEmail && txEmail && txEmail === userEmail) return true;
+          return false;
+        });
         
         // 2. Update state and cache with fresh data
         setTransactions(userTxs);
@@ -448,8 +497,6 @@ export default function Transactions() {
       }
     } catch (err) {
       console.error("Failed to load transactions from backend:", err);
-      // Removed addToast error because if it fails, the user still sees cached data
-      // and doesn't get an annoying error popup every time the connection flickers.
     }
   };
 
@@ -589,7 +636,8 @@ export default function Transactions() {
       payment_mode: paymentMode,
       remark: remark.trim() || 'Null',
       created_by: username,
-      user_email: user?.email_id || ''
+      user_email: user?.email_id || '',
+      user_id: user?.id || user?._id || ''
     };
 
     if (isInterest) {
@@ -770,7 +818,8 @@ export default function Transactions() {
       payment_mode: tx.paymentMode,
       remark: tx.remark,
       created_by: username,
-      user_email: user?.email_id || ''
+      user_email: user?.email_id || '',
+      user_id: user?.id || user?._id || ''
     }));
 
     try {

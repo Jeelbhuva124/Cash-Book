@@ -34,13 +34,37 @@ export default function PartyLedger() {
   const fetchPartyLedger = async () => {
     try {
       setLoading(true);
-      const url = user_email && user_email !== 'guest'
-        ? `http://localhost:5001/api/transaction/party-ledger?user_email=${encodeURIComponent(user_email)}`
-        : 'http://localhost:5001/api/transaction/party-ledger';
-      const res = await fetch(url);
+      const payload = {
+        user_email: user_email && user_email !== 'guest' ? user_email : undefined,
+        user_id: user?.id || user?._id || undefined
+      };
+
+      let res;
+      try {
+        res = await fetch('http://localhost:5001/api/transaction/party-ledger', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+          },
+          body: JSON.stringify(payload)
+        });
+      } catch (postErr) {
+        // Fallback to GET on network or method error
+      }
+
+      if (!res || !res.ok) {
+        const url = user_email && user_email !== 'guest'
+          ? `http://localhost:5001/api/transaction/party-ledger?user_email=${encodeURIComponent(user_email)}`
+          : 'http://localhost:5001/api/transaction/party-ledger';
+        res = await fetch(url, {
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        });
+      }
+
       const data = await res.json();
       if (data.success) {
-        setPartyData(data.data);
+        setPartyData(data.data || []);
       }
     } catch (error) {
       console.error('Failed to fetch party ledger:', error);
@@ -58,7 +82,8 @@ export default function PartyLedger() {
   };
 
   const handleWhatsAppReminder = (partyName, balance) => {
-    const message = `Hello ${partyName}, aapka ₹${Math.abs(balance)} baaki hai Cash-Book ke hisaab se.`;
+    const formattedAmount = Math.abs(balance).toLocaleString();
+    const message = `Hello ${partyName}, this is a gentle reminder that an outstanding balance of ₹${formattedAmount} is pending on your account as per Cash-Book records. Please settle it at your earliest convenience. Thank you!`;
     const url = `https://wa.me/?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
   };
@@ -81,7 +106,8 @@ export default function PartyLedger() {
         chalan_id: `PTY-${Date.now()}`,
         party_name: formData.party_name,
         party_type: formData.entry_type === 'gave' ? 'debtor' : 'creditor',
-        user_email
+        user_email,
+        user_id: user?.id || user?._id || ''
       };
 
       const res = await fetch('http://localhost:5001/api/transaction/insert', {
@@ -129,7 +155,7 @@ export default function PartyLedger() {
     <div className="p-6 max-w-7xl mx-auto space-y-6">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Party Ledger (Udhaar Book)</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Party Ledger (Credit Book)</h1>
           <p className="text-muted-foreground mt-2">Track who owes you and whom you owe</p>
         </div>
         <div className="flex items-center gap-4">
@@ -279,7 +305,7 @@ export default function PartyLedger() {
                     }`}
                   >
                     <TrendingDown className="w-5 h-5" />
-                    I Gave (Diyee)
+                    You Gave (Debit)
                   </button>
                   <button
                     type="button"
@@ -291,7 +317,7 @@ export default function PartyLedger() {
                     }`}
                   >
                     <TrendingUp className="w-5 h-5" />
-                    I Got (Milee)
+                    You Received (Credit)
                   </button>
                 </div>
 

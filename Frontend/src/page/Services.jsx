@@ -30,8 +30,8 @@ const services = [
   },
   {
     icon: Receipt,
-    title: "Digital Khata Book",
-    desc: "Replace your physical ledger with a smarter digital version. Designed specifically for Kirana stores, freelancers, and small businesses across India.",
+    title: "Digital Credit Book",
+    desc: "Replace your physical ledger with a smarter digital version. Designed specifically for retail stores, freelancers, and businesses of any scale.",
     color: "text-emerald-400",
     bg: "bg-emerald-500/10",
     border: "border-emerald-500/20 hover:border-emerald-500/50",
@@ -196,7 +196,7 @@ export const Services = () => {
             transition={{ delay: 0.2 }}
             className="text-lg text-muted-foreground leading-relaxed"
           >
-            Cash Book gives you a complete financial operating system. From digital khata books to PDF reports — one app, total control.
+            Cash Book gives you a complete financial operating system. From digital credit books to PDF reports — one app, total control.
           </motion.p>
 
           <motion.div
@@ -236,7 +236,7 @@ export const Services = () => {
             8 tools. One cashbook. <span className="bg-gradient-to-r from-primary to-indigo-500 bg-clip-text text-transparent">Total control.</span>
           </h2>
           <p className="text-muted-foreground leading-relaxed">
-            Every feature is purpose-built for the Indian market — from Kirana owners to corporate accountants.
+            Every feature is purpose-built for modern enterprises — from retail merchants to corporate accountants.
           </p>
         </motion.div>
 

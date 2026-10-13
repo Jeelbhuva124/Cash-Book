@@ -9,6 +9,7 @@ import {
 const router = express.Router();
 
 router.get('/select', getSubcategories);
+router.post('/select', getSubcategories);
 router.post('/insert', createSubcategory);
 router.put('/update', updateSubcategory);
 router.delete('/delete', deleteSubcategory);

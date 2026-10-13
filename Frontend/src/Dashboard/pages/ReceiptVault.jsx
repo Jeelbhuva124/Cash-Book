@@ -35,17 +35,45 @@ export default function ReceiptVault() {
   const token = localStorage.getItem('token');
   const userRaw = localStorage.getItem("user");
   const user = userRaw ? JSON.parse(userRaw) : null;
-  const user_email = user?.email_id || '';
+  const user_email = (user?.email_id || '').toLowerCase().trim();
+  const user_id = (user?.id || user?._id || '').trim();
 
   const fetchReceipts = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:5001/api/receipts?user_email=${encodeURIComponent(user_email)}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      let response;
+      try {
+        response = await fetch('http://localhost:5001/api/receipts/select', {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+          },
+          body: JSON.stringify({
+            user_id,
+            user_email
+          })
+        });
+      } catch (postErr) {}
+
+      if (!response || !response.ok) {
+        response = await fetch(`http://localhost:5001/api/receipts?user_email=${encodeURIComponent(user_email)}&user_id=${encodeURIComponent(user_id)}`, {
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        });
+      }
+
       const data = await response.json();
-      if (data.success) {
-        setReceipts(data.data);
+      if (data.success && Array.isArray(data.data)) {
+        // Strict client-side user filtering
+        const userFiltered = data.data.filter(r => {
+          if (!user_id && !user_email) return true;
+          const rUserId = (r.user_id || '').trim();
+          const rEmail = (r.user_email || '').toLowerCase().trim();
+          if (user_id && rUserId) return rUserId === user_id;
+          if (!rUserId && user_email && rEmail) return rEmail === user_email;
+          return false;
+        });
+        setReceipts(userFiltered);
       }
     } catch (error) {
       console.error('Error fetching receipts:', error);
@@ -91,7 +119,8 @@ export default function ReceiptVault() {
             item_title: formData.item_title,
             purchase_date: formData.purchase_date,
             warranty_expiry_date: formData.warranty_expiry_date || null,
-            user_email
+            user_email,
+            user_id
           })
         });
         
@@ -129,6 +158,9 @@ export default function ReceiptVault() {
       data.append('warranty_expiry_date', formData.warranty_expiry_date);
     }
     data.append('user_email', user_email);
+    if (user_id) {
+      data.append('user_id', user_id);
+    }
 
     try {
       const response = await fetch('http://localhost:5001/api/receipts', {

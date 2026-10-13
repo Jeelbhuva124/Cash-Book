@@ -31,15 +31,15 @@ const posts = [
   },
   {
     id: 3,
-    title: "How to Digitize Your Khata Book Seamlessly",
+    title: "How to Digitize Your Credit Book Seamlessly",
     category: "Business",
     date: "Jun 28, 2026",
     readTime: "7 min read",
     views: "15.2k",
     excerpt:
-      "Transitioning from physical ledgers to a digital cash book can save hours of accounting. Here is a step-by-step guide for Kirana store owners and small businesses.",
+      "Transitioning from physical ledgers to a digital cash book can save hours of accounting. Here is a step-by-step guide for retail store owners and small businesses.",
     image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=800",
-    tags: ["Digital Ledger", "Business", "Khata"],
+    tags: ["Digital Ledger", "Business", "Credit Book"],
   },
   {
     id: 4,

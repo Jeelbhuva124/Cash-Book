@@ -49,7 +49,11 @@ app.use('/api/transaction', transactionRouter);
 app.use('/api/category', categoryRouter);
 app.use('/api/subcategory', subcategoryRouter);
 app.use('/api/payment-mode', paymentModeRouter);
+app.use('/api/payment-modes', paymentModeRouter);
+app.use('/api/paymentmode', paymentModeRouter);
 app.use('/api/emi-subscription', emiSubscriptionRouter);
+app.use('/api/emi-subscriptions', emiSubscriptionRouter);
+app.use('/api/emisubscription', emiSubscriptionRouter);
 app.use('/api/receipts', receiptRouter);
 app.use('/api/receipt', receiptRouter);
 

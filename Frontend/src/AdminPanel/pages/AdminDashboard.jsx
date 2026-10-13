@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { 
-  Users, 
-  BookOpen, 
-  TrendingUp, 
-  ShieldCheck, 
-  Activity, 
-  Clock, 
-  ArrowUpRight, 
-  UserCheck, 
+import {
+  Users,
+  BookOpen,
+  TrendingUp,
+  ShieldCheck,
+  Activity,
+  Clock,
+  ArrowUpRight,
+  UserCheck,
   Database,
   Cpu,
   UserPlus
@@ -52,68 +52,31 @@ export const AdminDashboard = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const [statsRes, selectRes] = await Promise.allSettled([
-          fetch('http://localhost:5001/api/admin/stats'),
-          fetch('http://localhost:5001/api/admin/select')
-        ]);
+        let adminId = '';
+        try {
+          const raw = localStorage.getItem('cashbook_admin_user') || sessionStorage.getItem('cashbook_admin_user');
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            const adminObj = Array.isArray(parsed) ? parsed[0] : parsed;
+            adminId = (adminObj?.id || adminObj?._id || adminObj?.admin_id || '').toString().trim();
+          }
+        } catch (e) { }
 
-        let statsData = null;
-        let selectData = null;
-
-        if (statsRes.status === 'fulfilled') {
-          try { statsData = await statsRes.value.json(); } catch(e) {}
-        }
-        if (selectRes.status === 'fulfilled') {
-          try { selectData = await selectRes.value.json(); } catch(e) {}
-        }
-
-        // Aggregate users list
-        const rawUsers = (selectData?.success && Array.isArray(selectData?.data?.users))
-          ? selectData.data.users
-          : (statsData?.data?.recent_users || []);
-
-        // Sort users by registration date descending
-        const sortedUsers = [...rawUsers].sort((a, b) => {
-          const da = new Date(a.created_at || a.createdAt || 0).getTime();
-          const db = new Date(b.created_at || b.createdAt || 0).getTime();
-          return db - da;
-        });
-
-        // Compute 14-day daily growth chart
-        const days = [];
-        let newCount14 = 0;
-        for (let i = 13; i >= 0; i--) {
-          const d = new Date();
-          d.setDate(d.getDate() - i);
-          const dateStr = d.toISOString().split('T')[0];
-          const shortDate = d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
-          
-          const count = sortedUsers.filter(u => {
-            let uDate = u.created_at || u.createdAt;
-            if (!uDate && (u.id || u._id)) {
-              const idStr = (u.id || u._id).toString();
-              if (idStr.length === 24) {
-                try { uDate = new Date(parseInt(idStr.substring(0, 8), 16) * 1000); } catch(e) {}
-              }
-            }
-            if (!uDate) return false;
-            return new Date(uDate).toISOString().split('T')[0] === dateStr;
-          }).length;
-
-          days.push({
-            date: dateStr,
-            shortDate,
-            label: i === 0 ? 'Today' : shortDate,
-            count
+        let res;
+        try {
+          res = await fetch('http://localhost:5001/api/admin/stats', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ admin_id: adminId })
           });
-          newCount14 += count;
+        } catch (e) { }
+
+        if (!res || !res.ok) {
+          res = await fetch(`http://localhost:5001/api/admin/stats?admin_id=${encodeURIComponent(adminId)}`);
         }
 
-        setChartDays(days);
-        setRecentUsers(sortedUsers.slice(0, 6));
-
-        if (statsData?.success && statsData.data) {
-          const d = statsData.data;
+        const data = await res.json();
+        if (data.success && data.data) {
           setRealStats({
             total_users: d.total_users || sortedUsers.length,
             active_cashbooks: d.total_cashbooks || 0,
@@ -182,12 +145,12 @@ export const AdminDashboard = () => {
       {/* Metric Stat Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {stats.map((stat, i) => (
-          <AdminStatCard 
-            key={i} 
-            {...stat} 
+          <AdminStatCard
+            key={i}
+            {...stat}
             onClick={() => {
               if (stat.path) navigate(stat.path);
-            }} 
+            }}
           />
         ))}
       </div>
@@ -217,16 +180,15 @@ export const AdminDashboard = () => {
                   <div className="absolute -top-9 opacity-0 group-hover:opacity-100 transition-all pointer-events-none z-20 bg-foreground text-background text-[11px] font-bold py-1 px-2.5 rounded-lg shadow-lg whitespace-nowrap">
                     {item.label}: {item.count} {item.count === 1 ? 'user' : 'users'}
                   </div>
-                  
+
                   <motion.div
                     initial={{ height: 0 }}
                     animate={{ height: `${heightPercent}%` }}
                     transition={{ duration: 0.5, delay: idx * 0.025 }}
-                    className={`w-full rounded-t-md transition-all ${
-                      item.count > 0 
-                        ? 'bg-gradient-to-t from-primary to-primary/80 shadow-sm shadow-primary/30 group-hover:brightness-110 ring-2 ring-primary/20' 
+                    className={`w-full rounded-t-md transition-all ${item.count > 0
+                        ? 'bg-gradient-to-t from-primary to-primary/80 shadow-sm shadow-primary/30 group-hover:brightness-110 ring-2 ring-primary/20'
                         : 'bg-muted/40 hover:bg-muted/70'
-                    }`}
+                      }`}
                   />
                   <span className="text-[10px] text-muted-foreground mt-2 truncate w-full text-center">
                     {idx === chartDays.length - 1 ? 'Today' : idx === 0 ? '14d' : idx % 3 === 0 ? item.shortDate : ''}
@@ -311,17 +273,17 @@ export const AdminDashboard = () => {
               const uRole = u.user_role || (u.is_admin ? 'admin' : 'user');
               const uStatus = u.account_status || 'active';
               return (
-                <div 
+                <div
                   key={u.id || u._id}
                   onClick={() => navigate('/admin/users')}
                   className="p-4 rounded-xl border border-border bg-muted/20 hover:bg-muted/40 hover:border-primary/30 transition-all cursor-pointer flex items-center justify-between gap-3 shadow-xs group"
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     {u.avatar ? (
-                      <img 
-                        src={u.avatar} 
-                        alt="Avatar" 
-                        className="w-10 h-10 rounded-full object-cover border border-border shrink-0 shadow-xs" 
+                      <img
+                        src={u.avatar}
+                        alt="Avatar"
+                        className="w-10 h-10 rounded-full object-cover border border-border shrink-0 shadow-xs"
                       />
                     ) : (
                       <div className="w-10 h-10 rounded-full bg-primary/10 text-primary font-black text-sm flex items-center justify-center uppercase shrink-0 border border-primary/20 shadow-xs">
@@ -342,11 +304,10 @@ export const AdminDashboard = () => {
                     </div>
                   </div>
                   <div className="flex flex-col items-end gap-1.5 shrink-0">
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase border ${
-                      uStatus === 'active'
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase border ${uStatus === 'active'
                         ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
                         : 'bg-rose-500/10 text-rose-500 border-rose-500/20'
-                    }`}>
+                      }`}>
                       {uStatus}
                     </span>
                     <span className="text-[10px] font-bold text-muted-foreground uppercase px-2 py-0.5 bg-muted rounded-md border border-border">

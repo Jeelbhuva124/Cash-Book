@@ -8,8 +8,9 @@ import {
 
 const router = express.Router();
 
-// GET all cashbooks
+// GET and POST cashbooks
 router.get('/select', getCashbooks);
+router.post('/select', getCashbooks);
 
 // POST create new cashbook
 router.post('/insert', createCashbook);

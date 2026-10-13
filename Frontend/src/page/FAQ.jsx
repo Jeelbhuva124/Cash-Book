@@ -7,7 +7,7 @@ const faqs = [
   {
     question: "What is Cash Book?",
     answer:
-      "Cash Book is a comprehensive digital ledger designed to help you track your daily expenses, manage business cash flow, and maintain digital khata seamlessly.",
+      "Cash Book is a comprehensive digital ledger designed to help you track your daily expenses, manage business cash flow, and maintain digital credit books seamlessly.",
   },
   {
     question: "Is my data secure?",

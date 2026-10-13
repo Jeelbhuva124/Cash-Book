@@ -24,6 +24,16 @@ export const AdminRegister = () => {
     setLoading(true);
 
     try {
+      let currentAdminId = '';
+      try {
+        const storedAdmin = localStorage.getItem('cashbook_admin_user') || sessionStorage.getItem('cashbook_admin_user');
+        if (storedAdmin) {
+          const parsed = JSON.parse(storedAdmin);
+          const obj = Array.isArray(parsed) ? parsed[0] : parsed;
+          currentAdminId = (obj?.id || obj?._id || obj?.admin_id || '').toString().trim();
+        }
+      } catch (e) {}
+
       const response = await fetch('http://localhost:5001/api/admin/insert', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -33,7 +43,8 @@ export const AdminRegister = () => {
           password: password,
           user_role: 'admin',
           is_admin: true,
-          phone_number: phoneNumber
+          phone_number: phoneNumber,
+          admin_id: currentAdminId
         })
       });
 

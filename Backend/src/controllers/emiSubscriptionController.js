@@ -5,11 +5,31 @@ import Transaction from '../models/transaction.js';
 // Get all EMI and Subscriptions
 export const getEmiSubscriptions = async (req, res) => {
   try {
-    const { user_email } = req.query;
+    const { user_email, user_id, email, email_id } = {
+      ...(req.query || {}),
+      ...(req.body || {}),
+    };
+    const targetUserId = user_id ? String(user_id).trim() : '';
+    const rawEmail = user_email || email_id || email || '';
+    const targetEmail = rawEmail ? String(rawEmail).toLowerCase().trim() : '';
+    const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
     let query = {};
-    if (user_email) {
-      query.user_email = user_email.toLowerCase().trim();
+    if (targetUserId) {
+      if (targetEmail) {
+        await EmiSubscription.updateMany(
+          {
+            user_email: new RegExp(`^${escapeRegex(targetEmail)}$`, 'i'),
+            $or: [{ user_id: '' }, { user_id: { $exists: false } }, { user_id: null }]
+          },
+          { $set: { user_id: targetUserId } }
+        );
+      }
+      query.user_id = targetUserId;
+    } else if (targetEmail) {
+      query.user_email = new RegExp(`^${escapeRegex(targetEmail)}$`, 'i');
     }
+
     const records = await EmiSubscription.find(query).sort({ due_date: 1 });
     return res.status(200).json({
       success: true,
@@ -29,7 +49,12 @@ export const getEmiSubscriptions = async (req, res) => {
 export const createEmiSubscription = async (req, res) => {
   try {
     if (Array.isArray(req.body)) {
-      const inserted = await EmiSubscription.insertMany(req.body);
+      const docs = req.body.map(item => ({
+        ...item,
+        user_id: item.user_id ? String(item.user_id).trim() : '',
+        user_email: item.user_email ? String(item.user_email).toLowerCase().trim() : ''
+      }));
+      const inserted = await EmiSubscription.insertMany(docs);
       return res.status(201).json({
         success: true,
         message: `${inserted.length} records created successfully`,
@@ -37,7 +62,11 @@ export const createEmiSubscription = async (req, res) => {
       });
     }
 
-    const newRecord = new EmiSubscription(req.body);
+    const newRecord = new EmiSubscription({
+      ...req.body,
+      user_id: req.body.user_id ? String(req.body.user_id).trim() : '',
+      user_email: req.body.user_email ? String(req.body.user_email).toLowerCase().trim() : ''
+    });
     await newRecord.save();
 
     return res.status(201).json({
@@ -93,6 +122,7 @@ export const markAsPaid = async (req, res) => {
       remark: `Automatically generated via ${record.type} Tracker`,
       created_by: record.created_by,
       user_email: record.user_email,
+      user_id: record.user_id || '',
     });
 
     await newTransaction.save();
@@ -153,7 +183,7 @@ export const markAsPaid = async (req, res) => {
 // Delete EMI/Subscription
 export const deleteEmiSubscription = async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = req.params?.id || req.body?.id;
     const deleted = await EmiSubscription.findByIdAndDelete(id);
     
     if (!deleted) {

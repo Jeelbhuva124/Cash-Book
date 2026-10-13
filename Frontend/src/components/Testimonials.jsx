@@ -7,7 +7,7 @@ const testimonialsRow1 = [
     id: "r1-1",
     name: "Amit Sharma",
     role: "Small Business Owner",
-    text: "Cash Book has completely transformed how I manage my daily shop khata. It's intuitive, fast, and very reliable."
+    text: "Cash Book has completely transformed how I manage my daily business finances and credit ledger. It's intuitive, fast, and very reliable."
   },
   {
     id: "r1-2",

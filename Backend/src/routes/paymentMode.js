@@ -9,6 +9,7 @@ import {
 const router = express.Router();
 
 router.get('/select', getPaymentModes);
+router.post('/select', getPaymentModes);
 router.post('/insert', createPaymentMode);
 router.put('/update', updatePaymentMode);
 router.delete('/delete', deletePaymentMode);
