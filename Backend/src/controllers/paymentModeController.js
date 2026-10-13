@@ -16,6 +16,7 @@ export const createPaymentMode = async (req, res) => {
           created_by: pm.created_by ? pm.created_by.trim() : 'Guest',
           updated_by: pm.updated_by ? pm.updated_by.trim() : 'Guest',
           user_email: pm.user_email ? pm.user_email.toLowerCase().trim() : '',
+          user_id: pm.user_id ? String(pm.user_id).trim() : '',
         };
       });
 
@@ -27,7 +28,7 @@ export const createPaymentMode = async (req, res) => {
       });
     }
 
-    const { payment_mode, chalan_id, active, created_by, updated_by, user_email } = req.body;
+    const { payment_mode, chalan_id, active, created_by, updated_by, user_email, user_id } = req.body;
 
     if (!payment_mode || !chalan_id) {
       return res.status(400).json({
@@ -44,6 +45,7 @@ export const createPaymentMode = async (req, res) => {
       created_by: created_by ? created_by.trim() : 'Guest',
       updated_by: updated_by ? updated_by.trim() : 'Guest',
       user_email: user_email ? user_email.toLowerCase().trim() : '',
+      user_id: user_id ? String(user_id).trim() : '',
     });
 
     await newPaymentMode.save();
@@ -66,7 +68,42 @@ export const createPaymentMode = async (req, res) => {
 // Get All Payment Modes
 export const getPaymentModes = async (req, res) => {
   try {
-    const paymentModes = await PaymentMode.find({}).sort({ createdAt: -1 });
+    const { user_email, user_id, email, email_id, chalan_id } = {
+      ...(req.query || {}),
+      ...(req.body || {}),
+    };
+    const targetUserId = user_id ? String(user_id).trim() : '';
+    const rawEmail = user_email || email_id || email || '';
+    const targetEmail = rawEmail ? String(rawEmail).toLowerCase().trim() : '';
+    const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+    let query = {};
+    if (chalan_id) {
+      query.chalan_id = String(chalan_id).trim();
+    }
+
+    if (targetUserId) {
+      if (targetEmail) {
+        await PaymentMode.updateMany(
+          {
+            user_email: new RegExp(`^${escapeRegex(targetEmail)}$`, 'i'),
+            $or: [{ user_id: '' }, { user_id: { $exists: false } }, { user_id: null }]
+          },
+          { $set: { user_id: targetUserId } }
+        );
+      }
+      query.$or = [
+        { user_id: targetUserId },
+        { user_email: { $in: ['', null] }, user_id: { $in: ['', null] } }
+      ];
+    } else if (targetEmail) {
+      query.$or = [
+        { user_email: new RegExp(`^${escapeRegex(targetEmail)}$`, 'i') },
+        { user_email: { $in: ['', null] }, user_id: { $in: ['', null] } }
+      ];
+    }
+
+    const paymentModes = await PaymentMode.find(query).sort({ createdAt: -1 });
 
     return res.status(200).json({
       success: true,

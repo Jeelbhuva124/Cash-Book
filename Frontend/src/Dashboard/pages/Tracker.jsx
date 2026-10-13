@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, CreditCard, RefreshCw, CheckCircle2, Package, Plus, X, Trash2 } from 'lucide-react';
 import { formatCurrency } from '../../utils/currencyFormatter';
 import { useToast } from '../../context/ToastContext';
+import ConfirmModal from '../components/ConfirmModal';
 
 export default function Tracker() {
   const [items, setItems] = useState([]);
@@ -10,6 +11,13 @@ export default function Tracker() {
   const [animatingId, setAnimatingId] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [newItem, setNewItem] = useState({ title: '', amount: '', due_date: '', start_date: '', end_date: '', type: 'EMI' });
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    itemId: null,
+    title: '',
+    message: '',
+    isLoading: false
+  });
   const { addToast } = useToast();
 
   const userRaw = localStorage.getItem("user");
@@ -22,14 +30,45 @@ export default function Tracker() {
   const fetchItems = async () => {
     try {
       setLoading(true);
-      const res = await fetch('http://localhost:5001/api/emi-subscription/select');
+      const currentUserId = (user?.id || user?._id || '').trim();
+      const currentUserEmail = (user?.email_id || '').toLowerCase().trim();
+
+      let res;
+      try {
+        res = await fetch('http://localhost:5001/api/emi-subscription/select', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: currentUserId,
+            user_email: currentUserEmail
+          })
+        });
+      } catch (err) {}
+
+      if (!res || !res.ok) {
+        const queryParams = new URLSearchParams();
+        if (currentUserEmail) queryParams.append('user_email', currentUserEmail);
+        if (currentUserId) queryParams.append('user_id', currentUserId);
+        res = await fetch(`http://localhost:5001/api/emi-subscription/select?${queryParams.toString()}`);
+      }
+
       const data = await res.json();
       
-      if (data.success) {
-        if (data.data.length === 0) {
+      if (data.success && Array.isArray(data.data)) {
+        // Strict client-side user isolation
+        const userFiltered = data.data.filter(item => {
+          if (!currentUserId && !currentUserEmail) return true;
+          const itemUserId = (item.user_id || '').trim();
+          const itemEmail = (item.user_email || '').toLowerCase().trim();
+          if (currentUserId && itemUserId) return itemUserId === currentUserId;
+          if (!itemUserId && currentUserEmail && itemEmail) return itemEmail === currentUserEmail;
+          return false;
+        });
+
+        if (userFiltered.length === 0) {
           await seedInitialData();
         } else {
-          setItems(data.data);
+          setItems(userFiltered);
         }
       }
     } catch (error) {
@@ -41,6 +80,9 @@ export default function Tracker() {
   };
 
   const seedInitialData = async () => {
+    const currentUserId = (user?.id || user?._id || '').trim();
+    const currentUserEmail = (user?.email_id || '').toLowerCase().trim();
+
     const seedData = [
       {
         title: "Google AI Pro",
@@ -48,7 +90,8 @@ export default function Tracker() {
         due_date: new Date(new Date().setMonth(new Date().getMonth() + 1)).toISOString().split('T')[0],
         type: "Subscription",
         status: "Active",
-        user_email: user?.email_id || "",
+        user_id: currentUserId,
+        user_email: currentUserEmail,
         chalan_id: "1"
       },
       {
@@ -57,7 +100,8 @@ export default function Tracker() {
         due_date: new Date(new Date().setDate(new Date().getDate() + 15)).toISOString().split('T')[0],
         type: "Subscription",
         status: "Active",
-        user_email: user?.email_id || "",
+        user_id: currentUserId,
+        user_email: currentUserEmail,
         chalan_id: "1"
       },
       {
@@ -66,7 +110,8 @@ export default function Tracker() {
         due_date: new Date(new Date().setDate(new Date().getDate() + 5)).toISOString().split('T')[0],
         type: "EMI",
         status: "Active",
-        user_email: user?.email_id || "",
+        user_id: currentUserId,
+        user_email: currentUserEmail,
         chalan_id: "1"
       }
     ];
@@ -78,7 +123,7 @@ export default function Tracker() {
         body: JSON.stringify(seedData)
       });
       const data = await res.json();
-      if (data.success) {
+      if (data.success && Array.isArray(data.data)) {
         setItems(data.data);
       }
     } catch (e) {
@@ -132,6 +177,7 @@ export default function Tracker() {
       type: newItem.type,
       status: 'Active',
       user_email: user?.email_id || '',
+      user_id: user?.id || user?._id || '',
       chalan_id: '1'
     };
 
@@ -157,9 +203,25 @@ export default function Tracker() {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to permanently delete this entry?")) return;
+  const handleDelete = (id) => {
+    const item = items.find(i => i.id === id);
+    const itemTitle = item?.title ? `"${item.title}"` : 'this entry';
+    const itemType = item?.type || 'Entry';
+    setConfirmModal({
+      isOpen: true,
+      itemId: id,
+      title: `Delete ${itemType}`,
+      message: `Are you sure you want to permanently delete ${itemTitle}? This action cannot be undone.`,
+      isLoading: false
+    });
+  };
+
+  const handleConfirmDelete = async () => {
+    const id = confirmModal.itemId;
+    if (!id) return;
+
     try {
+      setConfirmModal(prev => ({ ...prev, isLoading: true }));
       const res = await fetch(`http://localhost:5001/api/emi-subscription/delete/${id}`, {
         method: 'DELETE'
       });
@@ -173,6 +235,14 @@ export default function Tracker() {
     } catch (error) {
       console.error("Delete Error:", error);
       addToast("Network error during delete.", "error");
+    } finally {
+      setConfirmModal({
+        isOpen: false,
+        itemId: null,
+        title: '',
+        message: '',
+        isLoading: false
+      });
     }
   };
 
@@ -569,6 +639,19 @@ export default function Tracker() {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Dynamic Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={handleConfirmDelete}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmText="Delete"
+        cancelText="Cancel"
+        type="danger"
+        isLoading={confirmModal.isLoading}
+      />
     </div>
   );
 }

@@ -301,7 +301,7 @@ export function LandingPage() {
   const features = [
     {
       icon: BookOpen,
-      title: "Digital Khata Book",
+      title: "Digital Credit Book",
       description:
         "Replace your traditional paper logbooks with a robust, searchable digital ledger. Access your accounts instantly from anywhere.",
       borderAccent: false,
@@ -625,9 +625,9 @@ export function LandingPage() {
           <p className="text-muted-foreground leading-relaxed">
             Cash Book started with a simple belief: tracking where your money
             goes shouldn't require complex spreadsheet skills or a finance
-            degree. We designed this platform to offer Kirana stores,
+            degree. We designed this platform to offer retail merchants,
             freelancers, families, and growing businesses a frictionless way to
-            manage ledger logs digital accounts.
+            manage ledger logs and digital accounts.
           </p>
 
           <motion.div

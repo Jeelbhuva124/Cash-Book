@@ -48,6 +48,10 @@ const upload = multer({
 });
 
 // Routes
+router.route('/select')
+  .get(getReceipts)
+  .post(getReceipts);
+
 router.route('/')
   .post(upload.single('image'), uploadReceipt)
   .get(getReceipts);

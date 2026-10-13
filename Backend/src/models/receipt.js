@@ -7,6 +7,11 @@ const receiptSchema = new mongoose.Schema({
     lowercase: true,
     trim: true
   },
+  user_id: {
+    type: String,
+    trim: true,
+    default: ''
+  },
   item_title: {
     type: String,
     required: true,

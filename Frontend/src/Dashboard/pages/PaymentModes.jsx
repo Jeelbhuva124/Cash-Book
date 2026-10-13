@@ -48,11 +48,43 @@ export default function PaymentModes() {
       return;
     }
     try {
-      const res = await fetch('http://localhost:5001/api/payment-mode/select');
+      const currentUserId = (user?.id || user?._id || '').trim();
+      const currentUserEmail = (user?.email_id || userEmail || '').toLowerCase().trim();
+
+      let res;
+      try {
+        res = await fetch('http://localhost:5001/api/payment-mode/select', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: currentUserId,
+            user_email: currentUserEmail,
+            chalan_id: selectedChalanId
+          })
+        });
+      } catch (postErr) {}
+
+      if (!res || !res.ok) {
+        res = await fetch(`http://localhost:5001/api/payment-mode/select?user_id=${encodeURIComponent(currentUserId)}&user_email=${encodeURIComponent(currentUserEmail)}&chalan_id=${encodeURIComponent(selectedChalanId)}`);
+      }
+
       const data = await res.json();
-      if (data.success && data.data) {
-        // Filter by active and selected cashbook chalan_id
-        const filtered = data.data.filter(pm => pm.chalan_id === selectedChalanId && pm.active);
+      if (data.success && Array.isArray(data.data)) {
+        // Filter by active, selected cashbook chalan_id, and user ownership
+        const filtered = data.data.filter(pm => {
+          if (!pm.active) return false;
+          if (pm.chalan_id !== selectedChalanId) return false;
+          
+          if (!currentUserId && !currentUserEmail) return true;
+          const pmUserId = (pm.user_id || '').trim();
+          const pmEmail = (pm.user_email || '').toLowerCase().trim();
+
+          // Match active user id or global default payment modes
+          if (currentUserId && pmUserId) return pmUserId === currentUserId;
+          if (!pmUserId && currentUserEmail && pmEmail) return pmEmail === currentUserEmail;
+          if (!pmUserId && !pmEmail) return true;
+          return false;
+        });
         
         const mapped = filtered.map(pm => {
           let brand = 'Card';
@@ -243,6 +275,7 @@ export default function PaymentModes() {
             active: true,
             created_by: newCardName.trim(),
             updated_by: user?.username || 'Guest',
+            user_id: user?.id || user?._id || '',
             user_email: userEmail
           })
         });

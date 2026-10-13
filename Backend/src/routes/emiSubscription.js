@@ -8,8 +8,11 @@ import {
 
 const router = express.Router();
 
-// GET all EMIs & Subscriptions
+// GET and POST all EMIs & Subscriptions
 router.get('/select', getEmiSubscriptions);
+router.post('/select', getEmiSubscriptions);
+router.get('/', getEmiSubscriptions);
+router.post('/', getEmiSubscriptions);
 
 // POST create new record
 router.post('/insert', createEmiSubscription);
@@ -19,5 +22,6 @@ router.post('/mark-paid', markAsPaid);
 
 // DELETE record
 router.delete('/delete/:id', deleteEmiSubscription);
+router.delete('/delete', deleteEmiSubscription);
 
 export default router;

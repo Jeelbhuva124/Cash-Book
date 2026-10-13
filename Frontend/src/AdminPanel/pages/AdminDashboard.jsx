@@ -35,7 +35,29 @@ export const AdminDashboard = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await fetch('http://localhost:5001/api/admin/stats');
+        let adminId = '';
+        try {
+          const raw = localStorage.getItem('cashbook_admin_user') || sessionStorage.getItem('cashbook_admin_user');
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            const adminObj = Array.isArray(parsed) ? parsed[0] : parsed;
+            adminId = (adminObj?.id || adminObj?._id || adminObj?.admin_id || '').toString().trim();
+          }
+        } catch (e) {}
+
+        let res;
+        try {
+          res = await fetch('http://localhost:5001/api/admin/stats', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ admin_id: adminId })
+          });
+        } catch (e) {}
+
+        if (!res || !res.ok) {
+          res = await fetch(`http://localhost:5001/api/admin/stats?admin_id=${encodeURIComponent(adminId)}`);
+        }
+
         const data = await res.json();
         if (data.success && data.data) {
           setRealStats({

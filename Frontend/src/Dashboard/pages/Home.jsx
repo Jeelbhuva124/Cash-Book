@@ -112,13 +112,36 @@ export default function Home() {
 
     // Fetch Payment Modes
     try {
-      const res = await fetch('http://localhost:5001/api/payment-mode/select');
+      const currentUserId = (user?.id || user?._id || '').trim();
+      let res;
+      try {
+        res = await fetch('http://localhost:5001/api/payment-mode/select', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: currentUserId,
+            user_email: userEmail,
+            chalan_id: chalanId
+          })
+        });
+      } catch (e) {}
+
+      if (!res || !res.ok) {
+        res = await fetch(`http://localhost:5001/api/payment-mode/select?user_id=${encodeURIComponent(currentUserId)}&user_email=${encodeURIComponent(userEmail)}&chalan_id=${encodeURIComponent(chalanId)}`);
+      }
+
       const data = await res.json();
       if (data.success && data.data) {
-        const filtered = data.data.filter(pm =>
-          pm.chalan_id === chalanId &&
-          pm.active
-        );
+        const filtered = data.data.filter(pm => {
+          if (!pm.active) return false;
+          if (pm.chalan_id !== chalanId) return false;
+          const pmUserId = (pm.user_id || '').trim();
+          const pmEmail = (pm.user_email || '').toLowerCase().trim();
+          if (currentUserId && pmUserId) return pmUserId === currentUserId;
+          if (!pmUserId && userEmail && pmEmail) return pmEmail === userEmail;
+          if (!pmUserId && !pmEmail) return true;
+          return false;
+        });
         const mapped = filtered.map(p => ({
           id: p.id,
           name: p.payment_mode,
@@ -216,14 +239,36 @@ export default function Home() {
 
   const loadTransactions = async () => {
     try {
-      const response = await fetch('http://localhost:5001/api/transaction/select');
+      const currentUser = user || (localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")) : null);
+      const userEmail = (currentUser?.email_id || currentUser?.email || '').toLowerCase().trim();
+      const userId = currentUser?.id || currentUser?._id || '';
+
+      let response;
+      try {
+        response = await fetch('http://localhost:5001/api/transaction/select', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: userId,
+            user_email: userEmail
+          })
+        });
+      } catch (postErr) {
+        // Network error on POST, will fallback below
+      }
+
+      // If backend has not yet reloaded POST route or returned 404, fallback to GET
+      if (!response || !response.ok) {
+        response = await fetch('http://localhost:5001/api/transaction/select');
+      }
+
       const data = await response.json();
-      if (data.success && data.data) {
+      if (data.success && Array.isArray(data.data)) {
         const mapped = data.data.map(tx => ({
           id: tx.id,
           title: tx.title,
           type: tx.type,
-          amount: tx.amount,
+          amount: Number(tx.amount) || 0,
           date: tx.date,
           time: tx.time,
           chalanId: tx.chalan_id,
@@ -233,23 +278,76 @@ export default function Home() {
           remark: tx.remark,
           createdBy: tx.created_by,
           user_email: tx.user_email,
+          user_id: tx.user_id,
           is_deleted: !!tx.is_deleted || !!tx.deleted
         }));
 
-        // Fetch active cashbooks to filter out deleted ones
+        // Fetch active cashbooks for current user to filter out deleted or foreign cashbooks
         const activeChalanIds = new Set(['1']);
+        let cbRes;
         try {
-          const cbRes = await fetch('http://localhost:5001/api/cashbook/select');
-          const cbData = await cbRes.json();
-          if (cbData.success && Array.isArray(cbData.data)) {
-            cbData.data.forEach(cb => activeChalanIds.add(cb.id));
-          }
-        } catch (e) {
-          console.error("Failed to load cashbooks for filtering", e);
+          cbRes = await fetch('http://localhost:5001/api/cashbook/select', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              user_id: userId,
+              user_email: userEmail
+            })
+          });
+        } catch (e) {}
+
+        if (!cbRes || !cbRes.ok) {
+          try {
+            cbRes = await fetch('http://localhost:5001/api/cashbook/select');
+          } catch (e) {}
         }
 
-        const userTxs = mapped.filter(t => activeChalanIds.has(t.chalanId || '1'));
+        if (cbRes && cbRes.ok) {
+          const cbData = await cbRes.json();
+          if (cbData.success && Array.isArray(cbData.data)) {
+            cbData.data.forEach(cb => {
+              const cbEmail = (cb.user_email || '').toLowerCase().trim();
+              const cbUserId = (cb.user_id || '').trim();
+              const matchesCb = (userId && cbUserId)
+                ? cbUserId === userId
+                : (!cbUserId && userEmail && cbEmail === userEmail);
+              if (matchesCb || (!cbUserId && !cbEmail)) {
+                activeChalanIds.add(cb.id);
+              }
+            });
+          }
+        }
+
+        // Also include accepted invitations for shared cashbooks
+        try {
+          const invRes = await fetch('http://localhost:5001/api/invitation/select');
+          const invData = await invRes.json();
+          if (invData.success && Array.isArray(invData.data)) {
+            const accepted = invData.data.filter(i =>
+              (i.email?.toLowerCase() === userEmail || i.inviter_email?.toLowerCase() === userEmail) &&
+              i.status === 'Accepted'
+            );
+            accepted.forEach(a => {
+              if (a.id) activeChalanIds.add(a.id);
+            });
+          }
+        } catch (e) {}
+
+        // Strict user filter: only include transactions belonging to the current user
+        const userTxs = mapped.filter(t => {
+          if (!userId && !userEmail) return true;
+          const txUserId = (t.user_id || '').trim();
+          const txEmail = (t.user_email || '').toLowerCase().trim();
+          const matchesUser = (userId && txUserId)
+            ? txUserId === userId
+            : (userEmail && txEmail === userEmail);
+          return matchesUser && activeChalanIds.has(t.chalanId || '1');
+        });
+
         setTransactions(userTxs);
+        if (txsStorageKey) {
+          localStorage.setItem(txsStorageKey, JSON.stringify(userTxs));
+        }
       }
     } catch (err) {
       console.error("Failed to load transactions on Home:", err);
@@ -276,6 +374,43 @@ export default function Home() {
     let loadedChalans = [];
     if (savedChalans) {
       try { loadedChalans = JSON.parse(savedChalans); } catch (e) { }
+    }
+    if (loadedChalans.length === 0) {
+      const fetchCb = async () => {
+        let r;
+        try {
+          r = await fetch('http://localhost:5001/api/cashbook/select', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              user_id: user?.id || user?._id || '',
+              user_email: user?.email_id?.toLowerCase() || ''
+            })
+          });
+        } catch (e) {}
+        if (!r || !r.ok) {
+          try { r = await fetch('http://localhost:5001/api/cashbook/select'); } catch (e) {}
+        }
+        if (r && r.ok) {
+          const d = await r.json();
+          if (d.success && Array.isArray(d.data) && d.data.length > 0) {
+            const userEmail = (user?.email_id || '').toLowerCase().trim();
+            const filtered = d.data.filter(cb => !userEmail || (cb.user_email || '').toLowerCase().trim() === userEmail);
+            const mappedCb = filtered.map(cb => ({
+              id: cb.id,
+              name: cb.cashbook_name,
+              description: cb.description || '',
+              hex_code: cb.hex_code || '#8B5CF6',
+              cashbook_type: cb.cashbook_type || 'Normal'
+            }));
+            if (mappedCb.length > 0) {
+              setChalans(mappedCb);
+              localStorage.setItem(chalansStorageKey, JSON.stringify(mappedCb));
+            }
+          }
+        }
+      };
+      fetchCb();
     }
     setChalans(loadedChalans);
 
@@ -324,6 +459,7 @@ export default function Home() {
       remark: 'Null',
       created_by: user?.username || 'Guest',
       user_email: user?.email_id || '',
+      user_id: user?.id || user?._id || '',
       start_date: isInterestMode ? startDate : null,
       end_date: isInterestMode ? endDate : null,
       interest_rate: isInterestMode ? parseFloat(interestRate) : null,

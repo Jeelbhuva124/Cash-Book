@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, UserPlus, Shield, Ban, CheckCircle, Mail, Phone, Trash2, RefreshCw, X, Book, Activity, Calendar } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
+import ConfirmModal from '../../Dashboard/components/ConfirmModal';
 
 export const UserManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -14,12 +15,46 @@ export const UserManagement = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loadingDetails, setLoadingDetails] = useState(false);
   
+  // Confirmation Modal State
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    user: null,
+    title: '',
+    message: '',
+    isLoading: false
+  });
+  
   const { toast } = useToast();
+
+  const getAdminId = () => {
+    try {
+      const raw = localStorage.getItem('cashbook_admin_user') || sessionStorage.getItem('cashbook_admin_user');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        const adminObj = Array.isArray(parsed) ? parsed[0] : parsed;
+        return (adminObj?.id || adminObj?._id || adminObj?.admin_id || '').toString().trim();
+      }
+    } catch (e) {}
+    return '';
+  };
 
   const fetchUsers = async () => {
     setLoading(true);
+    const adminId = getAdminId();
     try {
-      const response = await fetch('http://localhost:5001/api/admin/select');
+      let response;
+      try {
+        response = await fetch('http://localhost:5001/api/admin/select', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ admin_id: adminId })
+        });
+      } catch (e) {}
+
+      if (!response || !response.ok) {
+        response = await fetch(`http://localhost:5001/api/admin/select?admin_id=${encodeURIComponent(adminId)}`);
+      }
+
       const data = await response.json();
       if (data.success && data.data && data.data.users) {
         setUsers(data.data.users);
@@ -57,7 +92,10 @@ export const UserManagement = () => {
       const res = await fetch('http://localhost:5001/api/admin/user-details', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: user.id || user._id })
+        body: JSON.stringify({
+          user_id: user.id || user._id,
+          admin_id: getAdminId()
+        })
       });
       const data = await res.json();
       if (data.success && data.data) {
@@ -84,7 +122,8 @@ export const UserManagement = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           user_id: user.id || user._id,
-          account_status: nextStatus
+          account_status: nextStatus,
+          admin_id: getAdminId()
         })
       });
       const data = await res.json();
@@ -100,15 +139,31 @@ export const UserManagement = () => {
     }
   };
 
-  const deleteUser = async (e, user) => {
-    e.stopPropagation();
-    if (!confirm(`Are you sure you want to delete user ${user.username || user.email_id}?`)) return;
+  const promptDeleteUser = (e, user) => {
+    if (e && e.stopPropagation) e.stopPropagation();
+    const userDisplay = user.username ? `${user.username} (${user.email_id})` : user.email_id;
+    setConfirmModal({
+      isOpen: true,
+      user,
+      title: "Delete User Account",
+      message: `Are you sure you want to permanently delete user "${userDisplay}"? All associated data and access will be revoked.`,
+      isLoading: false
+    });
+  };
+
+  const handleConfirmDeleteUser = async () => {
+    const user = confirmModal.user;
+    if (!user) return;
 
     try {
+      setConfirmModal(prev => ({ ...prev, isLoading: true }));
       const res = await fetch('http://localhost:5001/api/admin/delete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: user.id || user._id })
+        body: JSON.stringify({
+          user_id: user.id || user._id,
+          admin_id: getAdminId()
+        })
       });
       const data = await res.json();
       if (data.success) {
@@ -120,6 +175,14 @@ export const UserManagement = () => {
     } catch (err) {
       setUsers(prev => prev.filter(u => u.id !== user.id && u._id !== user._id));
       toast.success("User deleted successfully");
+    } finally {
+      setConfirmModal({
+        isOpen: false,
+        user: null,
+        title: '',
+        message: '',
+        isLoading: false
+      });
     }
   };
 
@@ -150,7 +213,7 @@ export const UserManagement = () => {
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
           <button
-            onClick={() => alert("To add user, specify user parameters.")}
+            onClick={() => toast.info("To add a new user account, please use the User Registration screen or Invitations.")}
             className="px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-sm hover:opacity-95 shadow-md shadow-primary/20 flex items-center gap-2"
           >
             <UserPlus className="w-4 h-4" />
@@ -286,7 +349,7 @@ export const UserManagement = () => {
                         {status === 'active' ? 'Suspend' : 'Activate'}
                       </button>
                       <button
-                        onClick={(e) => deleteUser(e, user)}
+                        onClick={(e) => promptDeleteUser(e, user)}
                         className="p-2 rounded-xl text-rose-500 hover:bg-rose-500/10 transition-colors"
                         title="Delete User"
                       >
@@ -448,6 +511,19 @@ export const UserManagement = () => {
       );
     })()
   )}
+
+  {/* Dynamic Delete User Confirmation Modal */}
+  <ConfirmModal
+    isOpen={confirmModal.isOpen}
+    onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+    onConfirm={handleConfirmDeleteUser}
+    title={confirmModal.title}
+    message={confirmModal.message}
+    confirmText="Delete User"
+    cancelText="Cancel"
+    type="danger"
+    isLoading={confirmModal.isLoading}
+  />
 </div>
 );
 };

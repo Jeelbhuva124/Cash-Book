@@ -65,6 +65,7 @@ const adminController = {
   // GET / POST /api/admin/select (Fetch all users and system metadata)
   select: async (req, res) => {
     try {
+      const { admin_id, admin_email } = { ...(req.query || {}), ...(req.body || {}) };
       const users = await User.find({}).sort({ createdAt: -1 }).lean();
       const admins = await Admin.find({}).sort({ createdAt: -1 }).lean();
       const rawCashbooks = await Cashbook.find({}).sort({ createdAt: -1 }).lean();
@@ -113,7 +114,7 @@ const adminController = {
 
   // POST /api/admin/insert (Create new user from admin panel)
   insert: async (req, res) => {
-    const { username, email_id, password, user_role, phone_number, security_pin } = req.body;
+    const { username, email_id, password, user_role, phone_number, security_pin, admin_id } = req.body;
     if (!email_id || !password) {
       return res.status(400).json({ success: false, message: "Email ID and password are required" });
     }
@@ -152,7 +153,7 @@ const adminController = {
 
   // POST /api/admin/update (Update user role or status)
   update: async (req, res) => {
-    const { user_id, id, username, email_id, user_role, is_admin, account_status, phone_number, password, security_pin } = req.body;
+    const { user_id, id, username, email_id, user_role, is_admin, account_status, phone_number, password, security_pin, admin_id } = req.body;
     const targetId = user_id || id;
 
     if (!targetId || !mongoose.Types.ObjectId.isValid(targetId)) {
@@ -246,7 +247,7 @@ const adminController = {
 
   // POST /api/admin/delete (Delete user or cashbook record)
   delete: async (req, res) => {
-    const { user_id, cashbook_id, id } = req.body;
+    const { user_id, cashbook_id, id, admin_id } = req.body;
     const targetUserId = user_id || (cashbook_id ? null : id);
     const targetCashbookId = cashbook_id;
 
@@ -280,6 +281,7 @@ const adminController = {
   // GET / POST /api/admin/stats (System analytics and health metrics)
   stats: async (req, res) => {
     try {
+      const { admin_id } = { ...(req.query || {}), ...(req.body || {}) };
       const total_users = await User.countDocuments({});
       const active_users = await User.countDocuments({ account_status: 'active' });
       const suspended_users = await User.countDocuments({ account_status: 'suspended' });
@@ -454,7 +456,7 @@ const adminController = {
 
   // POST /api/admin/user-details (Fetch detailed info of a specific user)
   getUserDetails: async (req, res) => {
-    const { user_id } = req.body;
+    const { user_id, admin_id } = { ...(req.query || {}), ...(req.body || {}) };
     
     if (!user_id || !mongoose.Types.ObjectId.isValid(user_id)) {
       return res.status(400).json({ success: false, message: "Valid user_id is required" });
@@ -488,10 +490,10 @@ const adminController = {
     }
   },
 
-  // GET /api/admin/transactions (Fetch all transactions globally)
+  // GET / POST /api/admin/transactions (Fetch all transactions globally)
   transactions: async (req, res) => {
     try {
-      const { chalan_id } = req.query;
+      const { chalan_id, admin_id } = { ...(req.query || {}), ...(req.body || {}) };
       let query = {
         is_deleted: { $ne: true },
         deleted: { $ne: true }

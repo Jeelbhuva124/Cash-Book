@@ -76,7 +76,16 @@ export default function History() {
     setLoading(true);
     let loadedTxs = [];
     let loadedChalans = [];
-    const sharedEmails = new Set([userEmail]);
+    const currentUser = user || (localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")) : null);
+    const currentUserId = (
+      currentUser?.id || 
+      currentUser?._id || 
+      currentUser?.user_id || 
+      currentUser?.uid || 
+      ''
+    ).toString().trim();
+    const currentUserEmail = (currentUser?.email_id || currentUser?.email || userEmail || '').toLowerCase().trim();
+    const sharedEmails = new Set(currentUserEmail ? [currentUserEmail] : []);
 
     // Fetch accepted invitations for shared cashbook access
     try {
@@ -84,12 +93,12 @@ export default function History() {
       const invData = await invRes.json();
       if (invData.success && Array.isArray(invData.data)) {
         const accepted = invData.data.filter(i => 
-          (i.email?.toLowerCase() === userEmail || i.inviter_email?.toLowerCase() === userEmail) && 
+          (i.email?.toLowerCase() === currentUserEmail || i.inviter_email?.toLowerCase() === currentUserEmail) && 
           i.status === 'Accepted'
         );
         accepted.forEach(a => {
-          if (a.email) sharedEmails.add(a.email.toLowerCase());
-          if (a.inviter_email) sharedEmails.add(a.inviter_email.toLowerCase());
+          if (a.email) sharedEmails.add(a.email.toLowerCase().trim());
+          if (a.inviter_email) sharedEmails.add(a.inviter_email.toLowerCase().trim());
         });
       }
     } catch (e) {
@@ -98,10 +107,37 @@ export default function History() {
 
     // 1. Fetch Cashbooks / Chalans
     try {
-      const res = await fetch('http://localhost:5001/api/cashbook/select');
+      let res;
+      try {
+        res = await fetch('http://localhost:5001/api/cashbook/select', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: currentUserId,
+            id: currentUserId,
+            user_email: currentUserEmail,
+            email_id: currentUserEmail
+          })
+        });
+      } catch (e) {}
+
+      if (!res || !res.ok) {
+        res = await fetch(`http://localhost:5001/api/cashbook/select?user_id=${encodeURIComponent(currentUserId)}&user_email=${encodeURIComponent(currentUserEmail)}`);
+      }
+
       const data = await res.json();
       if (data.success && Array.isArray(data.data)) {
-        loadedChalans = data.data.map(c => ({
+        const filteredChalans = data.data.filter(c => {
+          if (!currentUserId && !currentUserEmail) return true;
+          const cUserId = (c.user_id || '').trim();
+          const cEmail = (c.user_email || '').toLowerCase().trim();
+          if (currentUserId && cUserId && cUserId === currentUserId) return true;
+          if (currentUserEmail && cEmail && (cEmail === currentUserEmail || sharedEmails.has(cEmail))) return true;
+          if (!cUserId && !cEmail) return true;
+          return false;
+        });
+
+        loadedChalans = filteredChalans.map(c => ({
           id: c.id,
           name: c.cashbook_name,
           hex_code: c.hex_code || '#6366F1'
@@ -124,7 +160,25 @@ export default function History() {
 
     // 2. Fetch Transactions from API
     try {
-      const res = await fetch('http://localhost:5001/api/transaction/select');
+      let res;
+      try {
+        res = await fetch('http://localhost:5001/api/transaction/select', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: currentUserId,
+            id: currentUserId,
+            user_email: currentUserEmail,
+            email_id: currentUserEmail,
+            collaborator_emails: Array.from(sharedEmails)
+          })
+        });
+      } catch (e) {}
+
+      if (!res || !res.ok) {
+        res = await fetch(`http://localhost:5001/api/transaction/select?user_id=${encodeURIComponent(currentUserId)}&user_email=${encodeURIComponent(currentUserEmail)}`);
+      }
+
       const data = await res.json();
       if (data.success && Array.isArray(data.data)) {
         loadedTxs = data.data.map(t => ({
@@ -140,6 +194,7 @@ export default function History() {
           time: t.time || '12:00 PM',
           location: t.location || 'Local Session',
           createdBy: t.created_by || t.user_email || user?.full_name || 'Guest',
+          user_id: t.user_id || '',
           user_email: t.user_email || '',
           is_deleted: !!t.is_deleted || !!t.deleted
         }));
@@ -148,10 +203,21 @@ export default function History() {
       console.error("Failed to fetch transactions from API:", e);
     }
 
-    // Filter out transactions belonging to deleted cashbooks
+    // Filter out transactions belonging to deleted cashbooks and enforce strict user isolation
     const activeChalanIds = new Set(loadedChalans.map(c => c.id));
     activeChalanIds.add('1'); // Always allow default chalan ID '1'
-    let validTxs = loadedTxs.filter(t => activeChalanIds.has(t.chalanId));
+    let validTxs = loadedTxs.filter(t => {
+      if (!activeChalanIds.has(t.chalanId)) return false;
+      if (!currentUserId && !currentUserEmail) return true;
+      const txUserId = (t.user_id || '').trim();
+      const txEmail = (t.user_email || '').toLowerCase().trim();
+      if (currentUserId && txUserId) return txUserId === currentUserId;
+      if (currentUserEmail && txEmail && sharedEmails.has(txEmail) && txEmail !== currentUserEmail) return true;
+      if (!txUserId && currentUserEmail && txEmail && txEmail === currentUserEmail) return true;
+      const txCreatedBy = (t.createdBy || '').toLowerCase().trim();
+      if (!txUserId && !txEmail && currentUserEmail && txCreatedBy === currentUserEmail) return true;
+      return false;
+    });
 
     // Merge with Local Storage fallback
     const savedTxs = localStorage.getItem(txsStorageKey); 
@@ -162,7 +228,14 @@ export default function History() {
           const existingIdx = validTxs.findIndex(t => t.id === ltx.id);
           if (existingIdx === -1) {
             if (activeChalanIds.has(ltx.chalanId || '1')) {
-              validTxs.push(ltx);
+              const ltxUserId = (ltx.user_id || '').trim();
+              const ltxEmail = (ltx.user_email || '').toLowerCase().trim();
+              const matchesUser = (!currentUserId && !currentUserEmail) ||
+                (currentUserId && ltxUserId && ltxUserId === currentUserId) ||
+                (currentUserEmail && ltxEmail && (ltxEmail === currentUserEmail || sharedEmails.has(ltxEmail)));
+              if (matchesUser) {
+                validTxs.push(ltx);
+              }
             }
           } else {
             if (ltx.is_deleted || ltx.deleted) {

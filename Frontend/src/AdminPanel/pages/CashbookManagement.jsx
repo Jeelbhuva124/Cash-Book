@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, BookOpen, Trash2, RefreshCw, Eye, X, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
+import ConfirmModal from '../../Dashboard/components/ConfirmModal';
 
 export const CashbookManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -9,14 +10,46 @@ export const CashbookManagement = () => {
   const [selectedCashbook, setSelectedCashbook] = useState(null);
   const [transactions, setTransactions] = useState([]);
   const [loadingTransactions, setLoadingTransactions] = useState(false);
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    cb: null,
+    title: '',
+    message: '',
+    isLoading: false
+  });
   const { toast } = useToast();
+
+  const getAdminId = () => {
+    try {
+      const raw = localStorage.getItem('cashbook_admin_user') || sessionStorage.getItem('cashbook_admin_user');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        const adminObj = Array.isArray(parsed) ? parsed[0] : parsed;
+        return (adminObj?.id || adminObj?._id || adminObj?.admin_id || '').toString().trim();
+      }
+    } catch (e) {}
+    return '';
+  };
 
   const fetchTransactions = async (cb) => {
     setSelectedCashbook(cb);
     setLoadingTransactions(true);
+    const adminId = getAdminId();
     try {
       const cbId = cb.id || cb._id;
-      const res = await fetch(`http://localhost:5001/api/admin/transactions?chalan_id=${cbId}`);
+      let res;
+      try {
+        res = await fetch('http://localhost:5001/api/admin/transactions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ chalan_id: cbId, admin_id: adminId })
+        });
+      } catch (e) {}
+
+      if (!res || !res.ok) {
+        res = await fetch(`http://localhost:5001/api/admin/transactions?chalan_id=${encodeURIComponent(cbId)}&admin_id=${encodeURIComponent(adminId)}`);
+      }
+
       const data = await res.json();
       if (data.success) {
         // Fallback filter in case backend hasn't been restarted with the new filter logic
@@ -34,9 +67,22 @@ export const CashbookManagement = () => {
 
   const fetchCashbooks = async () => {
     setLoading(true);
+    const adminId = getAdminId();
     try {
       let fetchedCashbooks = [];
-      const res = await fetch('http://localhost:5001/api/admin/select');
+      let res;
+      try {
+        res = await fetch('http://localhost:5001/api/admin/select', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ admin_id: adminId })
+        });
+      } catch (e) {}
+
+      if (!res || !res.ok) {
+        res = await fetch(`http://localhost:5001/api/admin/select?admin_id=${encodeURIComponent(adminId)}`);
+      }
+
       const data = await res.json();
       if (data.success && data.data && data.data.cashbooks) {
         fetchedCashbooks = data.data.cashbooks;
@@ -51,7 +97,19 @@ export const CashbookManagement = () => {
       // Fallback logic if backend wasn't restarted and doesn't have computed totals
       if (fetchedCashbooks.length > 0 && fetchedCashbooks[0].total_income === undefined) {
         try {
-          const txRes = await fetch('http://localhost:5001/api/admin/transactions');
+          let txRes;
+          try {
+            txRes = await fetch('http://localhost:5001/api/admin/transactions', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ admin_id: adminId })
+            });
+          } catch (e) {}
+
+          if (!txRes || !txRes.ok) {
+            txRes = await fetch(`http://localhost:5001/api/admin/transactions?admin_id=${encodeURIComponent(adminId)}`);
+          }
+
           const txData = await txRes.json();
           if (txData.success && Array.isArray(txData.data)) {
             const allTxns = txData.data;
@@ -87,15 +145,31 @@ export const CashbookManagement = () => {
     fetchCashbooks();
   }, []);
 
-  const deleteCashbook = async (cb) => {
+  const promptDeleteCashbook = (cb) => {
+    const cbName = cb.cashbook_name || cb.name || 'this cashbook';
+    setConfirmModal({
+      isOpen: true,
+      cb,
+      title: "Delete Cashbook",
+      message: `Are you sure you want to permanently delete cashbook "${cbName}"? All associated entries will be archived.`,
+      isLoading: false
+    });
+  };
+
+  const handleConfirmDelete = async () => {
+    const cb = confirmModal.cb;
+    if (!cb) return;
     const cbId = cb.id || cb._id;
-    if (!confirm(`Are you sure you want to delete cashbook '${cb.cashbook_name || cb.name}'?`)) return;
 
     try {
+      setConfirmModal(prev => ({ ...prev, isLoading: true }));
       const res = await fetch('http://localhost:5001/api/admin/delete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cashbook_id: cbId })
+        body: JSON.stringify({
+          cashbook_id: cbId,
+          admin_id: getAdminId()
+        })
       });
       const data = await res.json();
       if (data.success) {
@@ -107,6 +181,14 @@ export const CashbookManagement = () => {
     } catch (err) {
       setCashbooks(prev => prev.filter(c => (c.id !== cbId && c._id !== cbId)));
       toast.success("Cashbook deleted successfully");
+    } finally {
+      setConfirmModal({
+        isOpen: false,
+        cb: null,
+        title: '',
+        message: '',
+        isLoading: false
+      });
     }
   };
 
@@ -122,7 +204,7 @@ export const CashbookManagement = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-black text-foreground tracking-tight">Cashbook Registry</h1>
-          <p className="text-sm text-muted-foreground">Global directory of active digital khatas and cashbook ledgers.</p>
+          <p className="text-sm text-muted-foreground">Global directory of active digital cashbooks and financial ledgers.</p>
         </div>
         <button
           onClick={fetchCashbooks}
@@ -182,7 +264,7 @@ export const CashbookManagement = () => {
                       <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
                         <BookOpen className="w-4 h-4" />
                       </div>
-                      <span>{cb.cashbook_name || cb.name || 'Unnamed Khata'}</span>
+                      <span>{cb.cashbook_name || cb.name || 'Unnamed Cashbook'}</span>
                     </td>
                     <td className="p-4 text-muted-foreground font-medium">{cb.owner_email || cb.user_email || 'N/A'}</td>
                     <td className="p-4 text-xs font-bold text-emerald-500">{income}</td>
@@ -200,7 +282,7 @@ export const CashbookManagement = () => {
                           <Eye className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() => deleteCashbook(cb)}
+                          onClick={() => promptDeleteCashbook(cb)}
                           className="p-2 rounded-xl text-rose-500 hover:bg-rose-500/10 transition-colors"
                           title="Delete Cashbook"
                         >
@@ -271,6 +353,19 @@ export const CashbookManagement = () => {
           </div>
         </div>
       )}
+
+      {/* Dynamic Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={handleConfirmDelete}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmText="Delete Cashbook"
+        cancelText="Cancel"
+        type="danger"
+        isLoading={confirmModal.isLoading}
+      />
     </div>
   );
 };

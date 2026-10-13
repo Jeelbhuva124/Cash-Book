@@ -30,6 +30,12 @@ const paymentModeSchema = new mongoose.Schema(
       type: String,
       lowercase: true,
       trim: true,
+      default: '',
+    },
+    user_id: {
+      type: String,
+      trim: true,
+      default: '',
     },
   },
   {

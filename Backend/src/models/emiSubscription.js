@@ -59,6 +59,11 @@ const emiSubscriptionSchema = new mongoose.Schema(
       trim: true,
       default: '',
     },
+    user_id: {
+      type: String,
+      trim: true,
+      default: '',
+    },
   },
   {
     timestamps: true,

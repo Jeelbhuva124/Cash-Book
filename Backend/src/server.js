@@ -36,5 +36,5 @@ const startServer = async () => {
   });
 };
 
-// Cashbook Server entry
+// Cashbook Server entry - active nodemon hot-reload verified
 startServer();

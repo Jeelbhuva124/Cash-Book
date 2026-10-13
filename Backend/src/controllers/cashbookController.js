@@ -46,14 +46,30 @@ export const createCashbook = async (req, res) => {
 // Get Cashbooks (Filter by user_email or user_id if provided)
 export const getCashbooks = async (req, res) => {
   try {
-    const { user_email, user_id } = req.query;
+    const { user_email, user_id, email, email_id } = {
+      ...(req.query || {}),
+      ...(req.body || {}),
+    };
     let query = {};
 
-    if (user_email) {
-      query.user_email = user_email.toLowerCase();
-    }
-    if (user_id) {
-      query.user_id = user_id;
+    const targetEmail = (user_email || email_id || email || '').toLowerCase().trim();
+    const targetUserId = user_id ? String(user_id).trim() : '';
+
+    const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+    if (targetUserId) {
+      if (targetEmail) {
+        await Cashbook.updateMany(
+          {
+            user_email: new RegExp(`^${escapeRegex(targetEmail)}$`, 'i'),
+            $or: [{ user_id: '' }, { user_id: { $exists: false } }, { user_id: null }]
+          },
+          { $set: { user_id: targetUserId } }
+        );
+      }
+      query.user_id = targetUserId;
+    } else if (targetEmail) {
+      query.user_email = new RegExp(`^${escapeRegex(targetEmail)}$`, 'i');
     }
 
     const cashbooks = await Cashbook.find(query).sort({ createdAt: -1 });

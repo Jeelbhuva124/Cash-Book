@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '../../context/ToastContext';
 import { socket } from '../../utils/socket';
 import Dropdown from '../components/Dropdown';
+import ConfirmModal from '../components/ConfirmModal';
 
 const COLOR_OPTIONS = [
   { name: 'Purple', hex: '#8B5CF6' },
@@ -50,6 +51,13 @@ export default function Cashbooks() {
   const [hexCode, setHexCode] = useState('#8B5CF6');
   const [cashbookType, setCashbookType] = useState('Normal');
   const [loading, setLoading] = useState(false);
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    bookId: null,
+    title: '',
+    message: '',
+    isLoading: false
+  });
 
   // Storage key matching Home.jsx 'chalans'
   const userRaw = localStorage.getItem("user");
@@ -149,7 +157,24 @@ export default function Cashbooks() {
 
     // Fetch transactions for accessible cashbooks
     try {
-      const responseTxs = await fetch('http://localhost:5001/api/transaction/select', { signal });
+      const currentUser = user || (localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")) : null);
+      let responseTxs;
+      try {
+        responseTxs = await fetch('http://localhost:5001/api/transaction/select', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: currentUser?.id || currentUser?._id || '',
+            user_email: userEmail
+          }),
+          signal
+        });
+      } catch (e) {}
+
+      if (!responseTxs || !responseTxs.ok) {
+        responseTxs = await fetch('http://localhost:5001/api/transaction/select', { signal });
+      }
+
       const dataTxs = await responseTxs.json();
       if (dataTxs.success && dataTxs.data) {
         const mappedTxs = dataTxs.data.map(tx => ({
@@ -333,13 +358,26 @@ export default function Cashbooks() {
     addToast("Cashbook updated locally!", "info");
   };
 
-  const handleDelete = async (id) => {
-    if (id === '1') {
+  const promptDeleteCashbook = (book) => {
+    if (book.id === '1') {
       addToast("Cannot delete the default Cashbook", "warning");
       return;
     }
+    setConfirmModal({
+      isOpen: true,
+      bookId: book.id,
+      title: "Delete Cashbook",
+      message: `Are you sure you want to delete "${book.name || 'this cashbook'}"? This action cannot be undone.`,
+      isLoading: false
+    });
+  };
+
+  const handleConfirmDeleteCashbook = async () => {
+    const id = confirmModal.bookId;
+    if (!id || id === '1') return;
 
     try {
+      setConfirmModal(prev => ({ ...prev, isLoading: true }));
       await fetch('http://localhost:5001/api/cashbook/delete', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
@@ -353,6 +391,7 @@ export default function Cashbooks() {
     setCashbooks(updated);
     localStorage.setItem(storageKey, JSON.stringify(updated));
     addToast("Cashbook deleted.", "info");
+    setConfirmModal({ isOpen: false, bookId: null, title: '', message: '', isLoading: false });
   };
 
   const handleSelectCashbook = (id) => {
@@ -366,10 +405,10 @@ export default function Cashbooks() {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-[#1e293b] dark:text-foreground">
-              All Daily Chalans
+              All Cash Books
             </h1>
           </div>
-          <p className="text-sm text-muted-foreground mt-0.5">Manage your daily chalans and transactions</p>
+          <p className="text-sm text-muted-foreground mt-0.5">Manage your cash books and transactions</p>
         </div>
 
         <div className="flex items-center gap-3">
@@ -507,7 +546,7 @@ export default function Cashbooks() {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleDelete(book.id);
+                              promptDeleteCashbook(book);
                             }}
                             className="p-1.5 rounded-lg border border-border/80 bg-[#f8fafc] text-muted-foreground hover:text-expense hover:bg-expense-bg/30 transition-colors"
                             title="Delete"
@@ -669,6 +708,19 @@ export default function Cashbooks() {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Dynamic Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={handleConfirmDeleteCashbook}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmText="Delete Cashbook"
+        cancelText="Cancel"
+        type="danger"
+        isLoading={confirmModal.isLoading}
+      />
     </div>
   );
 }

@@ -9,7 +9,29 @@ export const SystemAnalytics = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await fetch('http://localhost:5001/api/admin/stats');
+        let adminId = '';
+        try {
+          const raw = localStorage.getItem('cashbook_admin_user') || sessionStorage.getItem('cashbook_admin_user');
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            const adminObj = Array.isArray(parsed) ? parsed[0] : parsed;
+            adminId = (adminObj?.id || adminObj?._id || adminObj?.admin_id || '').toString().trim();
+          }
+        } catch (e) {}
+
+        let response;
+        try {
+          response = await fetch('http://localhost:5001/api/admin/stats', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ admin_id: adminId })
+          });
+        } catch (e) {}
+
+        if (!response || !response.ok) {
+          response = await fetch(`http://localhost:5001/api/admin/stats?admin_id=${encodeURIComponent(adminId)}`);
+        }
+
         const data = await response.json();
         if (data.success) {
           setStats(data.data);
@@ -92,7 +114,7 @@ export const SystemAnalytics = () => {
       <div className="bg-card border border-border rounded-2xl p-6 shadow-sm space-y-6">
         <div>
           <h3 className="text-lg font-bold text-foreground">Transaction Distribution by Category</h3>
-          <p className="text-xs text-muted-foreground">Volume breakdown across all user Khatas</p>
+          <p className="text-xs text-muted-foreground">Volume breakdown across all user cashbooks and ledgers</p>
         </div>
 
         <div className="space-y-4">

@@ -26,12 +26,38 @@ export default function Reports() {
     setUser(loadedUser);
 
     const sessionUser = userRaw ? JSON.parse(userRaw) : null;
-    const storageKey = `cashbook_txs_${sessionUser?.email_id || 'guest'}`;
+    const userEmail = (sessionUser?.email_id || '').toLowerCase().trim();
+    const userId = sessionUser?.id || sessionUser?._id || '';
+    const storageKey = `cashbook_txs_${userEmail || 'guest'}`;
     const saved = localStorage.getItem(storageKey);
     if (saved) {
-      const parsed = JSON.parse(saved);
-      setTransactions(parsed.filter(t => !t.is_deleted && !t.deleted));
+      try {
+        const parsed = JSON.parse(saved);
+        setTransactions(parsed.filter(t => !t.is_deleted && !t.deleted));
+      } catch (e) {}
     }
+
+    // Fetch fresh user transactions from API
+    fetch('http://localhost:5001/api/transaction/select', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: userId, user_email: userEmail })
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && Array.isArray(data.data)) {
+          const userFiltered = data.data.filter(t => {
+            if (t.is_deleted || t.deleted) return false;
+            const txUserId = (t.user_id || '').trim();
+            const txEmail = (t.user_email || '').toLowerCase().trim();
+            if (userId && txUserId) return txUserId === userId;
+            if (userEmail && txEmail) return txEmail === userEmail;
+            return false;
+          });
+          setTransactions(userFiltered);
+        }
+      })
+      .catch(e => console.error("Reports fetch error:", e));
   }, []);
 
   const totalIncome = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
