@@ -1,11 +1,58 @@
 import mongoose from 'mongoose';
 import Transaction from '../models/transaction.js';
+import Invitation from '../models/invitation.js';
+import Cashbook from '../models/cashbook.js';
+
+const isViewOnlyUser = async (userEmail, chalanId) => {
+  if (!userEmail) return false;
+  try {
+    const invites = await Invitation.find({
+      email: userEmail.toLowerCase().trim(),
+      status: 'Accepted',
+      permissions: 'View Only'
+    });
+    if (!invites || invites.length === 0) return false;
+    if (!chalanId) return true;
+
+    for (const invite of invites) {
+      if (
+        invite._id.toString() === chalanId.toString() ||
+        invite.cashbook_name.toLowerCase() === chalanId.toString().toLowerCase()
+      ) {
+        return true;
+      }
+    }
+
+    if (mongoose.Types.ObjectId.isValid(chalanId)) {
+      const cb = await Cashbook.findById(chalanId);
+      if (cb) {
+        for (const invite of invites) {
+          if (invite.cashbook_name.toLowerCase() === cb.cashbook_name.toLowerCase()) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  } catch (err) {
+    return false;
+  }
+};
 
 // Create a new Transaction (Supports single object or array of objects for bulk insert)
 export const createTransaction = async (req, res) => {
   try {
     // Handle Array Bulk Insert
     if (Array.isArray(req.body)) {
+      if (req.body.length > 0) {
+        const first = req.body[0];
+        if (first.user_email && first.chalan_id && await isViewOnlyUser(first.user_email, first.chalan_id)) {
+          return res.status(403).json({
+            success: false,
+            message: 'Permission denied: You have View Only access to this cashbook and cannot add or import entries.',
+          });
+        }
+      }
       const docs = req.body.map(tx => {
         if (!tx.title || !tx.type || tx.amount === undefined || !tx.date || !tx.time || !tx.chalan_id) {
           throw new Error('Missing required fields in one of the transactions');
@@ -61,6 +108,13 @@ export const createTransaction = async (req, res) => {
         success: false,
         message: 'Missing required transaction fields: title, type, amount, date, time, chalan_id',
         received: req.body,
+      });
+    }
+
+    if (user_email && chalan_id && await isViewOnlyUser(user_email, chalan_id)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Permission denied: You have View Only access to this cashbook and cannot add entries.',
       });
     }
 
@@ -173,6 +227,16 @@ export const updateTransaction = async (req, res) => {
     if (end_date !== undefined) updateFields.end_date = end_date.trim();
     if (total_days !== undefined) updateFields.total_days = Number(total_days);
 
+    if (req.body.user_email) {
+      const existing = await Transaction.findById(id);
+      if (existing && await isViewOnlyUser(req.body.user_email, existing.chalan_id)) {
+        return res.status(403).json({
+          success: false,
+          message: 'Permission denied: You have View Only access to this cashbook and cannot modify entries.',
+        });
+      }
+    }
+
     const updatedTransaction = await Transaction.findByIdAndUpdate(
       id,
       updateFields,
@@ -222,6 +286,16 @@ export const deleteTransaction = async (req, res) => {
         });
       }
 
+      if (req.body.user_email) {
+        const firstTx = await Transaction.findById(validIds[0]);
+        if (firstTx && await isViewOnlyUser(req.body.user_email, firstTx.chalan_id)) {
+          return res.status(403).json({
+            success: false,
+            message: 'Permission denied: You have View Only access to this cashbook and cannot delete entries.',
+          });
+        }
+      }
+
       await Transaction.deleteMany(
         { _id: { $in: validIds } }
       );
@@ -250,6 +324,16 @@ export const deleteTransaction = async (req, res) => {
         success: false,
         message: 'Invalid Transaction ID format',
       });
+    }
+
+    if (req.body.user_email) {
+      const existing = await Transaction.findById(id);
+      if (existing && await isViewOnlyUser(req.body.user_email, existing.chalan_id)) {
+        return res.status(403).json({
+          success: false,
+          message: 'Permission denied: You have View Only access to this cashbook and cannot delete entries.',
+        });
+      }
     }
 
     const deletedTransaction = await Transaction.findByIdAndDelete(id);

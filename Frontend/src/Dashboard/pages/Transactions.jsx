@@ -5,7 +5,8 @@ import { socket } from '../../utils/socket';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Receipt, Search, Filter, ArrowLeft, Wallet, ArrowUp, ArrowDown, 
-  Plus, Trash2, X, CheckCircle2, Pencil, Edit, ChevronsUpDown, Upload, Users, TrendingUp 
+  Plus, Trash2, X, CheckCircle2, Pencil, Edit, ChevronsUpDown, Upload, Users, TrendingUp,
+  Eye, Lock
 } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
 import Dropdown from '../components/Dropdown';
@@ -57,6 +58,7 @@ export default function Transactions() {
   const [transactions, setTransactions] = useState([]);
   const [cashbookName, setCashbookName] = useState('All Logs');
   const [cashbookDesc, setCashbookDesc] = useState('Detailed history of all your transactions.');
+  const [isViewOnly, setIsViewOnly] = useState(false);
   
   // Add Entry Modal States
   const [showAddForm, setShowAddForm] = useState(false);
@@ -310,9 +312,11 @@ export default function Transactions() {
 
     const stateId = location.state?.selectedCashbookId;
     let chalanId = '1';
+    let currentBook = null;
     if (stateId) {
       const found = loadedChalans.find(c => c.id === stateId);
       if (found) {
+        currentBook = found;
         setCashbookName(found.name);
         setCashbookDesc(found.description || `Default ${found.name} cashbook`);
       } else if (stateId === '1') {
@@ -326,6 +330,20 @@ export default function Transactions() {
       setCashbookDesc("Default General Cashbook");
       setSelectedChalanId('1');
       chalanId = '1';
+      currentBook = loadedChalans.find(c => c.id === '1');
+    }
+
+    let viewOnlyMode = false;
+    if (location.state?.isViewOnly !== undefined) {
+      viewOnlyMode = !!location.state.isViewOnly;
+    } else if (currentBook?.isShared) {
+      const perm = (currentBook.permission || '').toLowerCase();
+      viewOnlyMode = perm === 'view only' || perm === 'view' || perm === 'read only';
+    }
+    setIsViewOnly(viewOnlyMode);
+    if (viewOnlyMode) {
+      setIsEditMode(false);
+      setSelectedIds([]);
     }
 
     loadTransactions();
@@ -405,6 +423,20 @@ export default function Transactions() {
               if (a.email) allowedEmails.add(a.email.toLowerCase());
               if (a.inviter_email) allowedEmails.add(a.inviter_email.toLowerCase());
             });
+
+            // Enforce View Only if the user has View Only permission for this cashbook
+            const myInvite = accepted.find(a => 
+              a.email?.toLowerCase() === userEmail &&
+              (a.id === selectedChalanId || a._id === selectedChalanId || a.cashbook_name?.toLowerCase() === cashbookName?.toLowerCase())
+            );
+            if (myInvite) {
+              const perm = (myInvite.permissions || '').toLowerCase();
+              if (perm === 'view only' || perm === 'view' || perm === 'read only') {
+                setIsViewOnly(true);
+                setIsEditMode(false);
+                setSelectedIds([]);
+              }
+            }
           }
         } catch (e) {}
 
@@ -422,6 +454,10 @@ export default function Transactions() {
   };
 
   const handleDelete = (txId) => {
+    if (isViewOnly) {
+      addToast("You have View Only access to this cashbook. Deleting entries is not permitted.", "warning");
+      return;
+    }
     setConfirmModal({
       isOpen: true,
       title: "Delete Transaction",
@@ -449,6 +485,10 @@ export default function Transactions() {
   };
 
   const handleDeleteSelected = () => {
+    if (isViewOnly) {
+      addToast("You have View Only access to this cashbook. Deleting entries is not permitted.", "warning");
+      return;
+    }
     if (selectedIds.length === 0) return;
     
     setConfirmModal({
@@ -478,6 +518,10 @@ export default function Transactions() {
   };
 
   const handleOpenAddForm = () => {
+    if (isViewOnly) {
+      addToast("You have View Only access to this cashbook. Adding entries is disabled.", "warning");
+      return;
+    }
     setEditTxId(null);
     setTitle('');
     setAmount('');
@@ -496,6 +540,10 @@ export default function Transactions() {
   };
 
   const handleEditClick = (tx) => {
+    if (isViewOnly) {
+      addToast("You have View Only access to this cashbook. Editing entries is disabled.", "warning");
+      return;
+    }
     setEditTxId(tx.id);
     setTitle(tx.title);
     setType(tx.type);
@@ -511,6 +559,10 @@ export default function Transactions() {
 
   const handleAddTransaction = async (e) => {
     e.preventDefault();
+    if (isViewOnly) {
+      addToast("You have View Only access to this cashbook. You cannot add or edit entries.", "error");
+      return;
+    }
     if (!title.trim() || !amount || parseFloat(amount) <= 0) {
       addToast("Please fill valid fields", "warning");
       return;
@@ -696,6 +748,10 @@ export default function Transactions() {
   };
 
   const handleConfirmImport = async () => {
+    if (isViewOnly) {
+      addToast("You have View Only access to this cashbook. Importing entries is not permitted.", "error");
+      return;
+    }
     if (importPreview.length === 0) {
       addToast("No transactions found to import", "warning");
       return;
@@ -959,9 +1015,17 @@ export default function Transactions() {
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div className="flex flex-col">
-            <h1 className="text-xl md:text-2xl font-bold tracking-tight text-[#1e293b] dark:text-slate-100">
-              {cashbookName}
-            </h1>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-xl md:text-2xl font-bold tracking-tight text-[#1e293b] dark:text-slate-100">
+                {cashbookName}
+              </h1>
+              {isViewOnly && (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                  <Eye className="w-3.5 h-3.5" />
+                  View Only
+                </span>
+              )}
+            </div>
             <p className="text-xs text-muted-foreground dark:text-slate-400 mt-0.5 font-medium">
               {cashbookDesc}
             </p>
@@ -969,20 +1033,29 @@ export default function Transactions() {
         </div>
 
         <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
-          <button 
-            onClick={() => setShowImportForm(true)}
-            className="flex items-center gap-1.5 px-4 py-2 border border-border dark:border-slate-700/80 bg-[#f8fafc] dark:bg-slate-800/90 text-foreground dark:text-slate-200 font-semibold rounded-xl text-xs hover:bg-muted dark:hover:bg-slate-700 transition-colors"
-          >
-            <Upload className="w-3.5 h-3.5 text-primary dark:text-indigo-400" />
-            Import Transaction
-          </button>
-          <button 
-            onClick={handleOpenAddForm}
-            className="flex items-center gap-1.5 px-4 py-2 bg-primary dark:bg-indigo-600 text-primary-foreground font-semibold rounded-xl text-xs hover:opacity-95 dark:hover:bg-indigo-500 transition-all"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            Add Transaction
-          </button>
+          {isViewOnly ? (
+            <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-400 text-xs font-semibold">
+              <Lock className="w-3.5 h-3.5" />
+              <span>View Only Mode</span>
+            </div>
+          ) : (
+            <>
+              <button 
+                onClick={() => setShowImportForm(true)}
+                className="flex items-center gap-1.5 px-4 py-2 border border-border dark:border-slate-700/80 bg-[#f8fafc] dark:bg-slate-800/90 text-foreground dark:text-slate-200 font-semibold rounded-xl text-xs hover:bg-muted dark:hover:bg-slate-700 transition-colors"
+              >
+                <Upload className="w-3.5 h-3.5 text-primary dark:text-indigo-400" />
+                Import Transaction
+              </button>
+              <button 
+                onClick={handleOpenAddForm}
+                className="flex items-center gap-1.5 px-4 py-2 bg-primary dark:bg-indigo-600 text-primary-foreground font-semibold rounded-xl text-xs hover:opacity-95 dark:hover:bg-indigo-500 transition-all"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                Add Transaction
+              </button>
+            </>
+          )}
         </div>
       </div>
 
@@ -1107,34 +1180,43 @@ export default function Transactions() {
           </h2>
           
           <div className="flex items-center gap-2">
-            {selectedIds.length > 0 && (
-              <button 
-                onClick={handleDeleteSelected}
-                className="flex items-center gap-1.5 px-3 py-1.5 border border-[#ef4444]/40 text-[#ef4444] dark:text-rose-400 rounded-lg text-xs font-bold bg-[#ef4444]/5 dark:bg-rose-500/10 hover:bg-[#ef4444]/10 dark:hover:bg-rose-500/20 transition-colors"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-                Delete Selected ({selectedIds.length})
-              </button>
-            )}
+            {!isViewOnly ? (
+              <>
+                {selectedIds.length > 0 && (
+                  <button 
+                    onClick={handleDeleteSelected}
+                    className="flex items-center gap-1.5 px-3 py-1.5 border border-[#ef4444]/40 text-[#ef4444] dark:text-rose-400 rounded-lg text-xs font-bold bg-[#ef4444]/5 dark:bg-rose-500/10 hover:bg-[#ef4444]/10 dark:hover:bg-rose-500/20 transition-colors"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    Delete Selected ({selectedIds.length})
+                  </button>
+                )}
 
-            <button
-              onClick={() => {
-                if (isEditMode) {
-                  setIsEditMode(false);
-                  setSelectedIds([]);
-                } else {
-                  setIsEditMode(true);
-                }
-              }}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold border transition-all ${
-                isEditMode 
-                  ? "border-primary dark:border-indigo-500 bg-primary/10 dark:bg-indigo-500/20 text-primary dark:text-indigo-400" 
-                  : "border-border/80 dark:border-slate-700/80 bg-background dark:bg-slate-800/80 text-muted-foreground dark:text-slate-300 hover:text-foreground dark:hover:text-white hover:bg-muted dark:hover:bg-slate-700"
-              }`}
-            >
-              <Edit className="w-3.5 h-3.5" />
-              {isEditMode ? "Done" : "Edit"}
-            </button>
+                <button
+                  onClick={() => {
+                    if (isEditMode) {
+                      setIsEditMode(false);
+                      setSelectedIds([]);
+                    } else {
+                      setIsEditMode(true);
+                    }
+                  }}
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold border transition-all ${
+                    isEditMode 
+                      ? "border-primary dark:border-indigo-500 bg-primary/10 dark:bg-indigo-500/20 text-primary dark:text-indigo-400" 
+                      : "border-border/80 dark:border-slate-700/80 bg-background dark:bg-slate-800/80 text-muted-foreground dark:text-slate-300 hover:text-foreground dark:hover:text-white hover:bg-muted dark:hover:bg-slate-700"
+                  }`}
+                >
+                  <Edit className="w-3.5 h-3.5" />
+                  {isEditMode ? "Done" : "Edit"}
+                </button>
+              </>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold text-muted-foreground dark:text-slate-400 bg-muted/20 dark:bg-slate-800/50 border border-border/50">
+                <Lock className="w-3 h-3 text-amber-500" />
+                Read Only
+              </span>
+            )}
           </div>
         </div>
         
@@ -1171,7 +1253,7 @@ export default function Transactions() {
             <thead>
               {/* Header Titles with Sort Toggles */}
               <tr className="bg-muted/30 dark:bg-slate-900/80 border-b border-border dark:border-slate-800 text-[11px] font-bold text-muted-foreground dark:text-slate-400 uppercase tracking-wider">
-                {isEditMode && <th className="px-4 py-3.5 w-[50px] text-center"></th>}
+                {!isViewOnly && isEditMode && <th className="px-4 py-3.5 w-[50px] text-center"></th>}
                 <th className="px-4 py-3.5 w-[70px] cursor-pointer hover:text-foreground dark:hover:text-slate-200 transition-colors" onClick={() => handleSort('no')}>
                   <div className="flex items-center gap-1">
                     No {getSortIcon('no')}
@@ -1222,12 +1304,12 @@ export default function Transactions() {
                     By User {getSortIcon('createdBy')}
                   </div>
                 </th>
-                <th className="px-4 py-3.5 w-[100px] text-center">Actions</th>
+                <th className="px-4 py-3.5 w-[100px] text-center">{isViewOnly ? 'Access' : 'Actions'}</th>
               </tr>
               
               {/* Header Column Filters Row */}
               <tr className="bg-muted/10 dark:bg-slate-950/40 border-b border-border/40 dark:border-slate-800/60">
-                {isEditMode && <th className="px-4 py-2"></th>}
+                {!isViewOnly && isEditMode && <th className="px-4 py-2"></th>}
                 <th className="px-4 py-2">
                   <input
                     type="text"
@@ -1329,7 +1411,7 @@ export default function Transactions() {
                 
                 return (
                   <tr key={tx.id} className={`hover:bg-muted/30 dark:hover:bg-slate-800/40 transition-colors text-xs font-semibold text-foreground dark:text-slate-200 ${isSelected ? 'bg-primary/5 dark:bg-indigo-500/10' : ''}`}>
-                    {isEditMode && (
+                    {!isViewOnly && isEditMode && (
                       <td className="px-4 py-3.5 text-center">
                         <input
                           type="checkbox"
@@ -1387,22 +1469,29 @@ export default function Transactions() {
                       </span>
                     </td>
                     <td className="px-4 py-3.5 text-center">
-                      <div className="flex items-center justify-center gap-1.5">
-                        <button 
-                          onClick={() => handleEditClick(tx)}
-                          className="p-1 text-muted-foreground dark:text-slate-400 hover:text-primary dark:hover:text-indigo-400 hover:bg-primary/10 dark:hover:bg-indigo-500/20 rounded transition-colors"
-                          title="Edit Entry"
-                        >
-                          <Pencil className="w-3.5 h-3.5" />
-                        </button>
-                        <button 
-                          onClick={() => handleDelete(tx.id)}
-                          className="p-1 text-muted-foreground dark:text-slate-400 hover:text-[#ef4444] dark:hover:text-rose-400 hover:bg-[#ef4444]/10 dark:hover:bg-rose-500/20 rounded transition-colors"
-                          title="Remove Entry"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
+                      {isViewOnly ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold text-amber-600/90 dark:text-amber-400/90 bg-amber-500/10 border border-amber-500/20" title="View Only: Editing is disabled">
+                          <Eye className="w-3 h-3 text-amber-500" />
+                          View Only
+                        </span>
+                      ) : (
+                        <div className="flex items-center justify-center gap-1.5">
+                          <button 
+                            onClick={() => handleEditClick(tx)}
+                            className="p-1 text-muted-foreground dark:text-slate-400 hover:text-primary dark:hover:text-indigo-400 hover:bg-primary/10 dark:hover:bg-indigo-500/20 rounded transition-colors"
+                            title="Edit Entry"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                          <button 
+                            onClick={() => handleDelete(tx.id)}
+                            className="p-1 text-muted-foreground dark:text-slate-400 hover:text-[#ef4444] dark:hover:text-rose-400 hover:bg-[#ef4444]/10 dark:hover:bg-rose-500/20 rounded transition-colors"
+                            title="Remove Entry"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 );
@@ -1410,7 +1499,7 @@ export default function Transactions() {
               
               {sortedTxs.length === 0 && (
                 <tr>
-                  <td colSpan={isEditMode ? 12 : 11} className="px-6 py-12 text-center text-muted-foreground dark:text-slate-400 font-medium">
+                  <td colSpan={(!isViewOnly && isEditMode) ? 12 : 11} className="px-6 py-12 text-center text-muted-foreground dark:text-slate-400 font-medium">
                     No logs found matching your search.
                   </td>
                 </tr>
@@ -1802,15 +1891,17 @@ export default function Transactions() {
       </AnimatePresence>
 
       {/* Floating Action Button (FAB) for Quick Entry */}
-      <div className="fixed bottom-6 right-6 z-40">
-        <button 
-          onClick={handleOpenAddForm}
-          className="flex items-center justify-center w-12 h-12 bg-primary text-primary-foreground rounded-full shadow-lg hover:shadow-xl active:scale-95 hover:opacity-95 transition-all cursor-pointer"
-          title="Quick Entry"
-        >
-          <Plus className="w-6 h-6" />
-        </button>
-      </div>
+      {!isViewOnly && (
+        <div className="fixed bottom-6 right-6 z-40">
+          <button 
+            onClick={handleOpenAddForm}
+            className="flex items-center justify-center w-12 h-12 bg-primary text-primary-foreground rounded-full shadow-lg hover:shadow-xl active:scale-95 hover:opacity-95 transition-all cursor-pointer"
+            title="Quick Entry"
+          >
+            <Plus className="w-6 h-6" />
+          </button>
+        </div>
+      )}
 
       <ConfirmModal
         isOpen={confirmModal.isOpen}

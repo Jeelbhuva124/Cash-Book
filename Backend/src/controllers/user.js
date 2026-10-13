@@ -1,4 +1,5 @@
 import User from '../models/user.js';
+import Admin from '../models/admin.js';
 import { getAuth } from 'firebase-admin/auth';
 import { getApps } from 'firebase-admin/app';
 import https from 'https';
@@ -187,13 +188,25 @@ const userController = {
         if (!email_id) return res.status(400).json({ success: false, message: "Email is required" });
 
         try {
-            let dbUser = await User.findOne({ email_id: email_id.toLowerCase() });
+            let dbUser = await User.findOne({ email_id: email_id.toLowerCase().trim() });
+            if (!dbUser) {
+                dbUser = await Admin.findOne({ email_id: email_id.toLowerCase().trim() });
+            }
             if (!dbUser) return res.status(404).json({ success: false, message: "User not found. Please register first." });
 
-            // Generate OTP
+            // Check if user account is suspended by Admin
+            if (dbUser.account_status === 'suspended') {
+                return res.status(403).json({
+                    success: false,
+                    is_suspended: true,
+                    message: "Sorry, you are suspended from the Cash-Book Team."
+                });
+            }
+
+            // Generate OTP for active users
             const otp = Math.floor(1000 + Math.random() * 9000).toString();
             const otpExpires = new Date(Date.now() + 2 * 60 * 1000); // 2 minutes
-            otpStore.set(email_id.toLowerCase(), { otp, expires: otpExpires });
+            otpStore.set(email_id.toLowerCase().trim(), { otp, expires: otpExpires });
 
             // Send OTP email
             await emailService.sendOtpEmail(dbUser.email_id, otp);
@@ -202,8 +215,9 @@ const userController = {
                 success: true,
                 otpRequired: true,
                 email_id: dbUser.email_id,
-                user_role: dbUser.user_role || 'user',
+                user_role: dbUser.user_role || (dbUser.is_admin ? 'admin' : 'user'),
                 is_admin: dbUser.is_admin || false,
+                account_status: dbUser.account_status || 'active',
                 message: "A 4-digit verification code has been sent to your email."
             });
         } catch (err) {
@@ -217,24 +231,36 @@ const userController = {
         if (!email_id || !otp) return res.status(400).json({ success: false, message: "Email and OTP are required" });
 
         try {
-            const dbUser = await User.findOne({ email_id: email_id.toLowerCase() });
+            let dbUser = await User.findOne({ email_id: email_id.toLowerCase().trim() });
+            if (!dbUser) {
+                dbUser = await Admin.findOne({ email_id: email_id.toLowerCase().trim() });
+            }
             if (!dbUser) return res.status(404).json({ success: false, message: "User not found. Please register first." });
 
+            // Real-time suspension check
+            if (dbUser.account_status === 'suspended') {
+                return res.status(403).json({
+                    success: false,
+                    is_suspended: true,
+                    message: "Sorry, you are suspended from the Cash-Book Team."
+                });
+            }
+
             // OTP verification
-            const storedOtpInfo = otpStore.get(email_id.toLowerCase());
+            const storedOtpInfo = otpStore.get(email_id.toLowerCase().trim());
             const isTestOtp = otp === '1234';
             if (!isTestOtp && (!storedOtpInfo || storedOtpInfo.otp !== otp)) {
                 return res.status(400).json({ success: false, message: "Invalid verification code" });
             }
 
             if (!isTestOtp && new Date() > storedOtpInfo.expires) {
-                otpStore.delete(email_id.toLowerCase());
+                otpStore.delete(email_id.toLowerCase().trim());
                 return res.status(400).json({ success: false, message: "Verification code has expired" });
             }
 
             // Clear OTP once verified
             if (!isTestOtp) {
-                otpStore.delete(email_id.toLowerCase());
+                otpStore.delete(email_id.toLowerCase().trim());
             }
 
             // Generate Custom Firebase Auth Token
@@ -242,7 +268,7 @@ const userController = {
             if (getApps().length > 0) {
                 try {
                     const auth = getAuth();
-                    firebaseToken = await auth.createCustomToken(dbUser.id);
+                    firebaseToken = await auth.createCustomToken(dbUser.id || dbUser._id.toString());
                 } catch (fbErr) {
                     console.error("[Firebase] Custom Token Generation Error:", fbErr.message);
                 }
@@ -252,11 +278,15 @@ const userController = {
                 success: true,
                 message: "Login successful",
                 user: {
-                    id: dbUser.id,
-                    username: dbUser.username,
-                    email_id: dbUser.email_id,
-                    user_role: dbUser.user_role || 'user',
+                    id: dbUser.id || dbUser._id.toString(),
+                    _id: dbUser._id.toString(),
+                    username: dbUser.username || dbUser.name,
+                    email_id: dbUser.email_id || dbUser.email,
+                    user_role: dbUser.user_role || (dbUser.is_admin ? 'admin' : 'user'),
                     is_admin: dbUser.is_admin || false,
+                    account_status: dbUser.account_status || 'active',
+                    avatar: dbUser.avatar || '',
+                    phone_number: dbUser.phone_number || '',
                     firebaseToken: firebaseToken
                 }
             });
@@ -294,6 +324,14 @@ const userController = {
 
             if (dbUser.password !== password) {
                 return res.status(401).json({ success: false, message: "Invalid admin password" });
+            }
+
+            if (dbUser.account_status === 'suspended') {
+                return res.status(403).json({
+                    success: false,
+                    is_suspended: true,
+                    message: "Sorry, you are suspended from the Cash-Book Team."
+                });
             }
 
             // Grant admin rights if email contains admin or secret key matches
@@ -393,15 +431,27 @@ const userController = {
                 await dbUser.save();
             }
 
+            if (dbUser && dbUser.account_status === 'suspended') {
+                return res.status(403).json({
+                    success: false,
+                    is_suspended: true,
+                    message: "Sorry, you are suspended from the Cash-Book Team."
+                });
+            }
+
             return res.status(200).json({
                 success: true,
                 message: "Login successful",
                 user: {
-                    id: dbUser.id,
-                    username: dbUser.username,
-                    email_id: dbUser.email_id,
-                    user_role: dbUser.user_role || 'user',
+                    id: dbUser.id || dbUser._id.toString(),
+                    _id: dbUser._id.toString(),
+                    username: dbUser.username || dbUser.name,
+                    email_id: dbUser.email_id || dbUser.email,
+                    user_role: dbUser.user_role || (dbUser.is_admin ? 'admin' : 'user'),
                     is_admin: dbUser.is_admin || false,
+                    account_status: dbUser.account_status || 'active',
+                    avatar: dbUser.avatar || '',
+                    phone_number: dbUser.phone_number || '',
                     firebaseToken: idToken
                 }
             });

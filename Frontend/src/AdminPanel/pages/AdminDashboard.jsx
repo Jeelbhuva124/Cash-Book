@@ -10,11 +10,12 @@ import {
   Clock, 
   ArrowUpRight, 
   UserCheck, 
-  AlertCircle,
   Database,
-  Cpu
+  Cpu,
+  UserPlus
 } from 'lucide-react';
 import { AdminStatCard } from '../components/AdminStatCard';
+
 export const AdminDashboard = () => {
   const navigate = useNavigate();
   const [realStats, setRealStats] = useState({
@@ -22,8 +23,8 @@ export const AdminDashboard = () => {
     active_cashbooks: 0,
     total_volume: 0,
     system_uptime: "99.98%",
-    growthChartData: [40, 65, 55, 80, 95, 70, 85, 100, 90, 110, 125, 140, 130, 150],
-    newUsersLast14Days: 1240,
+    growthChartData: [],
+    newUsersLast14Days: 0,
     serverDiagnostics: {
       ram: { used: '4.2', total: '8.0', percent: '52.5' },
       cpu: '24.5',
@@ -31,36 +32,119 @@ export const AdminDashboard = () => {
     }
   });
   const [recentLogs, setRecentLogs] = useState([]);
+  const [recentUsers, setRecentUsers] = useState([]);
+  const [chartDays, setChartDays] = useState([]);
+
+  const formatTimeAgo = (dateStr) => {
+    if (!dateStr) return 'Recently';
+    try {
+      const diff = (Date.now() - new Date(dateStr).getTime()) / 1000;
+      if (diff < 60) return 'Just now';
+      if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+      if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+      if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;
+      return new Date(dateStr).toLocaleDateString();
+    } catch (e) {
+      return 'Recently';
+    }
+  };
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await fetch('http://localhost:5001/api/admin/stats');
-        const data = await res.json();
-        if (data.success && data.data) {
+        const [statsRes, selectRes] = await Promise.allSettled([
+          fetch('http://localhost:5001/api/admin/stats'),
+          fetch('http://localhost:5001/api/admin/select')
+        ]);
+
+        let statsData = null;
+        let selectData = null;
+
+        if (statsRes.status === 'fulfilled') {
+          try { statsData = await statsRes.value.json(); } catch(e) {}
+        }
+        if (selectRes.status === 'fulfilled') {
+          try { selectData = await selectRes.value.json(); } catch(e) {}
+        }
+
+        // Aggregate users list
+        const rawUsers = (selectData?.success && Array.isArray(selectData?.data?.users))
+          ? selectData.data.users
+          : (statsData?.data?.recent_users || []);
+
+        // Sort users by registration date descending
+        const sortedUsers = [...rawUsers].sort((a, b) => {
+          const da = new Date(a.created_at || a.createdAt || 0).getTime();
+          const db = new Date(b.created_at || b.createdAt || 0).getTime();
+          return db - da;
+        });
+
+        // Compute 14-day daily growth chart
+        const days = [];
+        let newCount14 = 0;
+        for (let i = 13; i >= 0; i--) {
+          const d = new Date();
+          d.setDate(d.getDate() - i);
+          const dateStr = d.toISOString().split('T')[0];
+          const shortDate = d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+          
+          const count = sortedUsers.filter(u => {
+            let uDate = u.created_at || u.createdAt;
+            if (!uDate && (u.id || u._id)) {
+              const idStr = (u.id || u._id).toString();
+              if (idStr.length === 24) {
+                try { uDate = new Date(parseInt(idStr.substring(0, 8), 16) * 1000); } catch(e) {}
+              }
+            }
+            if (!uDate) return false;
+            return new Date(uDate).toISOString().split('T')[0] === dateStr;
+          }).length;
+
+          days.push({
+            date: dateStr,
+            shortDate,
+            label: i === 0 ? 'Today' : shortDate,
+            count
+          });
+          newCount14 += count;
+        }
+
+        setChartDays(days);
+        setRecentUsers(sortedUsers.slice(0, 6));
+
+        if (statsData?.success && statsData.data) {
+          const d = statsData.data;
           setRealStats({
-            total_users: data.data.total_users || 0,
-            active_cashbooks: data.data.total_cashbooks || 0,
-            total_volume: data.data.total_volume || 0,
-            system_uptime: data.data.system_uptime || "99.98%",
-            growthChartData: data.data.growthChartData || [40, 65, 55, 80, 95, 70, 85, 100, 90, 110, 125, 140, 130, 150],
-            newUsersLast14Days: data.data.newUsersLast14Days || 0,
-            serverDiagnostics: data.data.serverDiagnostics || {
+            total_users: d.total_users || sortedUsers.length,
+            active_cashbooks: d.total_cashbooks || 0,
+            total_volume: d.total_volume || 0,
+            system_uptime: d.system_uptime || "99.98%",
+            growthChartData: days.map(x => x.count),
+            newUsersLast14Days: newCount14,
+            serverDiagnostics: d.serverDiagnostics || {
               ram: { used: '4.2', total: '8.0', percent: '52.5' },
               cpu: '24.5',
               dbStorageGB: '18.4'
             }
           });
-          if (data.data.recentLogs) {
-            setRecentLogs(data.data.recentLogs);
+          if (d.recentLogs) {
+            setRecentLogs(d.recentLogs);
           }
+        } else if (sortedUsers.length > 0) {
+          setRealStats(prev => ({
+            ...prev,
+            total_users: sortedUsers.length,
+            growthChartData: days.map(x => x.count),
+            newUsersLast14Days: newCount14
+          }));
         }
       } catch (err) {
         console.error("Failed to fetch admin stats:", err);
       }
     };
+
     fetchStats();
-    // Optional: Refresh every 30 seconds
+    // Refresh periodically
     const intervalId = setInterval(fetchStats, 30000);
     return () => clearInterval(intervalId);
   }, []);
@@ -78,8 +162,6 @@ export const AdminDashboard = () => {
     { title: "Transaction Volume", value: formatCurrency(realStats.total_volume), change: "+22.4%", isIncrease: true, icon: TrendingUp, colorAccent: "warning", description: "processed so far", path: "/admin/transactions" },
     { title: "System Uptime", value: realStats.system_uptime, change: "Stable", isIncrease: true, icon: ShieldCheck, colorAccent: "info", description: "0 critical incidents", path: "/admin/analytics" },
   ];
-
-
 
   return (
     <div className="space-y-8">
@@ -112,32 +194,46 @@ export const AdminDashboard = () => {
 
       {/* Charts & System Health Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* User Activity Chart Placeholder Card */}
+        {/* User Activity Chart Card */}
         <div className="lg:col-span-2 bg-card border border-border rounded-2xl p-6 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-lg font-bold text-foreground">User Registration & Activity Growth</h3>
-              <p className="text-xs text-muted-foreground">Daily user onboardings over the last 30 days</p>
+              <p className="text-xs text-muted-foreground">Daily user onboardings over the last 14 days</p>
             </div>
-            <span className="text-xs font-bold text-primary bg-primary/10 px-3 py-1 rounded-full">
+            <span className="text-xs font-bold text-primary bg-primary/10 border border-primary/20 px-3 py-1 rounded-full flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
               +{realStats.newUsersLast14Days.toLocaleString()} New Users
             </span>
           </div>
 
-          <div className="h-56 w-full bg-muted/40 rounded-xl border border-dashed border-border flex items-end justify-between p-4 gap-2">
-            {realStats.growthChartData.map((h, idx) => {
-              const maxH = Math.max(...realStats.growthChartData, 10);
-              const heightPercent = (h / maxH) * 100;
+          <div className="h-56 w-full bg-muted/20 rounded-xl border border-border flex items-end justify-between p-4 gap-2">
+            {chartDays.map((item, idx) => {
+              const maxH = Math.max(...chartDays.map(d => d.count), 5);
+              const heightPercent = item.count > 0 ? Math.max((item.count / maxH) * 100, 16) : 5;
               return (
-              <motion.div
-                key={idx}
-                initial={{ height: 0 }}
-                animate={{ height: `${heightPercent}%` }}
-                transition={{ duration: 0.6, delay: idx * 0.04 }}
-                className="flex-1 bg-gradient-to-t from-primary/40 to-primary rounded-t-md hover:opacity-80 transition-opacity"
-                title={`Day ${idx + 1}: ${h} new users`}
-              />
-            )})}
+                <div key={idx} className="flex-1 flex flex-col items-center h-full justify-end group relative">
+                  {/* Tooltip on Hover */}
+                  <div className="absolute -top-9 opacity-0 group-hover:opacity-100 transition-all pointer-events-none z-20 bg-foreground text-background text-[11px] font-bold py-1 px-2.5 rounded-lg shadow-lg whitespace-nowrap">
+                    {item.label}: {item.count} {item.count === 1 ? 'user' : 'users'}
+                  </div>
+                  
+                  <motion.div
+                    initial={{ height: 0 }}
+                    animate={{ height: `${heightPercent}%` }}
+                    transition={{ duration: 0.5, delay: idx * 0.025 }}
+                    className={`w-full rounded-t-md transition-all ${
+                      item.count > 0 
+                        ? 'bg-gradient-to-t from-primary to-primary/80 shadow-sm shadow-primary/30 group-hover:brightness-110 ring-2 ring-primary/20' 
+                        : 'bg-muted/40 hover:bg-muted/70'
+                    }`}
+                  />
+                  <span className="text-[10px] text-muted-foreground mt-2 truncate w-full text-center">
+                    {idx === chartDays.length - 1 ? 'Today' : idx === 0 ? '14d' : idx % 3 === 0 ? item.shortDate : ''}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -186,6 +282,86 @@ export const AdminDashboard = () => {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Recently Registered Users (New Onboardings) */}
+      <div className="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
+        <div className="p-6 border-b border-border flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center border border-primary/20">
+              <UserCheck className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-foreground">Recently Registered Users</h3>
+              <p className="text-xs text-muted-foreground">Latest user accounts onboarded into Cash-Book</p>
+            </div>
+          </div>
+          <button
+            onClick={() => navigate('/admin/users')}
+            className="text-xs font-bold text-primary hover:opacity-80 transition-opacity flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary/10 border border-primary/20"
+          >
+            <span>Manage All Users</span>
+            <ArrowUpRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        {recentUsers.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
+            {recentUsers.map((u) => {
+              const uRole = u.user_role || (u.is_admin ? 'admin' : 'user');
+              const uStatus = u.account_status || 'active';
+              return (
+                <div 
+                  key={u.id || u._id}
+                  onClick={() => navigate('/admin/users')}
+                  className="p-4 rounded-xl border border-border bg-muted/20 hover:bg-muted/40 hover:border-primary/30 transition-all cursor-pointer flex items-center justify-between gap-3 shadow-xs group"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    {u.avatar ? (
+                      <img 
+                        src={u.avatar} 
+                        alt="Avatar" 
+                        className="w-10 h-10 rounded-full object-cover border border-border shrink-0 shadow-xs" 
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-primary/10 text-primary font-black text-sm flex items-center justify-center uppercase shrink-0 border border-primary/20 shadow-xs">
+                        {(u.username || u.email_id || 'U').substring(0, 2)}
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <p className="font-bold text-foreground text-sm truncate group-hover:text-primary transition-colors">
+                        {u.username || 'User'}
+                      </p>
+                      <p className="text-xs text-muted-foreground truncate">{u.email_id || u.email}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                          <Clock className="w-3 h-3 text-primary" />
+                          {formatTimeAgo(u.created_at || u.createdAt)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-1.5 shrink-0">
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase border ${
+                      uStatus === 'active'
+                        ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
+                        : 'bg-rose-500/10 text-rose-500 border-rose-500/20'
+                    }`}>
+                      {uStatus}
+                    </span>
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase px-2 py-0.5 bg-muted rounded-md border border-border">
+                      {uRole}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="p-8 text-center text-sm text-muted-foreground">
+            No recently registered users found.
+          </div>
+        )}
       </div>
 
       {/* System Audit Logs Table */}
