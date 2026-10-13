@@ -11,6 +11,7 @@ import categoryRouter from './routes/category.js';
 import subcategoryRouter from './routes/subcategory.js';
 import paymentModeRouter from './routes/paymentMode.js';
 import emiSubscriptionRouter from './routes/emiSubscription.js';
+import { getEmiSubscriptions } from './controllers/emiSubscriptionController.js';
 import receiptRouter from './routes/receipt.js';
 import errorHandler from './middlewares/errorHandler.js';
 import path from 'path';
@@ -51,6 +52,10 @@ app.use('/api/subcategory', subcategoryRouter);
 app.use('/api/payment-mode', paymentModeRouter);
 app.use('/api/payment-modes', paymentModeRouter);
 app.use('/api/paymentmode', paymentModeRouter);
+app.all('/api/emi-subscription/select', getEmiSubscriptions);
+app.all('/api/emi-subscriptions/select', getEmiSubscriptions);
+app.all('/api/emisubscription/select', getEmiSubscriptions);
+
 app.use('/api/emi-subscription', emiSubscriptionRouter);
 app.use('/api/emi-subscriptions', emiSubscriptionRouter);
 app.use('/api/emisubscription', emiSubscriptionRouter);

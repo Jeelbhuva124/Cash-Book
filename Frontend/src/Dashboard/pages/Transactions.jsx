@@ -186,7 +186,7 @@ export default function Transactions() {
     // Fetch Payment Modes
     let mappedModes = [];
     try {
-      const currentUserId = (user?.id || user?._id || '').trim();
+      const currentUserId = (user?.id || user?._id || user?.user_id || user?.uid || '').toString().trim();
       let res;
       try {
         res = await fetch('http://localhost:5001/api/payment-mode/select', {
@@ -374,7 +374,7 @@ export default function Transactions() {
   const loadTransactions = async () => {
     const currentUser = user || (localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")) : null);
     const userEmail = (currentUser?.email_id || currentUser?.email || '').toLowerCase().trim();
-    const userId = currentUser?.id || currentUser?._id || '';
+    const userId = (currentUser?.id || currentUser?._id || currentUser?.user_id || currentUser?.uid || '').toString().trim();
     const storageKey = `cashbook_txs_${userEmail || 'guest'}`;
 
     // 1. Immediately load cached data for fast initial render

@@ -101,7 +101,7 @@ export const Admins = () => {
       } catch (e) {}
 
       if (!response || !response.ok) {
-        response = await fetch(`http://localhost:5001/api/admin/select?admin_id=${encodeURIComponent(adminId)}`);
+        response = await fetch('http://localhost:5001/api/admin/select');
       }
 
       const data = await response.json();

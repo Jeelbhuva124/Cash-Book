@@ -90,17 +90,38 @@ export default function Cashbooks() {
   }, []);
 
   const loadCashbooks = async (signal) => {
-    const userEmail = user?.email_id?.toLowerCase() || '';
+    const userId = (user?.id || user?._id || user?.user_id || user?.uid || '').toString().trim();
+    const userEmail = (user?.email_id || user?.email || '').toLowerCase().trim();
     let ownCashbooks = [];
     let sharedCashbooks = [];
 
     // 1. Fetch own cashbooks
     try {
-      const response = await fetch('http://localhost:5001/api/cashbook/select', { signal });
+      let response;
+      try {
+        response = await fetch('http://localhost:5001/api/cashbook/select', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: userId, user_email: userEmail }),
+          signal
+        });
+      } catch (e) {}
+
+      if (!response || !response.ok) {
+        response = await fetch('http://localhost:5001/api/cashbook/select', { signal });
+      }
+
       const data = await response.json();
 
       if (data.success && data.data) {
-        const filteredData = data.data.filter(cb => cb.user_email?.toLowerCase() === userEmail);
+        const filteredData = data.data.filter(cb => {
+          if (!userId && !userEmail) return true;
+          const cbUserId = (cb.user_id || '').trim();
+          const cbEmail = (cb.user_email || '').toLowerCase().trim();
+          if (userId && cbUserId) return cbUserId === userId;
+          if (userEmail && cbEmail) return cbEmail === userEmail;
+          return false;
+        });
         ownCashbooks = filteredData.map(cb => ({
           id: cb.id,
           name: cb.cashbook_name,
@@ -164,7 +185,7 @@ export default function Cashbooks() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            user_id: currentUser?.id || currentUser?._id || '',
+            user_id: (currentUser?.id || currentUser?._id || currentUser?.user_id || currentUser?.uid || '').toString().trim(),
             user_email: userEmail
           }),
           signal

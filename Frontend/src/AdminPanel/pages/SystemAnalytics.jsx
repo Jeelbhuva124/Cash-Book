@@ -29,7 +29,7 @@ export const SystemAnalytics = () => {
         } catch (e) {}
 
         if (!response || !response.ok) {
-          response = await fetch(`http://localhost:5001/api/admin/stats?admin_id=${encodeURIComponent(adminId)}`);
+          response = await fetch('http://localhost:5001/api/admin/stats');
         }
 
         const data = await response.json();

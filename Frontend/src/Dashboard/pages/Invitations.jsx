@@ -56,16 +56,17 @@ const Invitations = () => {
 
   // Sync with Backend DB
   const fetchInvitations = async () => {
-    if (!user?.id) return;
+    const currentUserId = (user?.id || user?._id || user?.user_id || user?.uid || '').toString().trim();
+    const userEmailLower = (user?.email_id || user?.email || '').toLowerCase().trim();
+    if (!currentUserId && !userEmailLower) return;
     try {
       // Fetch all invitations directly from the base URL
       const res = await axios.get('http://localhost:5001/api/invitation/select');
       if (res.data.success) {
         const allInvites = res.data.data || [];
-        const userEmailLower = user?.email_id?.toLowerCase() || '';
 
         // Filter Sent Invitations (by current user's ID or inviter_email)
-        const sent = allInvites.filter(i => i.inviter_id === user.id || i.inviter_email?.toLowerCase() === userEmailLower);
+        const sent = allInvites.filter(i => (currentUserId && i.inviter_id === currentUserId) || (userEmailLower && i.inviter_email?.toLowerCase() === userEmailLower));
         setSentInvitations(sent);
         
         // Filter Received Invitations (by current user's Email)
@@ -115,7 +116,7 @@ const Invitations = () => {
           const updatedRes = await axios.get('http://localhost:5001/api/invitation/select');
           if (updatedRes.data.success) {
             const updatedInvites = updatedRes.data.data || [];
-            const updatedSent = updatedInvites.filter(i => i.inviter_id === user.id || i.inviter_email?.toLowerCase() === userEmailLower);
+            const updatedSent = updatedInvites.filter(i => (currentUserId && i.inviter_id === currentUserId) || (userEmailLower && i.inviter_email?.toLowerCase() === userEmailLower));
             const updatedRec = updatedInvites.filter(i => i.email?.toLowerCase() === userEmailLower);
             setSentInvitations(updatedSent);
             

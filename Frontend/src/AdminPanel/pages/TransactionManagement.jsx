@@ -38,7 +38,7 @@ export const TransactionManagement = () => {
       } catch (e) {}
 
       if (!res || !res.ok) {
-        res = await fetch(`http://localhost:5001/api/admin/transactions?admin_id=${encodeURIComponent(adminId)}`);
+        res = await fetch('http://localhost:5001/api/admin/transactions');
       }
 
       const data = await res.json();

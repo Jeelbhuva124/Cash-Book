@@ -48,8 +48,8 @@ export default function PaymentModes() {
       return;
     }
     try {
-      const currentUserId = (user?.id || user?._id || '').trim();
-      const currentUserEmail = (user?.email_id || userEmail || '').toLowerCase().trim();
+      const currentUserId = (user?.id || user?._id || user?.user_id || user?.uid || '').toString().trim();
+      const currentUserEmail = (user?.email_id || user?.email || userEmail || '').toLowerCase().trim();
 
       let res;
       try {

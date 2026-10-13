@@ -20,8 +20,9 @@ export default function Tracker() {
   });
   const { addToast } = useToast();
 
+  const savedProfile = localStorage.getItem('profile_data');
   const userRaw = localStorage.getItem("user");
-  const user = userRaw ? JSON.parse(userRaw) : null;
+  const user = savedProfile ? JSON.parse(savedProfile) : (userRaw ? JSON.parse(userRaw) : null);
 
   useEffect(() => {
     fetchItems();
@@ -30,8 +31,8 @@ export default function Tracker() {
   const fetchItems = async () => {
     try {
       setLoading(true);
-      const currentUserId = (user?.id || user?._id || '').trim();
-      const currentUserEmail = (user?.email_id || '').toLowerCase().trim();
+      const currentUserId = (user?.id || user?._id || user?.user_id || user?.uid || '').toString().trim();
+      const currentUserEmail = (user?.email_id || user?.email || '').toLowerCase().trim();
 
       let res;
       try {
@@ -43,13 +44,12 @@ export default function Tracker() {
             user_email: currentUserEmail
           })
         });
-      } catch (err) {}
+      } catch (postErr) {
+        console.error('POST emi-subscription/select error:', postErr);
+      }
 
       if (!res || !res.ok) {
-        const queryParams = new URLSearchParams();
-        if (currentUserEmail) queryParams.append('user_email', currentUserEmail);
-        if (currentUserId) queryParams.append('user_id', currentUserId);
-        res = await fetch(`http://localhost:5001/api/emi-subscription/select?${queryParams.toString()}`);
+        res = await fetch(`http://localhost:5001/api/emi-subscription/select?user_id=${encodeURIComponent(currentUserId)}&user_email=${encodeURIComponent(currentUserEmail)}`);
       }
 
       const data = await res.json();
@@ -80,8 +80,8 @@ export default function Tracker() {
   };
 
   const seedInitialData = async () => {
-    const currentUserId = (user?.id || user?._id || '').trim();
-    const currentUserEmail = (user?.email_id || '').toLowerCase().trim();
+    const currentUserId = (user?.id || user?._id || user?.user_id || user?.uid || '').toString().trim();
+    const currentUserEmail = (user?.email_id || user?.email || '').toLowerCase().trim();
 
     const seedData = [
       {
@@ -176,8 +176,8 @@ export default function Tracker() {
       end_date: newItem.end_date,
       type: newItem.type,
       status: 'Active',
-      user_email: user?.email_id || '',
-      user_id: user?.id || user?._id || '',
+      user_email: (user?.email_id || user?.email || '').toLowerCase().trim(),
+      user_id: (user?.id || user?._id || user?.user_id || user?.uid || '').toString().trim(),
       chalan_id: '1'
     };
 

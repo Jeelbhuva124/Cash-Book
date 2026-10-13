@@ -1,22 +1,47 @@
 import mongoose from 'mongoose';
 import EmiSubscription from '../models/emiSubscription.js';
 import Transaction from '../models/transaction.js';
+import User from '../models/user.js';
 
 // Get all EMI and Subscriptions
 export const getEmiSubscriptions = async (req, res) => {
   try {
-    const { user_email, user_id, email, email_id } = {
+    const { user_email, user_id, email, email_id, id } = {
       ...(req.query || {}),
       ...(req.body || {}),
     };
-    const targetUserId = user_id ? String(user_id).trim() : '';
-    const rawEmail = user_email || email_id || email || '';
-    const targetEmail = rawEmail ? String(rawEmail).toLowerCase().trim() : '';
+    let targetUserId = (user_id || id || '').toString().trim();
+    let rawEmail = user_email || email_id || email || '';
+    let targetEmail = rawEmail ? String(rawEmail).toLowerCase().trim() : '';
     const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-    let query = {};
-    if (targetUserId) {
-      if (targetEmail) {
+    if (targetUserId && !targetEmail) {
+      try {
+        if (mongoose.Types.ObjectId.isValid(targetUserId)) {
+          const u = await User.findById(targetUserId).lean();
+          if (u) {
+            targetEmail = (u.email_id || u.email || '').toLowerCase().trim();
+          }
+        }
+      } catch (e) {}
+    }
+
+    if (!targetUserId && targetEmail) {
+      try {
+        const u = await User.findOne({
+          $or: [
+            { email_id: new RegExp(`^${escapeRegex(targetEmail)}$`, 'i') },
+            { email: new RegExp(`^${escapeRegex(targetEmail)}$`, 'i') }
+          ]
+        }).lean();
+        if (u) {
+          targetUserId = (u._id || u.id || '').toString().trim();
+        }
+      } catch (e) {}
+    }
+
+    if (targetUserId && targetEmail) {
+      try {
         await EmiSubscription.updateMany(
           {
             user_email: new RegExp(`^${escapeRegex(targetEmail)}$`, 'i'),
@@ -24,10 +49,21 @@ export const getEmiSubscriptions = async (req, res) => {
           },
           { $set: { user_id: targetUserId } }
         );
+      } catch (updErr) {
+        console.error('Update legacy emiSubscription error:', updErr);
       }
-      query.user_id = targetUserId;
-    } else if (targetEmail) {
-      query.user_email = new RegExp(`^${escapeRegex(targetEmail)}$`, 'i');
+    }
+
+    let query = {};
+    let userConditions = [];
+    if (targetUserId) {
+      userConditions.push({ user_id: targetUserId });
+    }
+    if (targetEmail) {
+      userConditions.push({ user_email: new RegExp(`^${escapeRegex(targetEmail)}$`, 'i') });
+    }
+    if (userConditions.length > 0) {
+      query.$or = userConditions;
     }
 
     const records = await EmiSubscription.find(query).sort({ due_date: 1 });

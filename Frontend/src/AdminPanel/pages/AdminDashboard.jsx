@@ -55,7 +55,7 @@ export const AdminDashboard = () => {
         } catch (e) {}
 
         if (!res || !res.ok) {
-          res = await fetch(`http://localhost:5001/api/admin/stats?admin_id=${encodeURIComponent(adminId)}`);
+          res = await fetch('http://localhost:5001/api/admin/stats');
         }
 
         const data = await res.json();

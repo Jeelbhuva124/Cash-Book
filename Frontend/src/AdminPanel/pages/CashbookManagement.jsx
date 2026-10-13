@@ -47,7 +47,7 @@ export const CashbookManagement = () => {
       } catch (e) {}
 
       if (!res || !res.ok) {
-        res = await fetch(`http://localhost:5001/api/admin/transactions?chalan_id=${encodeURIComponent(cbId)}&admin_id=${encodeURIComponent(adminId)}`);
+        res = await fetch('http://localhost:5001/api/admin/transactions');
       }
 
       const data = await res.json();
@@ -80,7 +80,7 @@ export const CashbookManagement = () => {
       } catch (e) {}
 
       if (!res || !res.ok) {
-        res = await fetch(`http://localhost:5001/api/admin/select?admin_id=${encodeURIComponent(adminId)}`);
+        res = await fetch('http://localhost:5001/api/admin/select');
       }
 
       const data = await res.json();
@@ -107,7 +107,7 @@ export const CashbookManagement = () => {
           } catch (e) {}
 
           if (!txRes || !txRes.ok) {
-            txRes = await fetch(`http://localhost:5001/api/admin/transactions?admin_id=${encodeURIComponent(adminId)}`);
+            txRes = await fetch('http://localhost:5001/api/admin/transactions');
           }
 
           const txData = await txRes.json();

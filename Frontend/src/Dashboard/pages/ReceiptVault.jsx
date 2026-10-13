@@ -35,32 +35,15 @@ export default function ReceiptVault() {
   const token = localStorage.getItem('token');
   const userRaw = localStorage.getItem("user");
   const user = userRaw ? JSON.parse(userRaw) : null;
-  const user_email = (user?.email_id || '').toLowerCase().trim();
-  const user_id = (user?.id || user?._id || '').trim();
+  const user_email = (user?.email_id || user?.email || '').toLowerCase().trim();
+  const user_id = (user?.id || user?._id || user?.user_id || user?.uid || '').toString().trim();
 
   const fetchReceipts = async () => {
     setLoading(true);
     try {
-      let response;
-      try {
-        response = await fetch('http://localhost:5001/api/receipts/select', {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-          },
-          body: JSON.stringify({
-            user_id,
-            user_email
-          })
-        });
-      } catch (postErr) {}
-
-      if (!response || !response.ok) {
-        response = await fetch(`http://localhost:5001/api/receipts?user_email=${encodeURIComponent(user_email)}&user_id=${encodeURIComponent(user_id)}`, {
-          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
-        });
-      }
+      const response = await fetch('http://localhost:5001/api/receipts', {
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+      });
 
       const data = await response.json();
       if (data.success && Array.isArray(data.data)) {

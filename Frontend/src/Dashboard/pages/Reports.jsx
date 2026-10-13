@@ -26,8 +26,8 @@ export default function Reports() {
     setUser(loadedUser);
 
     const sessionUser = userRaw ? JSON.parse(userRaw) : null;
-    const userEmail = (sessionUser?.email_id || '').toLowerCase().trim();
-    const userId = sessionUser?.id || sessionUser?._id || '';
+    const userEmail = (sessionUser?.email_id || sessionUser?.email || '').toLowerCase().trim();
+    const userId = (sessionUser?.id || sessionUser?._id || sessionUser?.user_id || sessionUser?.uid || '').toString().trim();
     const storageKey = `cashbook_txs_${userEmail || 'guest'}`;
     const saved = localStorage.getItem(storageKey);
     if (saved) {
@@ -43,6 +43,12 @@ export default function Reports() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ user_id: userId, user_email: userEmail })
     })
+      .then(res => {
+        if (!res.ok) {
+          return fetch('http://localhost:5001/api/transaction/select');
+        }
+        return res;
+      })
       .then(res => res.json())
       .then(data => {
         if (data.success && Array.isArray(data.data)) {
@@ -51,7 +57,8 @@ export default function Reports() {
             const txUserId = (t.user_id || '').trim();
             const txEmail = (t.user_email || '').toLowerCase().trim();
             if (userId && txUserId) return txUserId === userId;
-            if (userEmail && txEmail) return txEmail === userEmail;
+            if (!txUserId && userEmail && txEmail) return txEmail === userEmail;
+            if (!userId && userEmail && txEmail) return txEmail === userEmail;
             return false;
           });
           setTransactions(userFiltered);

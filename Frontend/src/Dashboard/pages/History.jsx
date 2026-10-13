@@ -122,7 +122,7 @@ export default function History() {
       } catch (e) {}
 
       if (!res || !res.ok) {
-        res = await fetch(`http://localhost:5001/api/cashbook/select?user_id=${encodeURIComponent(currentUserId)}&user_email=${encodeURIComponent(currentUserEmail)}`);
+        res = await fetch('http://localhost:5001/api/cashbook/select');
       }
 
       const data = await res.json();
@@ -176,7 +176,7 @@ export default function History() {
       } catch (e) {}
 
       if (!res || !res.ok) {
-        res = await fetch(`http://localhost:5001/api/transaction/select?user_id=${encodeURIComponent(currentUserId)}&user_email=${encodeURIComponent(currentUserEmail)}`);
+        res = await fetch('http://localhost:5001/api/transaction/select');
       }
 
       const data = await res.json();
