@@ -284,13 +284,20 @@ export const deleteTransaction = async (req, res) => {
 // Get Party Ledger (Udhaar Book Aggregation)
 export const getPartyLedger = async (req, res) => {
   try {
+    const { user_email } = req.query;
+    const matchQuery = {
+      party_name: { $exists: true, $ne: '' },
+      is_deleted: { $ne: true },
+      deleted: { $ne: true }
+    };
+
+    if (user_email) {
+      matchQuery.user_email = user_email.toLowerCase().trim();
+    }
+
     const partyLedger = await Transaction.aggregate([
       {
-        $match: {
-          party_name: { $exists: true, $ne: '' },
-          is_deleted: { $ne: true },
-          deleted: { $ne: true }
-        }
+        $match: matchQuery
       },
       {
         $group: {

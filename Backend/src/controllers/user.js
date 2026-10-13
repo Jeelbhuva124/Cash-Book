@@ -139,7 +139,7 @@ const userController = {
 
     updateProfile: async (req, res) => {
         try {
-            const { email_id, avatar } = req.body;
+            const { email_id, avatar, username, name, phone_number, security_pin } = req.body;
             
             if (!email_id) {
                 return res.status(400).json({ success: false, message: 'email_id is required' });
@@ -147,6 +147,10 @@ const userController = {
 
             const updateData = {};
             if (avatar !== undefined) updateData.avatar = avatar;
+            if (username !== undefined) { updateData.username = username; updateData.name = username; }
+            if (name !== undefined) { updateData.name = name; updateData.username = name; }
+            if (phone_number !== undefined) updateData.phone_number = phone_number;
+            if (security_pin !== undefined) updateData.security_pin = security_pin;
 
             const updatedUser = await User.findOneAndUpdate(
                 { email_id: email_id.toLowerCase() },

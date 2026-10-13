@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard, BookOpen, Tag, Layers, CreditCard,
   Users, BarChart3, User, Settings, LogOut, Book,
-  Palette, UserCog, ChevronDown, History, RefreshCw, FileText
+  Palette, UserCog, ChevronDown, History, RefreshCw, FileText, Bell
 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
@@ -13,6 +13,7 @@ const SIDEBAR_ITEMS = [
   { label: 'Party Ledger', icon: BookOpen, path: '/dashboard/party-ledger' },
   { label: 'EMI & Subs', icon: RefreshCw, path: '/dashboard/tracker' },
   { label: 'Receipts Vault', icon: FileText, path: '/dashboard/receipts-vault' },
+  { label: 'Reminders', icon: Bell, path: '/dashboard/reminders' },
   { label: 'Payment Mode', icon: CreditCard, path: '/dashboard/payment-modes' },
   { label: 'Invitations', icon: Users, path: '/dashboard/invitations' },
   { label: 'Reports', icon: BarChart3, path: '/dashboard/reports' },

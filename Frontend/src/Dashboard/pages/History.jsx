@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { formatCurrency } from '../../utils/currencyFormatter';
 import { socket } from '../../utils/socket';
+import Dropdown from '../components/Dropdown';
 
 const formatPaymentMode = (name) => {
   if (!name) return '';
@@ -371,16 +372,17 @@ export default function History() {
 
           {/* Cashbook Filter */}
           <div className="w-full lg:w-52">
-            <select
+            <Dropdown
               value={selectedChalanFilter}
               onChange={(e) => setSelectedChalanFilter(e.target.value)}
-              className="w-full px-3 py-2.5 text-xs bg-[#f8fafc] dark:bg-slate-900/90 border border-border dark:border-slate-800 rounded-xl focus:outline-none focus:border-primary dark:focus:border-indigo-500 text-foreground dark:text-slate-200 font-semibold cursor-pointer"
+              className="w-full"
+              selectClassName="px-3 py-2 text-xs bg-[#f8fafc] dark:bg-slate-900/90 border border-border dark:border-slate-800 rounded-xl font-semibold"
             >
               <option value="all">All Cashbooks ({chalans.length})</option>
               {chalans.map(ch => (
                 <option key={ch.id} value={ch.id}>{ch.name}</option>
               ))}
-            </select>
+            </Dropdown>
           </div>
 
           {/* Type Segmented Filter */}

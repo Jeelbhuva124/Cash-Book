@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, ShieldAlert, UserCheck, ShieldCheck, Mail, Phone, Trash2, RefreshCw, X, AlertTriangle, Plus, ShieldCheck as ShieldIcon, Pencil, Lock } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
+import Dropdown from '../../Dashboard/components/Dropdown';
 
 export const Admins = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -658,23 +659,23 @@ export const Admins = () => {
                     </p>
                   </div>
 
-                  <div>
-                    <label className="block text-xs font-bold text-muted-foreground mb-1.5">Select regular user to promote</label>
-                    {regularUsers.length > 0 ? (
-                      <select
-                        value={selectedUserId}
-                        onChange={(e) => setSelectedUserId(e.target.value)}
-                        className="w-full px-4 py-2.5 rounded-xl bg-muted border border-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 cursor-pointer"
-                        required
-                      >
-                        <option value="">-- Choose User --</option>
-                        {regularUsers.map(u => (
-                          <option key={u.id || u._id} value={u.id || u._id}>
-                            {u.username || 'User'} ({u.email_id})
-                          </option>
-                        ))}
-                      </select>
-                    ) : (
+                    <div>
+                      <label className="block text-xs font-bold text-muted-foreground mb-1.5">Select regular user to promote</label>
+                      {regularUsers.length > 0 ? (
+                        <Dropdown
+                          value={selectedUserId}
+                          onChange={(e) => setSelectedUserId(e.target.value)}
+                          className="w-full"
+                          selectClassName="px-4 py-2.5 rounded-xl bg-muted border border-border text-sm text-foreground"
+                        >
+                          <option value="">-- Choose User --</option>
+                          {regularUsers.map(u => (
+                            <option key={u.id || u._id} value={u.id || u._id}>
+                              {u.username || 'User'} ({u.email_id})
+                            </option>
+                          ))}
+                        </Dropdown>
+                      ) : (
                       <div className="p-4 bg-muted/40 border border-border rounded-xl text-center">
                         <p className="text-xs text-muted-foreground">No regular user accounts available to promote.</p>
                       </div>

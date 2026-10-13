@@ -5,7 +5,12 @@ import Transaction from '../models/transaction.js';
 // Get all EMI and Subscriptions
 export const getEmiSubscriptions = async (req, res) => {
   try {
-    const records = await EmiSubscription.find().sort({ due_date: 1 });
+    const { user_email } = req.query;
+    let query = {};
+    if (user_email) {
+      query.user_email = user_email.toLowerCase().trim();
+    }
+    const records = await EmiSubscription.find(query).sort({ due_date: 1 });
     return res.status(200).json({
       success: true,
       data: records,
@@ -71,8 +76,9 @@ export const markAsPaid = async (req, res) => {
     }
 
     // 1. Create an expense transaction in the main Transaction collection
-    const currentDate = new Date().toISOString().split('T')[0];
-    const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+    const now = new Date();
+    const currentDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    const currentTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
 
     const newTransaction = new Transaction({
       title: `${record.type} Paid: ${record.title}`,
@@ -97,12 +103,26 @@ export const markAsPaid = async (req, res) => {
       io.emit('transaction_created', newTransaction);
     }
 
-    // 3. Update the due date (Add 1 month)
-    const currentDue = new Date(record.due_date);
-    currentDue.setMonth(currentDue.getMonth() + 1);
-    
-    // Format back to YYYY-MM-DD
-    const newDueDate = currentDue.toISOString().split('T')[0];
+    // 3. Update the due date (Add 1 month with safe day boundary handling)
+    let newDueDate = currentDate;
+    const dateParts = (record.due_date || '').split('-');
+    if (dateParts.length === 3) {
+      let year = parseInt(dateParts[0], 10);
+      let month = parseInt(dateParts[1], 10);
+      let day = parseInt(dateParts[2], 10);
+      month += 1;
+      if (month > 12) {
+        month = 1;
+        year += 1;
+      }
+      const daysInNewMonth = new Date(year, month, 0).getDate();
+      if (day > daysInNewMonth) day = daysInNewMonth;
+      newDueDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    } else {
+      const currentDue = new Date(record.due_date);
+      currentDue.setMonth(currentDue.getMonth() + 1);
+      newDueDate = currentDue.toISOString().split('T')[0];
+    }
 
     record.last_paid_date = currentDate;
 

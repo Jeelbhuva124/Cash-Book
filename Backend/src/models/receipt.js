@@ -3,7 +3,9 @@ import mongoose from 'mongoose';
 const receiptSchema = new mongoose.Schema({
   user_email: {
     type: String,
-    required: true
+    required: true,
+    lowercase: true,
+    trim: true
   },
   item_title: {
     type: String,

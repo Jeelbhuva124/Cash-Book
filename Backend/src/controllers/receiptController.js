@@ -1,6 +1,11 @@
 import Receipt from '../models/receipt.js';
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const uploadDir = path.resolve(__dirname, '../../uploads');
 
 // @desc    Upload a new receipt
 // @route   POST /api/receipts
@@ -13,7 +18,7 @@ export const uploadReceipt = async (req, res) => {
 
     let { item_title, purchase_date, warranty_expiry_date, user_email } = req.body;
     
-    if (!user_email) user_email = 'guest';
+    user_email = (user_email || 'guest').toLowerCase().trim();
 
     if (!item_title || !purchase_date) {
       return res.status(400).json({ success: false, message: 'Item title and purchase date are required.' });
@@ -25,7 +30,7 @@ export const uploadReceipt = async (req, res) => {
 
     const newReceipt = new Receipt({
       user_email,
-      item_title,
+      item_title: item_title.trim(),
       purchase_date,
       warranty_expiry_date: warranty_expiry_date || null,
       image_url: imageUrl
@@ -45,7 +50,7 @@ export const uploadReceipt = async (req, res) => {
 export const getReceipts = async (req, res) => {
   try {
     let { user_email } = req.query;
-    if (!user_email) user_email = 'guest';
+    user_email = (user_email || 'guest').toLowerCase().trim();
 
     const receipts = await Receipt.find({ user_email }).sort({ createdAt: -1 });
     res.status(200).json({ success: true, data: receipts });
@@ -66,22 +71,24 @@ export const deleteReceipt = async (req, res) => {
     }
 
     let { user_email } = req.body;
-    if (!user_email) user_email = 'guest';
+    user_email = (user_email || 'guest').toLowerCase().trim();
 
-    if (receipt.user_email !== user_email) {
+    if (receipt.user_email?.toLowerCase() !== user_email) {
       return res.status(403).json({ success: false, message: 'Not authorized to delete this receipt' });
     }
 
     // Extract filename from image_url (e.g. /uploads/image-123.jpg -> image-123.jpg)
-    const filename = receipt.image_url.split('/').pop();
-    const filePath = path.resolve('uploads', filename);
+    const filename = receipt.image_url ? receipt.image_url.split('/').pop() : null;
+    if (filename) {
+      const filePath = path.join(uploadDir, filename);
 
-    // Delete the file from local filesystem
-    fs.unlink(filePath, (err) => {
-      if (err && err.code !== 'ENOENT') {
-        console.error('Error deleting file:', err);
-      }
-    });
+      // Delete the file from local filesystem
+      fs.unlink(filePath, (err) => {
+        if (err && err.code !== 'ENOENT') {
+          console.error('Error deleting file:', err);
+        }
+      });
+    }
 
     await receipt.deleteOne();
 
@@ -97,7 +104,7 @@ export const deleteReceipt = async (req, res) => {
 export const updateReceipt = async (req, res) => {
   try {
     let { item_title, purchase_date, warranty_expiry_date, user_email } = req.body;
-    if (!user_email) user_email = 'guest';
+    user_email = (user_email || 'guest').toLowerCase().trim();
 
     let receipt = await Receipt.findById(req.params.id);
 
@@ -105,11 +112,11 @@ export const updateReceipt = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Receipt not found' });
     }
 
-    if (receipt.user_email !== user_email) {
+    if (receipt.user_email?.toLowerCase() !== user_email) {
       return res.status(403).json({ success: false, message: 'Not authorized to edit this receipt' });
     }
 
-    receipt.item_title = item_title || receipt.item_title;
+    receipt.item_title = item_title ? item_title.trim() : receipt.item_title;
     receipt.purchase_date = purchase_date || receipt.purchase_date;
     receipt.warranty_expiry_date = warranty_expiry_date !== undefined ? warranty_expiry_date : receipt.warranty_expiry_date;
 

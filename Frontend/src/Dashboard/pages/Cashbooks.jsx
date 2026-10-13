@@ -5,6 +5,7 @@ import { Book, Plus, X, Trash2, Edit, Eye, ArrowRight, Palette, AlignLeft, Chevr
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '../../context/ToastContext';
 import { socket } from '../../utils/socket';
+import Dropdown from '../components/Dropdown';
 
 const COLOR_OPTIONS = [
   { name: 'Purple', hex: '#8B5CF6' },
@@ -610,14 +611,15 @@ export default function Cashbooks() {
                   <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide">
                     Cashbook Type
                   </label>
-                  <select
+                  <Dropdown
                     value={cashbookType}
                     onChange={(e) => setCashbookType(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-border focus:outline-none focus:border-primary text-sm font-medium text-foreground bg-white dark:bg-card"
+                    className="w-full"
+                    selectClassName="px-4 py-2.5 rounded-xl text-sm font-medium"
                   >
                     <option value="Normal">Normal</option>
                     <option value="Interest">Interest</option>
-                  </select>
+                  </Dropdown>
                 </div>
 
                 {/* Hex Code / Color Theme */}

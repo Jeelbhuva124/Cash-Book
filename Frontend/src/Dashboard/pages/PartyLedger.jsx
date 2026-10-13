@@ -34,7 +34,10 @@ export default function PartyLedger() {
   const fetchPartyLedger = async () => {
     try {
       setLoading(true);
-      const res = await fetch('http://localhost:5001/api/transaction/party-ledger');
+      const url = user_email && user_email !== 'guest'
+        ? `http://localhost:5001/api/transaction/party-ledger?user_email=${encodeURIComponent(user_email)}`
+        : 'http://localhost:5001/api/transaction/party-ledger';
+      const res = await fetch(url);
       const data = await res.json();
       if (data.success) {
         setPartyData(data.data);

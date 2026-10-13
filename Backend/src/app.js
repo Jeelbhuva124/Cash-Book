@@ -40,6 +40,7 @@ app.get('/api/health', (req, res) => {
 // Route Mapping
 app.use('/api/auth', authRouter);
 app.use('/api/users', userRouter);
+app.use('/api/user', userRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/contact', contactRouter);
 app.use('/api/invitation', invitationRouter);
@@ -50,6 +51,7 @@ app.use('/api/subcategory', subcategoryRouter);
 app.use('/api/payment-mode', paymentModeRouter);
 app.use('/api/emi-subscription', emiSubscriptionRouter);
 app.use('/api/receipts', receiptRouter);
+app.use('/api/receipt', receiptRouter);
 
 // Global Error Handler
 app.use(errorHandler);

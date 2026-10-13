@@ -9,19 +9,17 @@ import {
 
 const router = express.Router();
 
-// GET all invitations
+// Base URL endpoints (http://localhost:5001/api/invitation)
+router.get('/', getInvitations);
+router.post('/', sendInvitation);
+router.put('/', updateInvite);
+router.delete('/', deleteInvite);
+
+// Subpath endpoints (legacy/compatibility)
 router.get('/select', getInvitations);
-
-// GET direct mobile accept invitation from email link
 router.get('/accept-direct', acceptInviteDirect);
-
-// POST new invitation
 router.post('/insert', sendInvitation);
-
-// PUT update invitation status or permissions
 router.put('/update', updateInvite);
-
-// DELETE remove/cancel invitation
 router.delete('/delete', deleteInvite);
 
 export default router;
