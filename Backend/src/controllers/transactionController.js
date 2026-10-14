@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 import Transaction from '../models/transaction.js';
-<<<<<<< HEAD
 import Invitation from '../models/invitation.js';
 import Cashbook from '../models/cashbook.js';
 
@@ -39,9 +38,6 @@ const isViewOnlyUser = async (userEmail, chalanId) => {
     return false;
   }
 };
-=======
-import User from '../models/user.js';
->>>>>>> 6f294b21f25fb66fb881a867cc6bee2b2d774196
 
 // Create a new Transaction (Supports single object or array of objects for bulk insert)
 export const createTransaction = async (req, res) => {

@@ -50,21 +50,7 @@ export default function Reports() {
       } catch (e) {}
     }
 
-<<<<<<< HEAD
-    // 3. Fetch latest transactions from API
-    fetch('http://localhost:5001/api/transaction/select')
-      .then(res => res.json())
-      .then(data => {
-        if (data.success && Array.isArray(data.data) && data.data.length > 0) {
-          const validTxs = data.data.filter(t => !t.is_deleted && !t.deleted);
-          setTransactions(validTxs);
-        }
-      })
-      .catch(err => {
-        console.warn("Could not fetch remote transactions, using cached data:", err);
-      });
-=======
-    // Fetch fresh user transactions from API
+    // 3. Fetch fresh user transactions from API
     fetch('http://localhost:5001/api/transaction/select', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -88,11 +74,13 @@ export default function Reports() {
             if (!userId && userEmail && txEmail) return txEmail === userEmail;
             return false;
           });
-          setTransactions(userFiltered);
+          const result = userFiltered.length > 0 ? userFiltered : data.data.filter(t => !t.is_deleted && !t.deleted);
+          setTransactions(result);
         }
       })
-      .catch(e => console.error("Reports fetch error:", e));
->>>>>>> 6f294b21f25fb66fb881a867cc6bee2b2d774196
+      .catch(err => {
+        console.warn("Could not fetch remote transactions, using cached data:", err);
+      });
   }, []);
 
   // Filter transactions according to selected period

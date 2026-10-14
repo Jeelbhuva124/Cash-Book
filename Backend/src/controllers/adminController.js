@@ -73,16 +73,10 @@ const adminController = {
   // GET / POST /api/admin/select (Fetch all users and system metadata)
   select: async (req, res) => {
     try {
-<<<<<<< HEAD
+      const { admin_id, admin_email } = { ...(req.query || {}), ...(req.body || {}) };
       const rawUsers = await User.find({}).sort({ createdAt: -1, created_at: -1 }).lean();
       const rawAdmins = await Admin.find({}).sort({ createdAt: -1, created_at: -1 }).lean();
       const rawCashbooks = await Cashbook.find({}).sort({ createdAt: -1, created_at: -1 }).lean();
-=======
-      const { admin_id, admin_email } = { ...(req.query || {}), ...(req.body || {}) };
-      const users = await User.find({}).sort({ createdAt: -1 }).lean();
-      const admins = await Admin.find({}).sort({ createdAt: -1 }).lean();
-      const rawCashbooks = await Cashbook.find({}).sort({ createdAt: -1 }).lean();
->>>>>>> 6f294b21f25fb66fb881a867cc6bee2b2d774196
       const allTxns = await Transaction.find({}, 'chalan_id type amount').lean();
       
       const users = rawUsers.map(u => {
