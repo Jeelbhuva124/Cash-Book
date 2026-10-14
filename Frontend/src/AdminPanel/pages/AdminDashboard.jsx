@@ -9,10 +9,13 @@ import {
   Activity,
   Clock,
   ArrowUpRight,
+  ArrowDownRight,
   UserCheck,
   Database,
   Cpu,
-  UserPlus
+  UserPlus,
+  Zap,
+  Wallet
 } from 'lucide-react';
 import { AdminStatCard } from '../components/AdminStatCard';
 
@@ -22,7 +25,16 @@ export const AdminDashboard = () => {
     total_users: 0,
     active_cashbooks: 0,
     total_volume: 0,
+    total_income: 0,
+    total_expense: 0,
+    net_balance: 0,
+    total_transactions: 0,
+    today_income: 0,
+    today_expense: 0,
+    today_volume: 0,
+    today_transactions: 0,
     system_uptime: "99.98%",
+    uptime_formatted: "Online",
     growthChartData: [],
     newUsersLast14Days: 0,
     serverDiagnostics: {
@@ -75,31 +87,58 @@ export const AdminDashboard = () => {
           res = await fetch('http://localhost:5001/api/admin/stats');
         }
 
-        const data = await res.json();
-        if (data.success && data.data) {
-          setRealStats({
-            total_users: d.total_users || sortedUsers.length,
-            active_cashbooks: d.total_cashbooks || 0,
-            total_volume: d.total_volume || 0,
-            system_uptime: d.system_uptime || "99.98%",
-            growthChartData: days.map(x => x.count),
-            newUsersLast14Days: newCount14,
-            serverDiagnostics: d.serverDiagnostics || {
-              ram: { used: '4.2', total: '8.0', percent: '52.5' },
-              cpu: '24.5',
-              dbStorageGB: '18.4'
+        if (res && res.ok) {
+          const data = await res.json();
+          if (data.success && data.data) {
+            const d = data.data;
+
+            // Generate 14 days chart data
+            const growth = Array.isArray(d.growthChartData) ? d.growthChartData : [];
+            const chartDaysArr = [];
+            for (let i = 13; i >= 0; i--) {
+              const date = new Date();
+              date.setDate(date.getDate() - i);
+              const label = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+              const shortDate = date.toLocaleDateString('en-US', { day: 'numeric' });
+              const idx = 13 - i;
+              chartDaysArr.push({
+                label,
+                shortDate,
+                count: growth[idx] !== undefined ? growth[idx] : 0
+              });
             }
-          });
-          if (d.recentLogs) {
-            setRecentLogs(d.recentLogs);
+            setChartDays(chartDaysArr);
+
+            setRealStats({
+              total_users: d.total_users || 0,
+              active_cashbooks: d.total_cashbooks || 0,
+              total_volume: d.total_volume || 0,
+              total_income: d.total_income || 0,
+              total_expense: d.total_expense || 0,
+              net_balance: d.net_balance || 0,
+              total_transactions: d.total_transactions || 0,
+              today_income: d.today_income || 0,
+              today_expense: d.today_expense || 0,
+              today_volume: d.today_volume || 0,
+              today_transactions: d.today_transactions || 0,
+              system_uptime: d.system_uptime || "99.98%",
+              uptime_formatted: d.uptime_formatted || "Online",
+              growthChartData: growth,
+              newUsersLast14Days: d.newUsersLast14Days || 0,
+              serverDiagnostics: d.serverDiagnostics || {
+                ram: { used: '4.2', total: '8.0', percent: '52.5' },
+                cpu: '24.5',
+                dbStorageGB: '18.4'
+              }
+            });
+
+            if (Array.isArray(d.recentLogs)) {
+              setRecentLogs(d.recentLogs);
+            }
+            if (Array.isArray(d.recent_users)) {
+              setRecentUsers(d.recent_users);
+            }
           }
-        } else if (sortedUsers.length > 0) {
-          setRealStats(prev => ({
-            ...prev,
-            total_users: sortedUsers.length,
-            growthChartData: days.map(x => x.count),
-            newUsersLast14Days: newCount14
-          }));
         }
       } catch (err) {
         console.error("Failed to fetch admin stats:", err);
@@ -108,22 +147,67 @@ export const AdminDashboard = () => {
 
     fetchStats();
     // Refresh periodically
-    const intervalId = setInterval(fetchStats, 30000);
+    const intervalId = setInterval(fetchStats, 10000);
     return () => clearInterval(intervalId);
   }, []);
 
   const formatCurrency = (amount) => {
-    if (amount >= 10000000) return `₹${(amount / 10000000).toFixed(2)} Cr`;
-    if (amount >= 100000) return `₹${(amount / 100000).toFixed(2)} L`;
-    if (amount >= 1000) return `₹${(amount / 1000).toFixed(2)} K`;
-    return `₹${amount}`;
+    const num = Number(amount) || 0;
+    const abs = Math.abs(num);
+    const sign = num < 0 ? '-' : '';
+    if (abs >= 10000000) return `${sign}₹${(abs / 10000000).toFixed(2)} Cr`;
+    if (abs >= 100000) return `${sign}₹${(abs / 100000).toFixed(2)} L`;
+    if (abs >= 1000) return `${sign}₹${(abs / 1000).toFixed(1)} K`;
+    return `${sign}₹${abs.toLocaleString('en-IN')}`;
+  };
+
+  const formatFullRupees = (amount) => {
+    const num = Number(amount) || 0;
+    const sign = num < 0 ? '-' : '';
+    return `${sign}₹${Math.abs(num).toLocaleString('en-IN')}`;
   };
 
   const stats = [
-    { title: "Total Users", value: realStats.total_users.toLocaleString(), change: "+14.2%", isIncrease: true, icon: Users, colorAccent: "primary", description: "registered accounts", path: "/admin/users" },
-    { title: "Active Cashbooks", value: realStats.active_cashbooks.toLocaleString(), change: "+8.7%", isIncrease: true, icon: BookOpen, colorAccent: "success", description: "across all accounts", path: "/admin/cashbooks" },
-    { title: "Transaction Volume", value: formatCurrency(realStats.total_volume), change: "+22.4%", isIncrease: true, icon: TrendingUp, colorAccent: "warning", description: "processed so far", path: "/admin/transactions" },
-    { title: "System Uptime", value: realStats.system_uptime, change: "Stable", isIncrease: true, icon: ShieldCheck, colorAccent: "info", description: "0 critical incidents", path: "/admin/analytics" },
+    {
+      title: "Total Users",
+      value: realStats.total_users.toLocaleString(),
+      change: `+${realStats.newUsersLast14Days} new`,
+      isIncrease: true,
+      icon: Users,
+      colorAccent: "primary",
+      description: "registered accounts",
+      path: "/admin/users"
+    },
+    {
+      title: "Active Cashbooks",
+      value: realStats.active_cashbooks.toLocaleString(),
+      change: "Active",
+      isIncrease: true,
+      icon: BookOpen,
+      colorAccent: "info",
+      description: "across all accounts",
+      path: "/admin/cashbooks"
+    },
+    {
+      title: "Transaction Volume",
+      value: formatCurrency(realStats.total_volume),
+      change: `${realStats.total_transactions} txs`,
+      isIncrease: true,
+      icon: TrendingUp,
+      colorAccent: "warning",
+      description: formatFullRupees(realStats.total_volume),
+      path: "/admin/transactions"
+    },
+    {
+      title: "System Net Balance",
+      value: formatCurrency(realStats.net_balance),
+      change: realStats.net_balance >= 0 ? "Surplus" : "Deficit",
+      isIncrease: realStats.net_balance >= 0,
+      icon: ShieldCheck,
+      colorAccent: realStats.net_balance >= 0 ? "success" : "danger",
+      description: formatFullRupees(realStats.net_balance),
+      path: "/admin/analytics"
+    },
   ];
 
   return (
@@ -153,6 +237,73 @@ export const AdminDashboard = () => {
             }}
           />
         ))}
+      </div>
+
+      {/* Executive Financial Inflow & Outflow Breakdown */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Total Cash In */}
+        <div className="bg-card border border-border/80 rounded-2xl p-4 shadow-sm flex items-center justify-between">
+          <div className="space-y-0.5">
+            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Total Cash In (Inflow)</span>
+            <p className="text-lg font-black text-emerald-500 tracking-tight">
+              +{formatFullRupees(realStats.total_income)}
+            </p>
+            <p className="text-[10px] text-muted-foreground font-medium">
+              {formatCurrency(realStats.total_income)} total credited
+            </p>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 flex items-center justify-center shrink-0">
+            <ArrowUpRight className="w-5 h-5" />
+          </div>
+        </div>
+
+        {/* Total Cash Out */}
+        <div className="bg-card border border-border/80 rounded-2xl p-4 shadow-sm flex items-center justify-between">
+          <div className="space-y-0.5">
+            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Total Cash Out (Outflow)</span>
+            <p className="text-lg font-black text-rose-500 tracking-tight">
+              -{formatFullRupees(realStats.total_expense)}
+            </p>
+            <p className="text-[10px] text-muted-foreground font-medium">
+              {formatCurrency(realStats.total_expense)} total debited
+            </p>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-500 border border-rose-500/20 flex items-center justify-center shrink-0">
+            <ArrowDownRight className="w-5 h-5" />
+          </div>
+        </div>
+
+        {/* Today's Activity */}
+        <div className="bg-card border border-border/80 rounded-2xl p-4 shadow-sm flex items-center justify-between">
+          <div className="space-y-0.5">
+            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Today's Turnover</span>
+            <p className="text-lg font-black text-amber-500 tracking-tight">
+              {formatFullRupees(realStats.today_volume)}
+            </p>
+            <p className="text-[10px] text-muted-foreground font-medium">
+              {realStats.today_transactions} transactions logged today
+            </p>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20 flex items-center justify-center shrink-0">
+            <Zap className="w-5 h-5" />
+          </div>
+        </div>
+
+        {/* System Diagnostics Uptime */}
+        <div className="bg-card border border-border/80 rounded-2xl p-4 shadow-sm flex items-center justify-between">
+          <div className="space-y-0.5">
+            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Server Health</span>
+            <p className="text-lg font-black text-sky-500 tracking-tight">
+              {realStats.system_uptime}
+            </p>
+            <p className="text-[10px] text-muted-foreground font-medium">
+              Uptime: {realStats.uptime_formatted} • 0 Incidents
+            </p>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-sky-500/10 text-sky-500 border border-sky-500/20 flex items-center justify-center shrink-0">
+            <Activity className="w-5 h-5" />
+          </div>
+        </div>
       </div>
 
       {/* Charts & System Health Section */}

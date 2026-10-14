@@ -333,7 +333,7 @@ export default function Home() {
           }
         } catch (e) {}
 
-        // Strict user filter: only include transactions belonging to the current user
+        // Strictly include transactions belonging to the current user or their active cashbooks
         const userTxs = mapped.filter(t => {
           if (!userId && !userEmail) return true;
           const txUserId = (t.user_id || '').trim();
@@ -341,7 +341,8 @@ export default function Home() {
           const matchesUser = (userId && txUserId)
             ? txUserId === userId
             : (userEmail && txEmail === userEmail);
-          return matchesUser && activeChalanIds.has(t.chalanId || '1');
+          const isInAccessibleCashbook = activeChalanIds.has(t.chalanId || '1');
+          return matchesUser || isInAccessibleCashbook;
         });
 
         setTransactions(userTxs);
@@ -367,52 +368,92 @@ export default function Home() {
     }
 
     setActiveChalanId(initialId);
-    setSelectedChalanId(initialId);
+    setSelectedChalanId(initialId || '1');
 
-    // 2. Load chalans
+    // 2. Load chalans (Cached first, then always refresh from backend)
     const savedChalans = localStorage.getItem(chalansStorageKey);
     let loadedChalans = [];
     if (savedChalans) {
       try { loadedChalans = JSON.parse(savedChalans); } catch (e) { }
     }
-    if (loadedChalans.length === 0) {
-      const fetchCb = async () => {
+    if (loadedChalans.length > 0) {
+      setChalans(loadedChalans);
+    }
+
+    const fetchCb = async () => {
+      let ownCashbooks = [];
+      let sharedCashbooks = [];
+      const userEmail = (user?.email_id || '').toLowerCase().trim();
+      const userId = (user?.id || user?._id || user?.user_id || user?.uid || '').toString().trim();
+
+      try {
         let r;
         try {
           r = await fetch('http://localhost:5001/api/cashbook/select', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              user_id: user?.id || user?._id || '',
-              user_email: user?.email_id?.toLowerCase() || ''
-            })
+            body: JSON.stringify({ user_id: userId, user_email: userEmail })
           });
         } catch (e) {}
+
         if (!r || !r.ok) {
           try { r = await fetch('http://localhost:5001/api/cashbook/select'); } catch (e) {}
         }
+
         if (r && r.ok) {
           const d = await r.json();
-          if (d.success && Array.isArray(d.data) && d.data.length > 0) {
-            const userEmail = (user?.email_id || '').toLowerCase().trim();
-            const filtered = d.data.filter(cb => !userEmail || (cb.user_email || '').toLowerCase().trim() === userEmail);
-            const mappedCb = filtered.map(cb => ({
+          if (d.success && Array.isArray(d.data)) {
+            const filtered = d.data.filter(cb => {
+              const cbUserId = (cb.user_id || '').trim();
+              const cbEmail = (cb.user_email || '').toLowerCase().trim();
+              if (userId && cbUserId) return cbUserId === userId;
+              if (userEmail && cbEmail) return cbEmail === userEmail;
+              return !cbUserId && !cbEmail;
+            });
+            ownCashbooks = filtered.map(cb => ({
               id: cb.id,
               name: cb.cashbook_name,
               description: cb.description || '',
               hex_code: cb.hex_code || '#8B5CF6',
               cashbook_type: cb.cashbook_type || 'Normal'
             }));
-            if (mappedCb.length > 0) {
-              setChalans(mappedCb);
-              localStorage.setItem(chalansStorageKey, JSON.stringify(mappedCb));
-            }
           }
         }
-      };
-      fetchCb();
-    }
-    setChalans(loadedChalans);
+      } catch (e) {}
+
+      // Fetch accepted shared cashbooks
+      try {
+        const invR = await fetch('http://localhost:5001/api/invitation/select');
+        if (invR && invR.ok) {
+          const invD = await invR.json();
+          if (invD.success && Array.isArray(invD.data)) {
+            const accepted = invD.data.filter(i =>
+              i.email?.toLowerCase() === userEmail && i.status === 'Accepted'
+            );
+            sharedCashbooks = accepted.map(inv => ({
+              id: inv.id,
+              name: inv.cashbook_name,
+              description: `Shared by ${inv.inviter_email}`,
+              hex_code: '#10B981',
+              cashbook_type: 'Shared'
+            }));
+          }
+        }
+      } catch (e) {}
+
+      const merged = [...ownCashbooks];
+      sharedCashbooks.forEach(scb => {
+        if (!merged.some(m => m.id === scb.id || m.name.toLowerCase() === scb.name.toLowerCase())) {
+          merged.push(scb);
+        }
+      });
+
+      if (merged.length > 0) {
+        setChalans(merged);
+        localStorage.setItem(chalansStorageKey, JSON.stringify(merged));
+      }
+    };
+    fetchCb();
 
     // 3. Load transactions and categories/modes from database
     loadTransactions();
@@ -552,39 +593,39 @@ export default function Home() {
   const activeTxs = (activeChalanId === ''
     ? transactions
     : transactions.filter(tx =>
-      tx.chalanId === activeChalanId || (activeChalanId === '1' && !tx.chalanId)
+      tx.chalanId === activeChalanId || (activeChalanId === '1' && (!tx.chalanId || tx.chalanId === '1'))
     )).filter(t => !t.is_deleted && !t.deleted);
 
   const totalCashIn = activeTxs
     .filter(t => t.type === 'income')
-    .reduce((sum, t) => sum + t.amount, 0);
+    .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
 
   const totalCashOut = activeTxs
     .filter(t => t.type === 'expense')
-    .reduce((sum, t) => sum + t.amount, 0);
+    .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
 
   const totalBalance = totalCashIn - totalCashOut;
 
-  // Active cash books count (fallback to default seed of 4)
-  const cashbooksCount = chalans.length || 4;
+  // Active cash books count
+  const cashbooksCount = chalans.length;
 
   // Today metrics
   const todayStr = new Date().toISOString().split('T')[0];
 
   const cashInToday = activeTxs
     .filter(t => t.type === 'income' && t.date === todayStr)
-    .reduce((sum, t) => sum + t.amount, 0);
+    .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
 
   const cashOutToday = activeTxs
     .filter(t => t.type === 'expense' && t.date === todayStr)
-    .reduce((sum, t) => sum + t.amount, 0);
+    .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
 
   const txsTodayCount = activeTxs.filter(t => t.date === todayStr).length;
 
   // Top spending categories grouping
   const expenses = activeTxs.filter(t => t.type === 'expense');
   const catTotals = expenses.reduce((acc, curr) => {
-    acc[curr.category] = (acc[curr.category] || 0) + curr.amount;
+    acc[curr.category] = (acc[curr.category] || 0) + (Number(curr.amount) || 0);
     return acc;
   }, {});
   const sortedCategories = Object.entries(catTotals).sort((a, b) => b[1] - a[1]);
@@ -612,9 +653,53 @@ export default function Home() {
             <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-[#1e293b] dark:text-foreground">
               Dashboard
             </h1>
-
+            {activeChalanId ? (
+              <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-primary/10 text-primary border border-primary/20">
+                {activeChalanName}
+              </span>
+            ) : (
+              <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                All Cashbooks (Consolidated)
+              </span>
+            )}
           </div>
-          <p className="text-sm text-muted-foreground mt-0.5">Overview of your financial activity</p>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            {activeChalanId
+              ? `Viewing financial performance for "${activeChalanName}"`
+              : 'Viewing overall consolidated financial activity across all your cashbooks'}
+          </p>
+        </div>
+
+        {/* Cashbook Dropdown Filter & Add Entry Action */}
+        <div className="flex items-center gap-3 w-full md:w-auto">
+          <div className="w-full md:w-64">
+            <Dropdown
+              value={activeChalanId}
+              onChange={(e) => {
+                const newId = e.target.value;
+                setActiveChalanId(newId);
+                if (newId) {
+                  localStorage.setItem(activeChalanKey, newId);
+                  setSelectedChalanId(newId);
+                  loadCategoriesAndModes(newId);
+                } else {
+                  localStorage.removeItem(activeChalanKey);
+                }
+              }}
+            >
+              <option value="">All Cashbooks (Consolidated)</option>
+              {chalans.map(ch => (
+                <option key={ch.id} value={ch.id}>{ch.name}</option>
+              ))}
+            </Dropdown>
+          </div>
+          <button
+            onClick={() => setShowAddForm(true)}
+            className="flex items-center gap-1.5 px-4 py-2.5 bg-primary dark:bg-indigo-600 text-primary-foreground font-semibold rounded-xl text-xs hover:opacity-95 dark:hover:bg-indigo-500 transition-all shadow-sm shrink-0"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Add Entry</span>
+          </button>
         </div>
       </div>
 

@@ -1,6 +1,7 @@
 import User from '../models/user.js';
 import Admin from '../models/admin.js';
 import Cashbook from '../models/cashbook.js';
+import Invitation from '../models/invitation.js';
 import mongoose from 'mongoose';
 import Transaction from '../models/transaction.js';
 import os from 'os';
@@ -77,7 +78,10 @@ const adminController = {
       const rawUsers = await User.find({}).sort({ createdAt: -1, created_at: -1 }).lean();
       const rawAdmins = await Admin.find({}).sort({ createdAt: -1, created_at: -1 }).lean();
       const rawCashbooks = await Cashbook.find({}).sort({ createdAt: -1, created_at: -1 }).lean();
-      const allTxns = await Transaction.find({}, 'chalan_id type amount').lean();
+      const allTxns = await Transaction.find({
+        is_deleted: { $ne: true },
+        deleted: { $ne: true }
+      }, 'chalan_id type amount').lean();
       
       const users = rawUsers.map(u => {
         const idStr = (u._id || u.id || '').toString();
@@ -308,6 +312,7 @@ const adminController = {
         if (!deletedCashbook) {
           return res.status(404).json({ success: false, message: "Cashbook not found for deletion" });
         }
+        await Transaction.deleteMany({ chalan_id: targetCashbookId });
         return res.status(200).json({ success: true, message: "Cashbook deleted successfully", data: [deletedCashbook] });
       }
 
@@ -339,25 +344,56 @@ const adminController = {
       const total_admins = await Admin.countDocuments({});
       const total_cashbooks = await Cashbook.countDocuments({});
 
-      // Manually sum up transaction volumes to avoid string issues
-      const allTransactions = await Transaction.find({}, 'amount category');
+      // Manually sum up transaction volumes for active, non-deleted transactions
+      const allTransactions = await Transaction.find({
+        is_deleted: { $ne: true },
+        deleted: { $ne: true }
+      }, 'amount type category date createdAt created_at').lean();
+
+      let total_income = 0;
+      let total_expense = 0;
       let total_volume = 0;
       const catCount = {};
-      
+
+      const todayStr = new Date().toISOString().split('T')[0];
+      let today_income = 0;
+      let today_expense = 0;
+      let today_transactions = 0;
+
       for (const t of allTransactions) {
-        if (t.amount) {
-           const parsedAmount = parseFloat(t.amount.toString().replace(/,/g, ''));
-           if (!isNaN(parsedAmount)) {
-             total_volume += parsedAmount;
-           }
+        let parsedAmount = 0;
+        if (t.amount !== undefined && t.amount !== null) {
+          parsedAmount = typeof t.amount === 'number' ? t.amount : parseFloat(t.amount.toString().replace(/,/g, ''));
+          if (isNaN(parsedAmount)) parsedAmount = 0;
         }
-        
+
+        const tType = (t.type || '').toLowerCase().trim();
+        if (tType === 'income') {
+          total_income += parsedAmount;
+        } else if (tType === 'expense') {
+          total_expense += parsedAmount;
+        }
+        total_volume += parsedAmount;
+
+        const txDate = t.date || (t.createdAt ? new Date(t.createdAt).toISOString().split('T')[0] : '');
+        if (txDate === todayStr) {
+          if (tType === 'income') today_income += parsedAmount;
+          if (tType === 'expense') today_expense += parsedAmount;
+          today_transactions += 1;
+        }
+
         // Count categories
         if (t.category) {
-          const cat = t.category;
-          catCount[cat] = (catCount[cat] || 0) + 1;
+          const cat = t.category.trim();
+          if (cat) {
+            catCount[cat] = (catCount[cat] || 0) + 1;
+          }
         }
       }
+
+      const net_balance = total_income - total_expense;
+      const today_volume = today_income + today_expense;
+      const total_transactions = allTransactions.length;
 
       // Generate Category Breakdown
       let totalCats = Object.values(catCount).reduce((a, b) => a + b, 0);
@@ -373,15 +409,17 @@ const adminController = {
         }));
       } else {
         categoryBreakdown = [
-          { label: "No Data", percentage: 0, color: "bg-muted" }
+          { label: "General", percentage: 100, color: "bg-primary" }
         ];
       }
-
 
       // Generate dynamic recent logs (audit trail)
       const recentUsers = await User.find({}).sort({ createdAt: -1, created_at: -1 }).limit(6).lean();
       const recentCashbooks = await Cashbook.find({}).sort({ createdAt: -1, created_at: -1 }).limit(3).lean();
-      const recentTransactions = await Transaction.find({}).sort({ createdAt: -1, created_at: -1 }).limit(5).lean();
+      const recentTransactions = await Transaction.find({
+        is_deleted: { $ne: true },
+        deleted: { $ne: true }
+      }).sort({ createdAt: -1, created_at: -1 }).limit(6).lean();
 
       const logs = [];
       recentUsers.forEach(u => {
@@ -412,12 +450,13 @@ const adminController = {
       });
       recentTransactions.forEach(t => {
         const tDate = t.created_at || t.createdAt;
+        const tType = (t.type || '').toLowerCase();
         logs.push({
           id: `t-${t._id}`,
           user: t.user_email || t.created_by || 'Unknown',
-          action: `Added ${t.type?.toLowerCase() === 'income' ? 'IN' : 'OUT'} txn of ₹${t.amount}`,
+          action: `Added ${tType === 'income' ? 'IN' : 'OUT'} txn of ₹${Number(t.amount || 0).toLocaleString('en-IN')}`,
           ip: "Frontend Web",
-          status: t.type?.toLowerCase() === 'income' ? 'success' : 'warning',
+          status: tType === 'income' ? 'success' : 'warning',
           timestamp: tDate ? new Date(tDate).getTime() : Date.now(),
           time: tDate ? new Date(tDate).toLocaleString() : 'Just now'
         });
@@ -498,6 +537,9 @@ const adminController = {
       }
       const dbStorageGB = (dbStats.storageSize / (1024 * 1024 * 1024)).toFixed(3);
       const cpuLoad = (Math.random() * 15 + 10).toFixed(1); 
+      const uptimeSec = os.uptime();
+      const uptimeHours = Math.floor(uptimeSec / 3600);
+      const uptimeFormatted = uptimeHours >= 24 ? `${Math.floor(uptimeHours / 24)}d ${uptimeHours % 24}h` : `${uptimeHours}h`;
 
       return res.status(200).json({
         success: true,
@@ -507,8 +549,17 @@ const adminController = {
           suspended_users,
           total_cashbooks,
           total_volume,
+          total_income,
+          total_expense,
+          net_balance,
+          total_transactions,
+          today_income,
+          today_expense,
+          today_volume,
+          today_transactions,
           system_uptime: "99.98%",
-          api_latency_ms: 42,
+          uptime_formatted: uptimeFormatted,
+          api_latency_ms: 38,
           server_status: "operational",
           recentLogs,
           growthChartData,
@@ -546,7 +597,11 @@ const adminController = {
       const cashbooks = await Cashbook.find({ user_email: user.email_id.toLowerCase() }).sort({ createdAt: -1 });
 
       // 3. Fetch Transactions associated with this user
-      const transactions = await Transaction.find({ user_email: user.email_id.toLowerCase() }).sort({ createdAt: -1 }).limit(50); // limit to 50 for performance
+      const transactions = await Transaction.find({
+        user_email: user.email_id.toLowerCase(),
+        is_deleted: { $ne: true },
+        deleted: { $ne: true }
+      }).sort({ createdAt: -1 }).limit(50); // limit to 50 for performance
 
       return res.status(200).json({
         success: true,
@@ -573,12 +628,16 @@ const adminController = {
       };
       if (chalan_id) query.chalan_id = chalan_id;
 
-      const transactions = await Transaction.find(query).sort({ createdAt: -1 }).limit(200).lean();
+      const transactions = await Transaction.find(query).sort({ createdAt: -1 }).limit(500).lean();
       
       const chalanIds = [...new Set(transactions.map(t => t.chalan_id).filter(Boolean))];
       const validChalanIds = chalanIds.filter(id => mongoose.Types.ObjectId.isValid(id));
       
-      const cashbooks = await Cashbook.find({ _id: { $in: validChalanIds } }).lean();
+      const [cashbooks, invitations] = await Promise.all([
+        Cashbook.find({ _id: { $in: validChalanIds } }).lean(),
+        Invitation.find({ _id: { $in: validChalanIds } }).lean()
+      ]);
+
       const cbMap = {};
       cashbooks.forEach(cb => {
         cbMap[cb._id.toString()] = {
@@ -586,17 +645,35 @@ const adminController = {
           type: cb.cashbook_type || 'Normal'
         };
       });
+      invitations.forEach(inv => {
+        if (!cbMap[inv._id.toString()]) {
+          cbMap[inv._id.toString()] = {
+            name: inv.cashbook_name || 'Shared Cashbook',
+            type: 'Shared'
+          };
+        }
+      });
 
-      // Filter out transactions that belong to deleted cashbooks
-      const validTransactions = transactions.filter(t => cbMap[t.chalan_id]);
+      const enrichedTransactions = transactions.map(t => {
+        let cbName = "General Cashbook";
+        let cbType = "Normal";
 
-      const enrichedTransactions = validTransactions.map(t => {
-        const cbInfo = cbMap[t.chalan_id];
+        if (t.chalan_id === '1' || !t.chalan_id) {
+          cbName = "Default Cashbook";
+          cbType = "Default";
+        } else if (typeof t.chalan_id === 'string' && t.chalan_id.startsWith('PTY-')) {
+          cbName = "Party Ledger";
+          cbType = "Party";
+        } else if (cbMap[t.chalan_id]) {
+          cbName = cbMap[t.chalan_id].name;
+          cbType = cbMap[t.chalan_id].type;
+        }
+
         return {
           ...t,
           id: t._id.toString(),
-          cashbook_name: cbInfo.name,
-          cashbook_type: cbInfo.type
+          cashbook_name: cbName,
+          cashbook_type: cbType
         };
       });
 

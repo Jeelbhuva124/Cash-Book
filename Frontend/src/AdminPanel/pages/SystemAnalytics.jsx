@@ -75,37 +75,50 @@ export const SystemAnalytics = () => {
       </div>
 
       {/* Analytics Highlights */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-card border border-border rounded-2xl p-6 shadow-sm flex items-center gap-4">
-          <div className="p-4 rounded-2xl bg-primary/10 text-primary">
-            <Zap className="w-6 h-6" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="bg-card border border-border rounded-2xl p-5 shadow-sm flex items-center justify-between">
+          <div className="space-y-1">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total Trx Volume</p>
+            <h3 className="text-2xl font-black text-foreground">{formatCurrency(stats?.total_volume)}</h3>
+            <span className="text-xs font-bold text-muted-foreground">{stats?.total_transactions || 0} active transactions</span>
           </div>
-          <div>
-            <p className="text-xs font-semibold text-muted-foreground uppercase">Avg API Latency</p>
-            <h3 className="text-2xl font-black text-foreground">{stats?.api_latency_ms || 42} ms</h3>
-            <span className="text-xs font-bold text-emerald-500">System Uptime: {stats?.system_uptime || '99.9%'}</span>
+          <div className="p-3.5 rounded-2xl bg-amber-500/10 text-amber-500 border border-amber-500/20">
+            <Wallet className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-card border border-border rounded-2xl p-6 shadow-sm flex items-center gap-4">
-          <div className="p-4 rounded-2xl bg-emerald-500/10 text-emerald-500">
-            <Wallet className="w-6 h-6" />
+        <div className="bg-card border border-border rounded-2xl p-5 shadow-sm flex items-center justify-between">
+          <div className="space-y-1">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total Cash In</p>
+            <h3 className="text-2xl font-black text-emerald-500">{formatCurrency(stats?.total_income)}</h3>
+            <span className="text-xs font-bold text-emerald-500">Credited into system</span>
           </div>
-          <div>
-            <p className="text-xs font-semibold text-muted-foreground uppercase">Total Trx Volume</p>
-            <h3 className="text-2xl font-black text-foreground">{formatCurrency(stats?.total_volume)}</h3>
+          <div className="p-3.5 rounded-2xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+            <TrendingUp className="w-5 h-5" />
+          </div>
+        </div>
+
+        <div className="bg-card border border-border rounded-2xl p-5 shadow-sm flex items-center justify-between">
+          <div className="space-y-1">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total Cash Out</p>
+            <h3 className="text-2xl font-black text-rose-500">{formatCurrency(stats?.total_expense)}</h3>
+            <span className="text-xs font-bold text-rose-500">Debited across accounts</span>
+          </div>
+          <div className="p-3.5 rounded-2xl bg-rose-500/10 text-rose-500 border border-rose-500/20">
+            <Wallet className="w-5 h-5" />
+          </div>
+        </div>
+
+        <div className="bg-card border border-border rounded-2xl p-5 shadow-sm flex items-center justify-between">
+          <div className="space-y-1">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Net System Balance</p>
+            <h3 className={`text-2xl font-black ${(stats?.net_balance || 0) >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+              {formatCurrency(stats?.net_balance)}
+            </h3>
             <span className="text-xs font-bold text-muted-foreground">Across {stats?.total_cashbooks || 0} cashbooks</span>
           </div>
-        </div>
-
-        <div className="bg-card border border-border rounded-2xl p-6 shadow-sm flex items-center gap-4">
-          <div className="p-4 rounded-2xl bg-sky-500/10 text-sky-500">
-            <Users className="w-6 h-6" />
-          </div>
-          <div>
-            <p className="text-xs font-semibold text-muted-foreground uppercase">Total Users</p>
-            <h3 className="text-2xl font-black text-foreground">{stats?.total_users || 0}</h3>
-            <span className="text-xs font-bold text-emerald-500">{stats?.active_users || 0} Active Accounts</span>
+          <div className="p-3.5 rounded-2xl bg-sky-500/10 text-sky-500 border border-sky-500/20">
+            <Users className="w-5 h-5" />
           </div>
         </div>
       </div>
