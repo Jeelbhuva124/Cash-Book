@@ -1,0 +1,27 @@
+﻿
+            <h3>Managed by Your Organization/College</h3>
+            <h3 style="margin: 20px 0;">ON</h3>
+                <h3 style="color: red; font-size: 22px;">SUBMITTED BY:</h3>
+                <h3 style="color: red; font-size: 22px;">GUIDED BY:</h3>
+        <h3 class="text-red text-center" style="margin-top: 30px;">Start To End Process</h3>
+        <h3 style="margin-top: 20px;">Admin Login</h3>
+        <h3 style="margin-top: 30px;">Admin Register</h3>
+        <h3 style="margin-top: 30px;">Admin Dashboard</h3>
+        <h3 style="margin-top: 30px;">User Management</h3>
+        <h3 style="margin-top: 30px;">Transaction Management</h3>
+        <h3 style="margin-top: 30px;">Cashbook Management</h3>
+        <h3 style="margin-top: 30px;">System Analytics</h3>
+        <h3 style="margin-top: 30px;">Landing Page (Index)</h3>
+<h3 style="margin-top: 20px;">User Login</h3>
+<h3 style="margin-top: 30px;">User Register</h3>
+        <h3 style="margin-top: 30px;">Dashboard (Home)</h3>
+        <h3 style="margin-top: 30px;">Transactions Page</h3>
+        <h3 style="margin-top: 30px;">Add Transaction Popup</h3>
+        <h3 style="margin-top: 30px;">Party Ledger (Udhaar Book)</h3>
+        <h3 style="margin-top: 30px;">Receipts Vault</h3>
+        <h3 style="margin-top: 30px;">Reminders</h3>
+        <h3 style="margin-top: 30px;">Tracker / Reports Analytics</h3>
+        <h3 style="margin-top: 30px;">Active Sessions</h3>
+        <h3 style="margin-top: 30px;">Profile / Settings</h3>
+
+

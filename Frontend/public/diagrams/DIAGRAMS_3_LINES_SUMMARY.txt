@@ -1,0 +1,42 @@
+================================================================================
+           CASH-BOOK: ALL 6 DIAGRAMS (EXACTLY 3 LINES FOR EACH)
+================================================================================
+
+1. SYSTEM ARCHITECTURE & COMPONENT FLOW (system_architecture_diagram.jpg)
+- Line 1: Illustrates a 3-Tier decoupled MERN architecture separating the User Dashboard and Admin Panel presentation layers.
+- Line 2: Connects React 19 Frontend with Express.js REST API and Socket.IO live sync over a centralized MongoDB database.
+- Line 3: Ensures multi-tenant ledger security, strict role isolation, and real-time administrative platform telemetry.
+
+--------------------------------------------------------------------------------
+2. DATABASE ENTITY-RELATIONSHIP SCHEMA (database_er_diagram.jpg)
+- Line 1: Defines the normalized logical database schema specifying Primary Keys (PK), Foreign Keys (FK), and snake_case attributes.
+- Line 2: Establishes 1:N cardinality where 1 User owns many Cashbooks, and 1 Cashbook owns Transactions, Invites, and EMIs.
+- Line 3: Binds all financial data through chalan_id to maintain strict multi-tenant isolation and zero data contamination.
+
+--------------------------------------------------------------------------------
+3. USER JOURNEY PROCESS FLOW (user_process_flow.jpg)
+- Line 1: Maps the complete user lifecycle from initial signup and 4-digit security PIN setup to custom cashbook creation.
+- Line 2: Details daily Cash-In/Cash-Out entries with category tagging, Receipt Vault attachments, and Party Khata interest.
+- Line 3: Enables collaborative multi-user book sharing with role permissions and instant 1-click vector PDF balance sheet export.
+
+--------------------------------------------------------------------------------
+4. ADMIN WORKFLOW DIAGRAM (admin_process_flow.jpg)
+- Line 1: Establishes administrative governance using strict Role-Based Access Control (RBAC) and AdminProtectedRoute guards.
+- Line 2: Provides platform telemetry, user account moderation (Active/Suspended toggles), and global multi-cashbook audits.
+- Line 3: Implements a Master Transaction audit stream featuring Soft-Delete Recovery to restore deleted records with is_deleted: true.
+
+--------------------------------------------------------------------------------
+5. DATA FLOW DIAGRAM LEVEL 0 - CONTEXT LEVEL (dfd_level_0.jpg)
+- Line 1: Establishes system boundaries by modeling the entire platform as a single black-box bubble: 0.0 Cash-Book System.
+- Line 2: Maps bidirectional data flows between external entities: User, Collaborator, Admin, and External Email/Socket Services.
+- Line 3: Transforms input data (credentials, ledger entries, commands) into output deliverables (reports, alerts, telemetry).
+
+--------------------------------------------------------------------------------
+6. DATA FLOW DIAGRAM LEVEL 1 (dfd_level_1.jpg)
+- Line 1: Decomposes the central 0.0 process into 8 modular sub-processes (Auth, Cashbook, Transaction, Khata, EMI, Invites, Reports, Audit).
+- Line 2: Maps asynchronous read/write operations across 5 isolated Data Stores: D1:User, D2:Cashbook, D3:Transaction, D4:Invite, D5:EMI.
+- Line 3: Ensures high-throughput financial transaction processing and interest calculations never bottleneck authentication or reports.
+
+================================================================================
+                               END OF 3-LINE SUMMARY
+================================================================================

@@ -1,0 +1,55 @@
+================================================================================
+              CASH-BOOK: 1-MINUTE SHORT VIVA & DIAGRAMS CHEAT SHEET
+================================================================================
+
+1. PROJECT INTRO (30-SECOND PITCH):
+"Cash-Book is a full-stack MERN financial bookkeeping web application. It features
+two isolated modules: a User Dashboard (multi-cashbook, income/expense, party
+debtor/creditor with auto-interest, EMI alerts, and PDF exports) and an Admin
+Panel (system telemetry, user suspension/activation, and soft-delete recovery)."
+
+--------------------------------------------------------------------------------
+2. ALL 6 DIAGRAMS IN 1-LINE EACH:
+--------------------------------------------------------------------------------
+1. System Architecture (system_architecture_diagram.jpg):
+   -> 3-Tier MERN stack: User/Admin Frontend -> Express.js API -> MongoDB DB.
+
+2. Database ER Diagram (database_er_diagram.jpg):
+   -> Normalized schema: User (1:N) Cashbook (1:N) Transaction (via chalan_id).
+
+3. User Process Flow (user_process_flow.jpg):
+   -> Login/PIN -> Cashbook Setup -> Entry + Bills -> Khata/EMI -> PDF Report.
+
+4. Admin Process Flow (admin_process_flow.jpg):
+   -> RBAC Login -> Telemetry Stats -> User Active/Suspend -> Soft-Delete Restore.
+
+5. DFD Level 0 Context (dfd_level_0.jpg):
+   -> Black-box view: Process 0.0 exchanges data with User, Admin & Collaborator.
+
+6. DFD Level 1 (dfd_level_1.jpg):
+   -> Internal view: Decomposes 0.0 into 8 sub-processes and 5 Data Stores (D1-D5).
+
+--------------------------------------------------------------------------------
+3. USER SIDE VS ADMIN SIDE (CORE DIFFERENCE):
+--------------------------------------------------------------------------------
+- USER: Manages own cashbooks, records income/expense, tracks udhar/EMI & reports.
+- ADMIN: Platform governance, suspends abusive users, audits & restores deleted data.
+
+--------------------------------------------------------------------------------
+4. TOP 3 VIVA QUESTIONS & INSTANT ANSWERS:
+--------------------------------------------------------------------------------
+Q1: Why MongoDB instead of SQL/MySQL?
+Ans: "Financial entries have flexible schemas (interest rates, receipts, EMI data).
+     MongoDB handles dynamic JSON documents and high-speed write performance."
+
+Q2: What is the Soft-Delete Pattern?
+Ans: "When a user deletes a transaction, it is not erased. It sets is_deleted: true.
+     It disappears from the user ledger but remains in DB for Admin recovery."
+
+Q3: How does collaborative book sharing work?
+Ans: "Owner sends an email invite with roles (Viewer/Editor/Admin). When accepted,
+     the cashbook's chalan_id is shared and Socket.IO syncs live updates."
+
+================================================================================
+                            BEST OF LUCK FOR VIVA!
+================================================================================

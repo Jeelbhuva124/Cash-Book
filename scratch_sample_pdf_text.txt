@@ -1,0 +1,912 @@
+=== PAGE 1 ===
+ 
+ 
+ 
+                                     
+ 
+ 
+                                                                             PROJECT REPORT 
+                                             ON 
+  An Online Cosmetics and Fragrance Platform 
+ 
+ 
+SUBMITTED BY:         GUIDED BY: 
+                      Andani Urvi G.      (910) - (6326)             Mrs. Damyanti Patel 
+                       Vamja Lakshita J. (912) - (6550) 
+                       Kheni Tisha H.       (915) - (6410) 
+ 
+ 
+ 
+
+
+=== PAGE 2 ===
+An Online Cosmetics and Fragrance Platform 
+ 
+ 1 
+ 
+ 
+Acknowledgement 
+ 
+We take great pleasure in presenting this project, An Online Cosmetics and 
+Fragrance Platform , developed during the 5th semester of Bachelor of 
+Computer Application (Information Technology) . We would like to mention 
+here that this project would not have been possible without the invaluable 
+support and guidance of our professors. 
+As the final frontier toward achieving our Bachelor of Computer Application 
+(Information Technology), the activity of developing an IT project has helped us  
+bridge the gap between academic knowledge and practical real -life 
+applications. It has prepared us to apply our learning effectively and motivated 
+us to grow into capable IT professionals. 
+On the occasion of completing our project on Glowify, we would lik e to express 
+our heartfelt gratitude to all those who directly or indirectly supported us. We 
+are extremely grateful to everyone who has helped us in this journey. We 
+would especially like to extend our sincere thanks to Mrs. Damyanti Patel  for 
+his valuabl e suggestions, encouragement, and stimulating discussions that 
+guided us throughout the project. We would also like to express our gratitude 
+to our Principal, Prin. Dr. Mukesh R. Goyani , for their constant support and 
+guidance. 
+It has been a rich and rewarding experience studying at Prof.V.B.Shah Institute 
+of Management &R.V.Patel College of Commerce(Eng.Med.) &V.L.Shah 
+College of Commerce (Guj.Med.) &Sutex Bank College of Computer 
+Applications & Science, Amroli,  and this project stands as a testament to th e 
+knowledge and skills we have gained during our academic journey.  
+ 
+ 
+ 
+
+=== PAGE 3 ===
+An Online Cosmetics and Fragrance Platform 
+ 
+ 2 
+ 
+ 
+Declaration 
+ 
+We hereby declare that the project “An Online Cosmetics and Fragrance 
+Platform” is our original work completed as part of our academic 
+requirements. The project provides an online platform for purchasing beauty 
+and personal care products with features such as user login, product browsing, 
+shopping cart, wishlist, secure checkout, and  order management. It also 
+includes admin modules for product, order, and user management.  
+Glowify is developed using React, Node.js, and MongoDB, representing a 
+complete e-commerce solution for the beauty industry.  
+We sincerely thank our guide and our parents and family members  for their 
+continuous support, guidance, and encouragement throughout this project.  
+We further declare that this work has not been submitted to any other 
+institution for any degree, diploma, or certificate. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+=== PAGE 4 ===
+An Online Cosmetics and Fragrance Platform 
+ 
+ 3 
+ 
+ 
+Index 
+ 
+No. Title Page No. 
+1 Introduction of Project 4 
+2 Project Profile 5 
+3 Technology Study 6 
+4 Objectives 10 
+5 System Flow Diagram 13 
+6 DFD / UML Diagram 15 
+7 ER Diagram 18 
+8 Database Design 19 
+9 System Design 23 
+10 References 35 
+ 
+ 
+ 
+ 
+ 
+ 
+
+=== PAGE 5 ===
+An Online Cosmetics and Fragrance Platform 
+ 
+ 4 
+ 
+ 
+ 
+ 
+ It aims to simplify the shopping experience for customers by offering a 
+fast, convenient, and accessible way to purchase beauty products from 
+anywhere. 
+ The platform eliminates the limitations of traditional beauty shopping, 
+such as restricted location, store timings, and limited product 
+availability. 
+ It offers essential e-commerce features including: 
+ User registration & login 
+ Product browsing by categories (Skincare, Haircare, Perfumes, 
+Makeup) 
+ Shopping cart and wishlist 
+ Secure checkout and order placement 
+ Customer profile and order management 
+ For admins, the system includes: 
+ Product and category management 
+ Order tracking 
+ User management 
+ Admin dashboard for monitoring activity 
+ Glowify acts as a digital bridge between sellers and buyers, allowing 
+businesses to expand their market reach and automate sales operations.  
+ The project uses modern web technologies:  
+ Frontend: React 
+ Backend: Node 
+ Database: Mongodb 
+ It serves as a real-world implementation of an end-to-end e-commerce 
+solution in the beauty and personal care industry.  
+ 
+1. Introduction of Project 
+ 
+
+=== PAGE 6 ===
+An Online Cosmetics and Fragrance Platform 
+ 
+ 5 
+ 
+ 
+ 
+ 
+ 
+An Online Cosmetics and Fragrance Platform 
+ 
+Project Title : 
+ 
+An Online Cosmetics and Fragrance Platform  
+Operating System : Windows 10 
+Front End Technologies : React 
+Back End Technologies : Node &Mongodb 
+ 
+Platform : Vs Code 
+Documentation Tool : Microsoft Word 
+Project Guide : Mrs. Damyanti Patel 
+Project Duration : 3 Months 
+Prepared By : Andani Urvi (910) – (6326)  
+Vamja Lakshita (912)- (6550) 
+Kheni Tisha (915)-(6410) 
+ 
+ 
+2. Project Profile 
+
+=== PAGE 7 ===
+An Online Cosmetics and Fragrance Platform 
+ 
+ 6 
+ 
+ 
+ 
+ 
+ React : 
+ 
+ React was first developed by Jordan Walke at Facebook in 2011. 
+ React is a JavaScript library used for building user interfaces (UI) , 
+especially single-page applications (SPA). 
+ React uses a component-based architecture , where the UI is 
+divided into reusable pieces called components. 
+ React uses a Virtual DOM  to efficiently update only the parts of 
+the page that change, improving performance. 
+ 
+ HTML : 
+ 
+ First developed by Tim Berners-Lee in 1990,  HTML is short for      
+Hypertext Markup Language. 
+CSS
+Java-
+script
+React
+ Mongod
+b
+Node
+HTML
+3. Technology Study 
+ 
+
+=== PAGE 8 ===
+An Online Cosmetics and Fragrance Platform 
+ 
+ 7 
+ 
+ HTML is used to create electronic documents (called pages) that 
+are displayed on the World Wide Web. 
+ Each page contains a series of connections to other pages called 
+hyperlinks. 
+ 
+ JavaScript : 
+ 
+ JavaScript is a dynamic computer programming language. 
+ It is lightweight and most commonly used as a part of web pages. 
+ JavaScript allows client-side scripts to interact with the user. 
+ It is an interpreted programming language with object -oriented 
+capabilities. 
+ 
+ Node : 
+ 
+ Node.js was developed by Ryan Dahl in 2009. 
+ Node.js is an open-source, cross-platform runtime environment. 
+ It allows running JavaScript outside the browser  (on the server 
+side). 
+ Node.js uses the V8 JavaScript engine from Google Chrome. 
+ It is designed for scalable, fast, and event-driven applications. 
+ 
+ Mongodb : 
+ 
+ MongoDB was first released in 2009 by MongoDB Inc. 
+ MongoDB is an open-source NoSQL database. 
+ It stores data in flexible, JSON-like documents instead of tables. 
+ MongoDB is schema-less, meaning each document can have 
+different fields. 
+ It is designed for high performance, scalability, and flexibility. 
+ Commonly used in modern web applications, big data, and real -
+time analytics. 
+
+=== PAGE 9 ===
+An Online Cosmetics and Fragrance Platform 
+ 
+ 8 
+ 
+Tools: 
+ Documentation Tools: 
+ 
+ 
+ MS Word:- 
+ 
+ Microsoft Word  or MS-WORD (often called Word) is a graphical 
+word processing program that allows users to type and format 
+text. 
+ It is developed by Microsoft and is widely used for creating 
+documents such as letters, reports, and resumes 
+ MS Word provides features like spell check, templates, tables, 
+mail merge, and image insertion to enhance documents. 
+ 
+ Development Tools: 
+ 
+ 
+TEXT-EDITOR
+MS-WORLD
+VISULAL STUDIO 
+TOOLS
+
+=== PAGE 10 ===
+An Online Cosmetics and Fragrance Platform 
+ 
+ 9 
+ 
+ 
+ VS Code:- 
+ 
+ Visual Studio Code (VS Code) is a free, open -source code editor  
+developed by Microsoft. 
+ It is available for Windows, macOS, and Linux. 
+ VS Code is widely used for coding, debugging, and software 
+development in various programming languages like Python, 
+JavaScript, C++, Java, React,Node and more. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+=== PAGE 11 ===
+An Online Cosmetics and Fragrance Platform 
+ 
+ 10 
+ 
+ 
+ 
+ 
+ The objective of the project Glowify  – An Online Cosmetics and 
+Fragrance Platform is to design and develop a professional, responsive, 
+and user -friendly e -commerce website for selling cosmetics, skincare, 
+hair care, and fragrance products. 
+ The platform offers essential features such as produ ct browsing, 
+shopping cart, wishlist, order placement, and tracking for customers, 
+along with a secure admin panel to manage products, categories, users, 
+and orders. 
+ The aim is to deliver a functional and scalable system that simulates real -
+world online retail experiences in the cosmetics and fragrance domain. 
+ 
+ 
+Start To End Process 
+1. Project Planning & Requirement Analysis 
+ Define the purpose of the website: selling cosmetics, skincare, hair 
+care, and fragrances online. 
+ Identify key features for users and admins such as product browsing, 
+cart and wishlist management, secure login, order placement, and 
+admin product management. 
+ Finalize the technology stack: React, CSS, JavaScript, Bootstrap 
+(frontend), Node, and Mongodb (database). 
+2. UI/UX Design 
+ Design wireframes or layout sketches for all major pages: Homepage, 
+Product Details, Cart, Wishlist, Login/Register, User Dashboard, and 
+Admin Panel. 
+ Ensure a modern, clean, and responsive interface. 
+ Use a consistent color scheme, readable fonts, and high -quality 
+product images to enhance visual appeal. 
+ 
+4. Objectives 
+
+=== PAGE 12 ===
+An Online Cosmetics and Fragrance Platform 
+ 
+ 11 
+ 
+3. Frontend Development 
+ Use: 
+o React– forbuilding the frontend user interface 
+o CSS – for visual design and layout 
+o JavaScript – for interactivity and dynamic features 
+o HTML (used within JSX) – for structuring elements inside 
+components. 
+ Build pages such as: 
+o Home 
+o Product Listing and Details 
+o Cart and Wishlist 
+o Login and Register 
+o User Dashboard 
+o Admin Panel UI 
+4. Backend Development 
+ Use Node.js with Express.js to handle user sessions, product queries, 
+order logic, and admin actions. 
+ Connect to MongoDB for managing backend data like:  
+o Users  
+o Products and Categories 
+o Cart and Wishlist items 
+o Orders and Order Items 
+ Implement secure session or token-based authentication (e.g., JWT) 
+for both user and admin access. 
+5. Database Design 
+ Create essential Collections: 
+o Users 
+o Admin 
+o Cart 
+o Category 
+o Contact 
+o Feedback 
+o Orders 
+o Products 
+o Wishlist 
+
+=== PAGE 13 ===
+An Online Cosmetics and Fragrance Platform 
+ 
+ 12 
+ 
+ Define relationships using references (ObjectId) or embedding:  
+    Users → Orders → OrderItems (reference by userId and orderId)  
+    Products → Cart / Wishlist / Feedback (reference by productId) 
+    Categories → Products (reference by categoryId)  
+    Users → Cart, Wishlist, Feedback (reference by userId)  
+ 
+6. Functionality Implementation 
+User Side: 
+ User Registration and Login 
+ Browse and search cosmetics and fragrances 
+ Add items to cart and wishlist 
+ Place orders with a simple checkout process 
+ View profile and past orders 
+Admin Side: 
+ Admin login and secure access 
+ Add/Edit/Delete products  
+ Manage customer orders 
+ View user list and feedback 
+ Dashboard overview of platform activity 
+7. Testing 
+ Perform end-to-end testing of all major features: 
+o Form validation (login, register, contact) 
+o Cart and Wishlist functionality 
+o Order placement flow 
+o Admin actions and data updates 
+ Fix bugs, logical errors, and UI issues. 
+8. Final Review & Optimization 
+ Optimize page loading speed by compressing images and minifying 
+code. 
+ Ensure code readability and remove unused files/scripts.  
+ Final UI/UX polish to ensure consistency across all devices.  
+
+=== PAGE 14 ===
+An Online Cosmetics and Fragrance Platform 
+ 
+ 13 
+ 
+ 
+ 
+ Admin Process Flow Diagram: 
+ 
+ 
+ 
+ 
+5. System Flow Diagram 
+
+=== PAGE 15 ===
+An Online Cosmetics and Fragrance Platform 
+ 
+ 14 
+ 
+ 
+ User Process Flow Diagram: 
+ 
+ 
+ 
+ 
+ 
+
+
+=== PAGE 16 ===
+An Online Cosmetics and Fragrance Platform 
+ 
+ 15 
+ 
+ 
+ 
+ 
+ 0 level Diagram(Context Diagram): 
+ 
+ 
+ 
+ 
+ 
+6. DFD / UML Diagram 
+
+=== PAGE 17 ===
+An Online Cosmetics and Fragrance Platform 
+ 
+ 16 
+ 
+ 
+ 1st Level Admin Diagram: 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+
+=== PAGE 18 ===
+An Online Cosmetics and Fragrance Platform 
+ 
+ 17 
+ 
+ 
+ 1st Level User Diagram: 
+ 
+ 
+ 
+ 
+  
+ 
+ 
+ 
+
+
+=== PAGE 19 ===
+An Online Cosmetics and Fragrance Platform 
+ 
+ 18 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+  
+ 
+7. ER Diagram 
+
+=== PAGE 20 ===
+An Online Cosmetics and Fragrance Platform 
+ 
+ 19 
+ 
+ 
+ 
+ 
+ CollectionName: Admin 
+ 
+ 
+ 
+ 
+ Collection Name : User 
+ 
+ 
+ Collection Name : Category 
+ 
+Field Name Data Type Constraints Description 
+name String - Name of the category 
+slug String - URL-friendly 
+sluggified version 
+link String - Optional link 
+associated with 
+category 
+ 
+Field Name Data Type Constraints Description 
+username String Required Admin’s username  
+email String Required, 
+Unique 
+Admin's email 
+address 
+password String Required Encrypted 
+password 
+isAdmin Boolean Default: true Defines if the user 
+has admin 
+privileges 
+Field Name Data Type Constraints Description 
+username String Optional User's username 
+email String Required, Unique User's email 
+address 
+password String Optional Encrypted 
+password 
+contact String Optional User's contact 
+information 
+8.  Database Design 
+
+=== PAGE 21 ===
+An Online Cosmetics and Fragrance Platform 
+ 
+ 20 
+ 
+ Collection Name : Product 
+ 
+Field Name Data Type Constraints Description 
+cid ObjectId Required, ref: 
+"Category" 
+References the 
+category of the 
+product 
+title String Required Name/title of the 
+product 
+price Number Required Selling price of the 
+product 
+image String Required URL/path to the 
+product image 
+tag String Default: null e.g. "Best Seller", 
+"New" 
+skinType String Default: null e.g. "For Oily Skin" 
+ 
+rating Number Default: 0.0 Average rating of the 
+product 
+reviews Number Default: 0 Number of reviews 
+description String Default: '' Description text for 
+the product 
+created_at Date Default: 
+Date.now 
+Timestamp when the 
+product was created 
+ 
+ Collection Name : Wishlist 
+ 
+Field Name Data Type Constraints Description 
+userId ObjectId Required, Refers to 
+User 
+References the user 
+who added the product 
+productId ObjectId Required, Refers to 
+Product 
+References the product 
+added to the wishlist 
+addedAt Date Default: Date.now Timestamp when the 
+product was added to 
+wishlist 
+ 
+ 
+ 
+
+=== PAGE 22 ===
+An Online Cosmetics and Fragrance Platform 
+ 
+ 21 
+ 
+ Collection Name : Cart 
+ 
+Field Name Data Type Constraints Description 
+userId String Required 
+ 
+Identifier for the user 
+productId ObjectId Required, 
+Reference to 
+Product 
+The product that’s 
+added to cart 
+quantity Number Default = 1 Number of units of 
+that product 
+addedAt Date Default = 
+Date.now 
+Timestamp when the 
+product was added 
+ 
+ Collection Name : Order 
+ 
+Field Name Data Type Constraints Description 
+user ObjectId Required, ref: 
+User 
+The user who placed 
+the order 
+items (array) Array of 
+subdocuments 
+— List of ordered items 
+  product_id ObjectId ref: Product The product in this 
+item 
+  quantity Number Required Quantity of that 
+product 
+  price Number Required Price per unit of the 
+product 
+shippingAddress String Required Address where the 
+order is to be 
+shipped 
+paymentMethod String Required Mode of payment 
+paymentStatus String Default: "Pending" Status of payment 
+(e.g. “Pending”, 
+“Paid”) 
+orderStatus String Default: 
+"Processing" 
+Status of the order 
+(e.g. “Processing”) 
+totalPrice Number Required Total cost of the 
+order 
+placedAt Date Default: Date.now Timestamp when the 
+order was placed 
+
+=== PAGE 23 ===
+An Online Cosmetics and Fragrance Platform 
+ 
+ 22 
+ 
+ Collection name : Feedback 
+ 
+Field Name Data Type Constraints Description 
+user_id ObjectId Required, ref: User The user who gave the feedback 
+product_id ObjectId Required, ref: Product The product being reviewed 
+rating Number Required, min: 1, max: 5 The rating score (e.g. from 1 to 5) 
+message String Required The textual feedback / comment 
+createdAt / 
+updatedAt Date 
+Automatically 
+created 
+(timestamps) 
+When the feedback 
+was created / last 
+updated 
+ 
+ Collection Name :ContactMessage 
+ 
+Field Name Data Type Constraints Description 
+name String Required, trimmed Name of the person sending the message 
+email String Required, trimmed Email address of the sender 
+category String 
+Required, one of 
+['query', 'order', 
+'product', 'collab'], 
+trimmed 
+Type or purpose of the 
+message 
+message String Required, trimmed Content of the message 
+createdAt Date Default: Date.now Timestamp when the message was created 
+ 
+ 
+ 
+ 
+ 
+ 
+
+=== PAGE 24 ===
+An Online Cosmetics and Fragrance Platform 
+ 
+ 23 
+ 
+ 
+ 
+ 
+ Admin side: 
+ 
+Admin Login 
+ 
+ 
+Admin Register 
+ 
+ 
+ 
+ 
+ 
+ 
+9. System Diagram 
+
+=== PAGE 25 ===
+An Online Cosmetics and Fragrance Platform 
+ 
+ 24 
+ 
+Admin Dashboard
+ 
+Category List
+ 
+Add Product
+ 
+
+
+=== PAGE 26 ===
+An Online Cosmetics and Fragrance Platform 
+ 
+ 25 
+ 
+Product List
+ 
+Order
+ 
+Update Order
+ 
+ 
+
+
+=== PAGE 27 ===
+An Online Cosmetics and Fragrance Platform 
+ 
+ 26 
+ 
+Contact Message
+ 
+Feedback
+ 
+Users
+ 
+ 
+
+
+=== PAGE 28 ===
+An Online Cosmetics and Fragrance Platform 
+ 
+ 27 
+ 
+ User side: 
+ 
+User Login
+ 
+ 
+User Register
+ 
+Index Page
+
+
+=== PAGE 29 ===
+An Online Cosmetics and Fragrance Platform 
+ 
+ 28 
+ 
+ 
+
+
+=== PAGE 30 ===
+An Online Cosmetics and Fragrance Platform 
+ 
+ 29 
+ 
+Product Page
+ 
+ 
+ 
+
+
+=== PAGE 31 ===
+An Online Cosmetics and Fragrance Platform 
+ 
+ 30 
+ 
+Product Popup
+ 
+ 
+Wishlist
+ 
+Cart
+ 
+ 
+
+
+=== PAGE 32 ===
+An Online Cosmetics and Fragrance Platform 
+ 
+ 31 
+ 
+Place Order
+ 
+ 
+Order
+ 
+ 
+ 
+ 
+
+
+=== PAGE 33 ===
+An Online Cosmetics and Fragrance Platform 
+ 
+ 32 
+ 
+Contact 
+ 
+ 
+About Us
+
+
+=== PAGE 34 ===
+An Online Cosmetics and Fragrance Platform 
+ 
+ 33 
+ 
+ 
+ 
+ 
+ 
+
+
+=== PAGE 35 ===
+An Online Cosmetics and Fragrance Platform 
+ 
+ 34 
+ 
+Feedback
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+
+=== PAGE 36 ===
+An Online Cosmetics and Fragrance Platform 
+ 
+ 35 
+ 
+ 
+ 
+ 
+ W3Schools – https://www.w3schools.com 
+ OpenAI ChatGPT – https://openai.com/chatgpt 
+ Google Knowledge Graph Article –https://g.co/kgs/19gU1q3 
+ Bootstrap Framework – https://getbootstrap.com 
+ GitHub – https://github.com 
+ Dot & Key – https://www.dotandkey.com/ 
+ Nayka - https://www.nykaa.com/ 
+ 
+10. References 
+ 
+

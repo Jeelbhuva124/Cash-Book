@@ -1,0 +1,147 @@
+================================================================================
+             CASH-BOOK: VIVA DOMINATION & PPT SLIDES QUICK GUIDE
+================================================================================
+
+================================================================================
+1. 30-SECOND ELEVATOR PITCH (HOW TO START YOUR VIVA)
+================================================================================
+"Respected Sir/Madam, Cash-Book is an intelligent, full-stack MERN financial
+bookkeeping platform. It replaces traditional paper registers with a secure,
+multi-user digital ledger. Our platform features two distinct portals:
+1. User Dashboard: For managing multiple cashbooks, tracking income/expense,
+   monitoring party khata (debtor/creditor with auto-interest), scheduling EMI
+   dues, sharing books via role-based invitations, and generating 1-click PDF
+   balance sheets.
+2. Admin Portal: For platform telemetry, user moderation (activate/suspend),
+   global cashbook audit, and soft-deleted transaction recovery."
+
+
+================================================================================
+2. SLIDE-BY-SLIDE PPT CONTENT (COPY-PASTE READY)
+================================================================================
+
+[SLIDE 1: TITLE & PROJECT OVERVIEW]
+- Title: Cash-Book - Multi-Tenancy Financial Ledger System
+- Subtitle: A Full-Stack MERN Collaborative Bookkeeping Platform
+- Stack: MongoDB, Express.js, React 19, Node.js, Tailwind CSS v4, Socket.IO.
+- Objective: Modernizing financial tracking with real-time collaboration,
+  multi-cashbook organization, and automated balance sheet reporting.
+
+[SLIDE 2: PROBLEM STATEMENT]
+- Physical paper registers suffer from human calculation errors, loss, and wear.
+- Standard expense apps do not support multi-user role-based book sharing.
+- Small businesses lack integrated party khata (udhar) with interest calculation.
+- Poor security: Existing solutions lack fast PIN verification and device session
+  tracking.
+
+[SLIDE 3: SYSTEM ARCHITECTURE & TECH STACK]
+- Frontend: React 19 SPA, Tailwind CSS v4, Lucide React icons, Three.js 3D hero.
+- Backend: Node.js, Express.js REST API, Socket.IO for live WebSocket sync.
+- Database: MongoDB with Mongoose ODM (strict snake_case schema naming).
+- Export Engine: jsPDF & html2canvas for instant vector PDF balance sheets.
+- Security: JWT tokens, Bcrypt password hashing, 4-digit quick security PIN.
+
+[SLIDE 4: CORE USER FEATURES]
+- Multi-Cashbook Engine: Create isolated books (Personal, Shop, Event) with
+  custom color badges.
+- Income/Expense Tracking: Tagged with category, payment mode (Cash, UPI, Card),
+  and receipt attachments.
+- Party Ledger (Khata): Track Debtors (Lena hai) & Creditors (Dena hai) with
+  automated interest computation.
+- EMI & Subscription Vault: Monthly due-date countdowns and reminder alerts.
+- Collaboration: Send email invites with Viewer, Editor, or Admin permissions.
+
+[SLIDE 5: CORE ADMIN FEATURES]
+- Admin Dashboard: Real-time telemetry, active user counters, gross volume.
+- User Management: Account status moderation (Active / Suspended), PIN resets.
+- Cashbook Supervision: Global audit trail and ledger storage monitoring.
+- Master Transaction Oversight: Soft-Delete recovery to restore deleted items.
+- Multi-Admin Hierarchy: Super-Admin onboarding and role delegation.
+
+[SLIDE 6: DATABASE DESIGN & RELATIONSHIPS]
+- User to Cashbooks (1:N): One user creates multiple independent cashbooks.
+- Cashbook to Transactions (1:N): Foreign key chalan_id links transactions to a
+  specific ledger.
+- Cashbook to Invitations (1:N): Manages multi-user collaborator access.
+- Cashbook to EmiSubscriptions (1:N): Tracks recurring commitments per ledger.
+
+[SLIDE 7: SECURITY & RELIABILITY HIGHLIGHTS]
+- Role-Based Access Control (RBAC): Enforced by AdminProtectedRoute in frontend
+  and auth middleware on Express routes.
+- Soft-Delete Pattern: Accidental deletions flag is_deleted: true rather than
+  dropping data permanently.
+- Active Sessions Tracker: View connected devices and remotely invalidate
+  sessions.
+
+[SLIDE 8: CONCLUSION & FUTURE SCOPE]
+- Conclusion: Cash-Book delivers an enterprise-grade financial bookkeeping
+  system tailored for personal and business use.
+- Future Scope:
+  * Direct Bank Open-API integration for automatic bank reconciliation.
+  * WhatsApp bot integration for automated payment due reminders.
+  * Multi-currency conversion for international ledgers.
+
+
+================================================================================
+3. TOP 10 TECHNICAL VIVA QUESTIONS & KILLER ANSWERS
+================================================================================
+
+Q1: What architecture does Cash-Book follow?
+A1: "We follow a decoupled 3-Tier Client-Server Architecture using the MVC
+    (Model-View-Controller) design pattern. React 19 handles the View layer,
+    Express.js controllers manage business logic, and Mongoose schemas manage the
+    Model layer on top of MongoDB."
+
+Q2: Why MongoDB instead of SQL (like MySQL)?
+A2: "Financial ledger entries can have polymorphic fields (e.g. party interest
+    rates, bill attachment URLs, or EMI schedules). MongoDB's dynamic JSON-like
+    document model accommodates schema growth without costly database locks or
+    migrations, and provides high write-throughput for live financial logging."
+
+Q3: How is User and Admin authentication separated?
+A3: "We use Role-Based Access Control (RBAC). Admin and User have dedicated
+    credentials. Frontend routes are shielded by AdminProtectedRoute which
+    verifies is_admin === true and session status. Backend endpoints pass
+    through JWT auth middleware that verifies token claims before executing
+    controllers."
+
+Q4: How does multi-user book collaboration work?
+A4: "The cashbook owner issues an email invitation with designated permissions
+    (Viewer, Editor, or Admin). Once accepted, the collaborator gains access to
+    that specific chalan_id. Socket.IO then broadcasts updates to all active
+    collaborator sessions in real time."
+
+Q5: What is the purpose of 'chalan_id' in the Transaction model?
+A5: "chalan_id is the foreign key linking each transaction to its parent
+    Cashbook. This guarantees complete multi-tenant ledger isolation so that
+    entries from different cashbooks never collide."
+
+Q6: What happens if a user deletes a transaction by accident?
+A6: "We implemented the Soft-Delete Pattern (is_deleted: true). The transaction
+    is hidden from the user's active ledger, but preserved in MongoDB. The Admin
+    Panel displays an audit trail where administrators can restore the record."
+
+Q7: How are PDF reports generated?
+A7: "We use the client-side libraries jsPDF and html2canvas. The system extracts
+    the filtered ledger data, constructs a balance sheet template, and compiles
+    it into an official vector PDF statement."
+
+Q8: How does the EMI and Subscription tracker work?
+A8: "The emiSubscription schema records amount, due_date, and cycle frequency.
+    The frontend computes the date delta between current system time and the due
+    date, rendering visual urgency indicators (Upcoming, Due Today, Overdue)."
+
+Q9: What is the 4-digit Security PIN feature?
+A9: "It acts as a rapid secondary authentication layer for critical financial
+    operations (like approving major transactions or altering account settings)
+    without forcing the user to re-type their full password."
+
+Q10: What is the difference between an ER Diagram and a DFD?
+A10: "An ER Diagram represents the static database structure (tables, keys, and
+     1:N cardinality), while a DFD (Data Flow Diagram) illustrates the dynamic
+     flow of data—showing how inputs from external actors transform through
+     processes into database stores and output reports."
+
+================================================================================
+                         END OF QUICK VIVA GUIDE
+================================================================================

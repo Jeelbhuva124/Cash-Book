@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=850">
+    <title>Cash-Book Project Report</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 0;
+        }
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.7;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            background: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .page {
+            page-break-after: always;
+            position: relative;
+            width: 210mm;
+            min-height: 297mm;
+            padding: 25mm 20mm;
+            margin-bottom: 30px;
+            background: #fff;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            box-sizing: border-box;
+        }
+        .page-header {
+            text-align: left;
+            font-size: 13px;
+            font-weight: 600;
+            color: #888;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eaeaea;
+            margin-bottom: 40px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .page-number {
+            position: absolute;
+            bottom: -5px;
+            right: 0;
+            font-size: 12px;
+            color: #aaa;
+            font-weight: 500;
+        }
+        .footer-line {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            border-bottom: 1px solid #eaeaea;
+        }
+        h1, h2, h3, h4 {
+            margin-top: 0;
+            color: #111;
+        }
+        .title-box {
+            font-size: 26px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #3498db;
+            display: inline-block;
+        }
+        .section-title {
+            color: #2c3e50;
+            font-weight: 600;
+            font-size: 22px;
+            margin-bottom: 15px;
+        }
+        .sub-title {
+            font-weight: 600;
+            font-size: 18px;
+            color: #34495e;
+            margin-top: 35px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        .sub-title::before {
+            content: "";
+            display: inline-block;
+            width: 4px;
+            height: 18px;
+            background-color: #3498db;
+            margin-right: 12px;
+            border-radius: 2px;
+        }
+        ul {
+            list-style-type: none;
+            margin-left: 0;
+            padding-left: 10px;
+        }
+        li {
+            margin-bottom: 10px;
+            position: relative;
+            padding-left: 20px;
+        }
+        li::before {
+            content: "•";
+            color: #3498db;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 25px;
+            margin-bottom: 45px;
+            background-color: #fff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.04);
+            border-radius: 8px;
+            overflow: hidden;
+            text-align: left;
+        }
+        th, td {
+            padding: 16px;
+            border-bottom: 1px solid #edf2f7;
+            text-align: left;
+        }
+        th {
+            background-color: #f8fafc;
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            text-align: left;
+        }
+        .table-db th {
+            background-color: #ebf4ff; 
+            color: #2b6cb0;
+        }
+        .table-db td {
+            background-color: #fff;
+            color: #4a5568;
+            font-size: 14px;
+        }
+        .db-title {
+            color: #2d3748;
+            font-weight: 700;
+            font-size: 16px;
+            margin-top: 40px;
+            margin-bottom: 15px;
+            background: #f7fafc;
+            padding: 12px 18px;
+            border-left: 4px solid #4299e1;
+            border-radius: 0 4px 4px 0;
+        }
+        .text-center {
+            text-align: center;
+        }
+        .text-red {
+            color: #2c3e50; /* Changed from red to dark blue to match new theme */
+        }
+        .mermaid {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            overflow: hidden;
+        }
+        .mermaid svg {
+            max-height: 160mm !important; /* Prevents the diagram from breaking to the next page */
+            max-width: 100% !important;
+            height: auto;
+        }
+        .diagram-placeholder {
+            border: 2px dashed #cbd5e0;
+            background: #f7fafc;
+            padding: 40px;
+            text-align: center;
+            color: #a0aec0;
+            margin: 30px 0;
+            border-radius: 12px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+    </script>
+</head>
+<body>
+
+    <!-- Page 1: Title Page -->
+    <div class="page text-center">
+        <div style="background-color: #003366; color: white; padding: 20px; margin-top: -20px; border-bottom: 5px solid #ffcc00;">
+            <h3>Managed by Your Organization/College</h3>
+            <h2 style="margin-top: 10px; line-height: 1.4;">YOUR INSTITUTE OF TECHNOLOGY AND MANAGEMENT</h2>
+            <p style="margin: 0; font-size: 14px;">Accredited by National Assessment and Accreditation Council</p>
+        </div>
+        
+        <div style="margin-top: 80px;">
+            <h2 style="color: black; font-size: 26px;">PROJECT REPORT</h2>
+            <h3 style="margin: 20px 0;">ON</h3>
+            <h2 style="color: red; font-size: 28px;">Cash-Book: Smart Finance & Digital Ledger</h2>
+        </div>
+        
+        <div style="margin-top: 120px; display: flex; justify-content: space-between; text-align: left; padding: 0 50px;">
+            <div>
+                <h3 style="color: red; font-size: 22px;">SUBMITTED BY:</h3>
+                <p style="font-size: 18px; line-height: 1.8;">
+                    Student 1 (ID)<br>
+                    Student 2 (ID)<br>
+                    Student 3 (ID)
+                </p>
+            </div>
+            <div>
+                <h3 style="color: red; font-size: 22px;">GUIDED BY:</h3>
+                <p style="font-size: 18px; line-height: 1.8;">
+                    Guide Name
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Page 2: Acknowledgement -->
+    <div class="page">
+        <div class="page-header">Cash-Book: Smart Finance & Digital Ledger</div>
+        <h2 class="text-center" style="font-size: 28px; margin-top: 40px; margin-bottom: 30px;">Acknowledgement</h2>
+        
+        <p>We take great pleasure in presenting this project, <strong>Cash-Book: Smart Finance & Digital Ledger</strong>, developed during our academic semester. We would like to mention here that this project would not have been possible without the invaluable support and guidance of our professors.</p>
+        
+        <p>As the final frontier toward achieving our degree, the activity of developing an IT project has helped us bridge the gap between academic knowledge and practical real-life applications. It has prepared us to apply our learning effectively and motivated us to grow into capable IT professionals.</p>
+        
+        <p>On the occasion of completing our project on Cash-Book, we would like to express our heartfelt gratitude to all those who directly or indirectly supported us. We are extremely grateful to everyone who has helped us in this journey. We would especially like to extend our sincere thanks to our <strong>Guide</strong> for their valuable suggestions, encouragement, and stimulating discussions that guided us throughout the project. We would also like to express our gratitude to our <strong>Principal</strong> for their constant support and guidance.</p>
+        
+        <p>It has been a rich and rewarding experience, and this project stands as a testament to the knowledge and skills we have gained during our academic journey.</p>
+        
+        <div class="footer-line"></div>
+        <div class="page-number">1</div>
+    </div>
+
+    <!-- Page 3: Declaration -->
+    <div class="page">
+        <div class="page-header">Cash-Book: Smart Finance & Digital Ledger</div>
+        <h2 class="text-center" style="font-size: 28px; margin-top: 40px; margin-bottom: 30px;">Declaration</h2>
+        
+        <p>We hereby declare that the project <strong>"Cash-Book: Smart Finance & Digital Ledger"</strong> is our original work completed as part of our academic requirements. The project provides an online platform for personal and small business finance management, featuring tracking of daily transactions, party ledgers, EMI/subscriptions, receipt management, and deep analytics.</p>
+        
+        <p>Cash-Book is developed using <strong>React, Node.js, and MongoDB</strong>, representing a complete, full-stack, scalable digital ledger solution.</p>
+        
+        <p>We sincerely thank our <strong>guide</strong> and our <strong>parents and family members</strong> for their continuous support, guidance, and encouragement throughout this project.</p>
+        
+        <p>We further declare that this work has not been submitted to any other institution for any degree, diploma, or certificate.</p>
+        
+        <div class="footer-line"></div>
+        <div class="page-number">2</div>
+    </div>
+
+    <!-- Page 4: Index -->
+    <div class="page">
+        <div class="page-header">Cash-Book: Smart Finance & Digital Ledger</div>
+        <h2 class="text-center" style="font-size: 28px; margin-top: 40px; margin-bottom: 30px;">Index</h2>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 15%; text-align: center;">No.</th>
+                    <th>Title</th>
+                    <th style="width: 15%; text-align: center;">Page No.</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td align="center">1</td><td>Introduction of Project</td><td align="center">4</td></tr>
+                <tr><td align="center">2</td><td>Project Profile</td><td align="center">5</td></tr>
+                <tr><td align="center">3</td><td>Technology Study</td><td align="center">6</td></tr>
+                <tr><td align="center">4</td><td>Objectives</td><td align="center">10</td></tr>
+                <tr><td align="center">5</td><td>System Flow Diagram</td><td align="center">12</td></tr>
+                <tr><td align="center">6</td><td>DFD / UML Diagram</td><td align="center">13</td></tr>
+                <tr><td align="center">7</td><td>ER Diagram</td><td align="center">14</td></tr>
+                <tr><td align="center">8</td><td>Database Design</td><td align="center">15</td></tr>
+                <tr><td align="center">9</td><td>System Diagram (Screenshots)</td><td align="center">15</td></tr>
+                <tr><td align="center">10</td><td>References</td><td align="center">25</td></tr>
+            </tbody>
+        </table>
+        
+        <div class="footer-line"></div>
+        <div class="page-number">3</div>
+    </div>
+
+    <!-- Page 5: Introduction -->
+    <div class="page">
+        <div class="page-header">Cash-Book: Smart Finance & Digital Ledger</div>
+        
+        <div class="title-box">1. Introduction of Project</div>
+        
+        <ul>
+            <li>It aims to simplify personal and small business finance management by offering a fast, convenient, and accessible way to track income, expenses, and debts.</li>
+            <li>The platform eliminates the limitations of traditional paper ledgers, such as data loss, manual calculation errors, and restricted physical access.</li>
+            <li>It offers essential financial management features including:
+                <ul>
+                    <li>User registration & secure authentication</li>
+                    <li>Daily transaction tracking (Income/Expense) categorized dynamically</li>
+                    <li>Party Ledger (Udhaar Book) for tracking debts and credits</li>
+                    <li>EMI & Subscription tracking with calendar views</li>
+                    <li>Receipts Vault for securely storing bill images</li>
+                    <li>Advanced analytics and summary reports</li>
+                    <li>Shared cashbooks through user invitations</li>
+                </ul>
+            </li>
+            <li>For admins, the system includes:
+                <ul>
+                    <li>System analytics and user metrics</li>
+                    <li>Transaction and cashbook oversight</li>
+                    <li>Platform setting configurations</li>
+                </ul>
+            </li>
+            <li>Cash-Book acts as a digital companion, allowing users to make informed financial decisions through clear insights and organized records.</li>
+            <li>The project uses modern web technologies:
+                <ul>
+                    <li>Frontend: React (Vite)</li>
+                    <li>Backend: Node.js (Express)</li>
+                    <li>Database: MongoDB (Mongoose)</li>
+                </ul>
+            </li>
+            <li>It serves as a real-world implementation of an end-to-end financial SaaS solution.</li>
+        </ul>
+        
+        <div class="footer-line"></div>
+        <div class="page-number">4</div>
+    </div>
+
+    <!-- Page 6: Project Profile -->
+    <div class="page">
+        <div class="page-header">Cash-Book: Smart Finance & Digital Ledger</div>
+        
+        <div class="title-box">2. Project Profile</div>
+        
+        <table class="table-db" style="margin-top: 40px;">
+            <thead>
+                <tr>
+                    <th colspan="2" style="text-align: center; font-size: 20px; padding: 15px;">Cash-Book: Smart Finance & Digital Ledger</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="width: 30%; font-weight: bold;">Project Title :</td>
+                    <td>Cash-Book: Smart Finance & Digital Ledger</td>
+                </tr>
+                <tr>
+                    <td style="font-weight: bold;">Operating System :</td>
+                    <td>Windows 10 / 11 / Linux / macOS</td>
+                </tr>
+                <tr>
+                    <td style="font-weight: bold;">Front End Technologies :</td>
+                    <td>React (Vite), Tailwind CSS, Framer Motion</td>
+                </tr>
+                <tr>
+                    <td style="font-weight: bold;">Back End Technologies :</td>
+                    <td>Node.js, Express.js, MongoDB (Mongoose)</td>
+                </tr>
+                <tr>
+                    <td style="font-weight: bold;">Platform :</td>
+                    <td>VS Code</td>
+                </tr>
+                <tr>
+                    <td style="font-weight: bold;">Documentation Tool :</td>
+                    <td>Microsoft Word / HTML/CSS PDF Generation</td>
+                </tr>
+                <tr>
+                    <td style="font-weight: bold;">Project Guide :</td>
+                    <td>[Insert Guide Name]</td>
+                </tr>
+                <tr>
+                    <td style="font-weight: bold;">Project Duration :</td>
+                    <td>3 Months</td>
+                </tr>
+                <tr>
+                    <td style="font-weight: bold;">Prepared By :</td>
+                    <td>
+                        Student 1 (ID)<br>
+                        Student 2 (ID)<br>
+                        Student 3 (ID)
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="footer-line"></div>
+        <div class="page-number">5</div>
+    </div>
+
+    <!-- Page 7-8: Technology Study -->
+    <div class="page">
+        <div class="page-header">Cash-Book: Smart Finance & Digital Ledger</div>
+        
+        <div class="title-box">3. Technology Study</div>
+        
+        <div class="sub-title">❖ React :</div>
+        <ul>
+            <li>React was first developed by Jordan Walke at Facebook in 2011.</li>
+            <li>React is a JavaScript library used for building user interfaces (UI), especially single-page applications (SPA).</li>
+            <li>React uses a component-based architecture, where the UI is divided into reusable pieces called components.</li>
+            <li>React uses a Virtual DOM to efficiently update only the parts of the page that change, improving performance.</li>
+            <li>Vite is used as the build tool, providing a faster and leaner development experience for modern web projects.</li>
+        </ul>
+
+        <div class="sub-title">❖ HTML & Tailwind CSS :</div>
+        <ul>
+            <li>First developed by Tim Berners-Lee in 1990, HTML is short for Hypertext Markup Language.</li>
+            <li>HTML is used to create electronic documents (called pages) that are displayed on the World Wide Web.</li>
+            <li>Tailwind CSS is a utility-first CSS framework used in this project to rapidly build custom user interfaces without leaving the HTML/JSX.</li>
+        </ul>
+
+        <div class="sub-title">❖ JavaScript :</div>
+        <ul>
+            <li>JavaScript is a dynamic computer programming language.</li>
+            <li>It is lightweight and most commonly used as a part of web pages.</li>
+            <li>JavaScript allows client-side scripts to interact with the user and fetch dynamic data asynchronously.</li>
+        </ul>
+
+        <div class="sub-title">❖ Node.js & Express.js :</div>
+        <ul>
+            <li>Node.js was developed by Ryan Dahl in 2009.</li>
+            <li>It allows running JavaScript outside the browser (on the server side), using the V8 JavaScript engine.</li>
+            <li>Express.js is a minimal and flexible Node.js web application framework that provides a robust set of features for web and mobile applications.</li>
+            <li>It is used in this project to create RESTful APIs to handle frontend requests securely.</li>
+        </ul>
+        
+        <div class="footer-line"></div>
+        <div class="page-number">6</div>
+    </div>
+    
+    <!-- Page 9: Technology Study (Cont) -->
+    <div class="page">
+        <div class="page-header">Cash-Book: Smart Finance & Digital Ledger</div>
+        
+        <div class="sub-title">❖ MongoDB :</div>
+        <ul>
+            <li>MongoDB was first released in 2009 by MongoDB Inc.</li>
+            <li>MongoDB is an open-source NoSQL database.</li>
+            <li>It stores data in flexible, JSON-like documents instead of tables, making it perfect for dynamic data models.</li>
+            <li>MongoDB is schema-less by nature, though Mongoose is used in this project to enforce structured schemas.</li>
+            <li>It is designed for high performance, scalability, and flexibility.</li>
+        </ul>
+        
+        <div class="sub-title">❖ Development Tools:</div>
+        <ul>
+            <li><b>VS Code (Visual Studio Code):</b> A free, open-source code editor developed by Microsoft. It is widely used for coding, debugging, and software development.</li>
+            <li><b>Postman:</b> Used for API testing and endpoint verification.</li>
+            <li><b>Git & GitHub:</b> Used for version control and source code management.</li>
+        </ul>
+        
+        <div class="footer-line"></div>
+        <div class="page-number">7</div>
+    </div>
+
+    <!-- Page 10: Objectives -->
+    <div class="page">
+        <div class="page-header">Cash-Book: Smart Finance & Digital Ledger</div>
+        
+        <div class="title-box">4. Objectives</div>
+        
+        <ul>
+            <li>The objective of the project <b>Cash-Book</b> is to design and develop a professional, responsive, and user-friendly web application for personal and small-business finance tracking.</li>
+            <li>The platform offers essential features such as transaction logging, categorization, receipt attachments, party ledger for debts/credits, and subscription tracking.</li>
+            <li>The aim is to deliver a scalable system that helps users gain complete control and visibility over their financial flow.</li>
+        </ul>
+
+        <h3 class="text-red text-center" style="margin-top: 30px;">Start To End Process</h3>
+        
+        <div class="sub-title">1. Project Planning & Requirement Analysis</div>
+        <ul>
+            <li>Define the purpose of the website: digital ledger and financial management.</li>
+            <li>Identify key features for users: transaction management, dynamic categories, invitations (shared cashbooks), and analytics.</li>
+            <li>Finalize the technology stack: React, Tailwind CSS (frontend), Node.js, Express, and MongoDB (backend).</li>
+        </ul>
+
+        <div class="sub-title">2. UI/UX Design</div>
+        <ul>
+            <li>Design a modern, clean, and responsive dashboard interface.</li>
+            <li>Use intuitive color schemes (green for income, red for expense) and high-quality icons.</li>
+            <li>Incorporate animations (Framer Motion) to enhance user experience.</li>
+        </ul>
+        
+        <div class="sub-title">3. Frontend Development</div>
+        <ul>
+            <li>Use React for building the frontend user interface.</li>
+            <li>Build pages such as: Dashboard Home, Transactions, Party Ledger, Receipts Vault, EMI Tracker, and Settings.</li>
+        </ul>
+        
+        <div class="footer-line"></div>
+        <div class="page-number">8</div>
+    </div>
+
+    <!-- Page 11: Objectives Cont -->
+    <div class="page">
+        <div class="page-header">Cash-Book: Smart Finance & Digital Ledger</div>
+        
+        <div class="sub-title">4. Backend Development</div>
+        <ul>
+            <li>Use Node.js with Express.js to handle user authentication, transaction logic, and data aggregation.</li>
+            <li>Connect to MongoDB via Mongoose for managing backend data like:
+                <ul>
+                    <li>Users</li>
+                    <li>Transactions and Cashbooks</li>
+                    <li>Categories and Payment Modes</li>
+                    <li>Invitations and Receipts</li>
+                </ul>
+            </li>
+            <li>Implement secure authentication (JWT) for API protection.</li>
+        </ul>
+
+        <div class="sub-title">5. Functionality Implementation</div>
+        <ul>
+            <li><b>User Side:</b> Registration/Login, add/edit/delete transactions, filter by date/category, manage debts, view graphical reports.</li>
+            <li><b>Admin Side:</b> System analytics, manage all users, oversee total transactions across the platform.</li>
+        </ul>
+
+        <div class="sub-title">6. Testing & Optimization</div>
+        <ul>
+            <li>Perform end-to-end testing of form validations, API response times, and state management.</li>
+            <li>Optimize UI rendering using React hooks and lazy loading components.</li>
+        </ul>
+        
+        <div class="footer-line"></div>
+        <div class="page-number">9</div>
+    </div>
+
+    <!-- Page 12: System Flow Diagram -->
+    <div class="page">
+        <div class="page-header">Cash-Book: Smart Finance & Digital Ledger</div>
+        
+        <div class="title-box">5. System Flow Diagram</div>
+        
+        <div class="sub-title text-red">❖ Process Flow Diagram:</div>
+        
+        <div class="mermaid text-center" style="margin-top: 30px;">
+            graph TD
+                Start((Start)) --> check{Have an Account?}
+                check -- No --> signup[Signup / Fill Info]
+                signup --> login[Login]
+                check -- Yes --> login
+                login --> auth{Authorized?}
+                auth -- No --> login
+                auth -- Yes --> logged[Logged into System]
+                
+                logged --> dash[Dashboard Analytics]
+                logged --> trans[Manage Transactions]
+                logged --> party[Party Ledger]
+                logged --> vault[Receipts Vault]
+                logged --> settings[Settings & Invites]
+                
+                dash --> End((End))
+                trans --> End
+                party --> End
+                vault --> End
+                settings --> End
+        </div>
+        
+        <div class="footer-line"></div>
+        <div class="page-number">10</div>
+    </div>
+
+    <!-- Page 13: DFD / UML -->
+    <div class="page">
+        <div class="page-header">Cash-Book: Smart Finance & Digital Ledger</div>
+        
+        <div class="title-box">6. DFD / UML Diagram</div>
+        
+        <div class="sub-title text-red">❖ Context Diagram (0 Level DFD):</div>
+        
+        <div class="mermaid text-center" style="margin-top: 50px;">
+            graph LR
+                User((User)) -- "Register / Login" --> System((Cash-Book System))
+                User -- "Add/Edit Transactions" --> System
+                User -- "Manage Ledgers" --> System
+                System -- "Financial Reports" --> User
+                System -- "Alerts/Reminders" --> User
+                
+                Admin((Admin)) -- "Monitor Users" --> System
+                Admin -- "System Analytics" --> System
+                System -- "Platform Stats" --> Admin
+        </div>
+        
+        <div class="footer-line"></div>
+        <div class="page-number">11</div>
+    </div>
+
+    <!-- Page 14: ER Diagram -->
+    <div class="page">
+        <div class="page-header">Cash-Book: Smart Finance & Digital Ledger</div>
+        
+        <div class="title-box">7. ER Diagram</div>
+        
+        <div class="mermaid text-center" style="margin-top: 50px;">
+            erDiagram
+                USER ||--o{ TRANSACTION : creates
+                USER ||--o{ CASHBOOK : owns
+                USER ||--o{ INVITATION : sends
+                CASHBOOK ||--o{ TRANSACTION : contains
+                USER ||--o{ RECEIPT : uploads
+                TRANSACTION }o--|| CATEGORY : belongs_to
+                
+                USER {
+                    string email PK
+                    string username
+                    string password
+                    boolean isAdmin
+                }
+                TRANSACTION {
+                    string id PK
+                    string title
+                    number amount
+                    string type
+                    string date
+                }
+                CASHBOOK {
+                    string chalan_id PK
+                    string name
+                }
+                RECEIPT {
+                    string id PK
+                    string file_url
+                }
+        </div>
+        
+        <div class="footer-line"></div>
+        <div class="page-number">12</div>
+    </div>
+
+    <!-- Page 15: Database Design -->
+    <div class="page">
+        <div class="page-header">Cash-Book: Smart Finance & Digital Ledger</div>
+        
+        <div class="title-box">8. Database Design</div>
+        
+        <div class="db-title">❖ Collection Name: User</div>
+        <table class="table-db">
+            <thead>
+                <tr>
+                    <th>Field Name</th>
+                    <th>Data Type</th>
+                    <th>Constraints</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>username</td><td>String</td><td>Required, Trimmed</td><td>User's display name</td></tr>
+                <tr><td>email_id</td><td>String</td><td>Required, Unique</td><td>User's email (Primary key identifier)</td></tr>
+                <tr><td>password</td><td>String</td><td>Required</td><td>Hashed password</td></tr>
+                <tr><td>mobile</td><td>String</td><td>Required</td><td>Contact number</td></tr>
+                <tr><td>role</td><td>String</td><td>Enum: [0, 1]</td><td>0 = Admin, 1 = User</td></tr>
+            </tbody>
+        </table>
+
+        <div class="db-title">❖ Collection Name: Transaction</div>
+        <table class="table-db">
+            <thead>
+                <tr>
+                    <th>Field Name</th>
+                    <th>Data Type</th>
+                    <th>Constraints</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>title</td><td>String</td><td>Required</td><td>Title of transaction</td></tr>
+                <tr><td>type</td><td>String</td><td>Required (income/expense)</td><td>Transaction type</td></tr>
+                <tr><td>amount</td><td>Number</td><td>Required</td><td>Transaction value</td></tr>
+                <tr><td>date</td><td>String</td><td>Required</td><td>Date (YYYY-MM-DD)</td></tr>
+                <tr><td>chalan_id</td><td>String</td><td>Required</td><td>Links to a Cashbook</td></tr>
+                <tr><td>category</td><td>String</td><td>Default: ''</td><td>Transaction category</td></tr>
+                <tr><td>user_email</td><td>String</td><td>Required</td><td>Email of the user who made it</td></tr>
+                <tr><td>party_type</td><td>String</td><td>Enum: [creditor, debtor]</td><td>For party ledger entries</td></tr>
+            </tbody>
+        </table>
+
+        <div class="db-title">❖ Collection Name: Cashbook</div>
+        <table class="table-db">
+            <thead>
+                <tr>
+                    <th>Field Name</th>
+                    <th>Data Type</th>
+                    <th>Constraints</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>chalan_id</td><td>String</td><td>Required, Unique</td><td>Unique ID of the cashbook</td></tr>
+                <tr><td>chalan_name</td><td>String</td><td>Required</td><td>Display name of cashbook</td></tr>
+                <tr><td>user_email</td><td>String</td><td>Required</td><td>Owner's email</td></tr>
+            </tbody>
+        </table>
+
+        <div class="footer-line"></div>
+        <div class="page-number">13</div>
+    </div>
+    
+    <!-- Page 16: Database Design Cont -->
+    <div class="page">
+        <div class="page-header">Cash-Book: Smart Finance & Digital Ledger</div>
+
+        <div class="db-title">❖ Collection Name: Invitation</div>
+        <table class="table-db">
+            <thead>
+                <tr>
+                    <th>Field Name</th>
+                    <th>Data Type</th>
+                    <th>Constraints</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>invite_name</td><td>String</td><td>Required</td><td>Name of the invitee</td></tr>
+                <tr><td>invite_email</td><td>String</td><td>Required</td><td>Email of the invited user</td></tr>
+                <tr><td>inviter_email</td><td>String</td><td>Required</td><td>Email of the user sending invite</td></tr>
+                <tr><td>cashbook_id</td><td>String</td><td>Required</td><td>The cashbook being shared</td></tr>
+                <tr><td>status</td><td>String</td><td>Enum: [pending, accepted, rejected]</td><td>Current status of invite</td></tr>
+            </tbody>
+        </table>
+        
+        <div class="db-title">❖ Collection Name: Receipt</div>
+        <table class="table-db">
+            <thead>
+                <tr>
+                    <th>Field Name</th>
+                    <th>Data Type</th>
+                    <th>Constraints</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>title</td><td>String</td><td>Required</td><td>Description of the receipt</td></tr>
+                <tr><td>file_url</td><td>String</td><td>Required</td><td>URL/Base64 of the receipt image</td></tr>
+                <tr><td>user_email</td><td>String</td><td>Required</td><td>Owner's email</td></tr>
+                <tr><td>date</td><td>String</td><td>Required</td><td>Date of upload</td></tr>
+            </tbody>
+        </table>
+        
+        <div class="footer-line"></div>
+        <div class="page-number">14</div>
+    </div>
+
+    <!-- Page 17: System Diagram - Admin 1 -->
+    <div class="page">
+        <div class="page-header">Cash-Book: Smart Finance & Digital Ledger</div>
+        
+        <div class="title-box">9. System Diagram</div>
+        
+        <div class="sub-title text-red" style="font-size: 22px; color: red;">❖ Admin side:</div>
+
+        <h3 style="margin-top: 20px;">Admin Login</h3>
+        <div class="diagram-placeholder" style="height: 300px;">
+            [ Insert Screenshot of Admin Login Here ]
+        </div>
+        
+        <h3 style="margin-top: 30px;">Admin Register</h3>
+        <div class="diagram-placeholder" style="height: 300px;">
+            [ Insert Screenshot of Admin Register Here ]
+        </div>
+        
+        <div class="footer-line"></div>
+        <div class="page-number">15</div>
+    </div>
+    
+    <!-- Page 18: System Diagram - Admin 2 -->
+    <div class="page">
+        <div class="page-header">Cash-Book: Smart Finance & Digital Ledger</div>
+        
+        <h3 style="margin-top: 30px;">Admin Dashboard</h3>
+        <div class="diagram-placeholder" style="height: 350px;">
+            [ Insert Screenshot of Admin Dashboard Here ]
+        </div>
+
+        <h3 style="margin-top: 30px;">User Management</h3>
+        <div class="diagram-placeholder" style="height: 350px;">
+            [ Insert Screenshot of User Management Here ]
+        </div>
+        
+        <div class="footer-line"></div>
+        <div class="page-number">16</div>
+    </div>
+
+    <!-- Page 19: System Diagram - Admin 3 -->
+    <div class="page">
+        <div class="page-header">Cash-Book: Smart Finance & Digital Ledger</div>
+        
+        <h3 style="margin-top: 30px;">Transaction Management</h3>
+        <div class="diagram-placeholder" style="height: 350px;">
+            [ Insert Screenshot of Transaction Management Here ]
+        </div>
+        
+        <h3 style="margin-top: 30px;">Cashbook Management</h3>
+        <div class="diagram-placeholder" style="height: 350px;">
+            [ Insert Screenshot of Cashbook Management Here ]
+        </div>
+
+        <div class="footer-line"></div>
+        <div class="page-number">17</div>
+    </div>
+
+    <!-- Page 20: System Diagram - Admin 4 -->
+    <div class="page">
+        <div class="page-header">Cash-Book: Smart Finance & Digital Ledger</div>
+        
+        <h3 style="margin-top: 30px;">System Analytics</h3>
+        <div class="diagram-placeholder" style="height: 350px;">
+            [ Insert Screenshot of System Analytics Here ]
+        </div>
+        
+        <div class="footer-line"></div>
+        <div class="page-number">18</div>
+    </div>
+
+    <!-- Page 21: System Diagram - User 1 -->
+    <div class="page">
+        <div class="page-header">Cash-Book: Smart Finance & Digital Ledger</div>
+        
+        <div class="sub-title text-red" style="font-size: 22px; color: red;">❖ User side:</div>
+
+        <h3 style="margin-top: 20px;">User Login</h3>
+        <div class="diagram-placeholder" style="height: 300px;">
+            [ Insert Screenshot of User Login Here ]
+        </div>
+        
+        <h3 style="margin-top: 30px;">User Register</h3>
+        <div class="diagram-placeholder" style="height: 300px;">
+            [ Insert Screenshot of User Register Here ]
+        </div>
+        
+        <div class="footer-line"></div>
+        <div class="page-number">19</div>
+    </div>
+
+    <!-- Page 22: System Diagram - User 2 -->
+    <div class="page">
+        <div class="page-header">Cash-Book: Smart Finance & Digital Ledger</div>
+        
+        <h3 style="margin-top: 30px;">Landing Page (Index)</h3>
+        <div class="diagram-placeholder" style="height: 350px;">
+            [ Insert Screenshot of Landing Page Here ]
+        </div>
+
+        <h3 style="margin-top: 30px;">Dashboard (Home)</h3>
+        <div class="diagram-placeholder" style="height: 350px;">
+            [ Insert Screenshot of User Dashboard Here ]
+        </div>
+        
+        <div class="footer-line"></div>
+        <div class="page-number">20</div>
+    </div>
+
+    <!-- Page 23: System Diagram - User 3 -->
+    <div class="page">
+        <div class="page-header">Cash-Book: Smart Finance & Digital Ledger</div>
+        
+        <h3 style="margin-top: 30px;">Transactions Page</h3>
+        <div class="diagram-placeholder" style="height: 350px;">
+            [ Insert Screenshot of Transactions List Here ]
+        </div>
+        
+        <h3 style="margin-top: 30px;">Add Transaction Popup</h3>
+        <div class="diagram-placeholder" style="height: 350px;">
+            [ Insert Screenshot of Add Transaction Modal Here ]
+        </div>
+        
+        <div class="footer-line"></div>
+        <div class="page-number">21</div>
+    </div>
+
+    <!-- Page 24: System Diagram - User 4 -->
+    <div class="page">
+        <div class="page-header">Cash-Book: Smart Finance & Digital Ledger</div>
+        
+        <h3 style="margin-top: 30px;">Party Ledger (Udhaar Book)</h3>
+        <div class="diagram-placeholder" style="height: 350px;">
+            [ Insert Screenshot of Party Ledger Here ]
+        </div>
+
+        <h3 style="margin-top: 30px;">Receipts Vault</h3>
+        <div class="diagram-placeholder" style="height: 350px;">
+            [ Insert Screenshot of Receipts Vault Here ]
+        </div>
+        
+        <div class="footer-line"></div>
+        <div class="page-number">22</div>
+    </div>
+
+    <!-- Page 25: System Diagram - User 5 -->
+    <div class="page">
+        <div class="page-header">Cash-Book: Smart Finance & Digital Ledger</div>
+        
+        <h3 style="margin-top: 30px;">Reminders</h3>
+        <div class="diagram-placeholder" style="height: 350px;">
+            [ Insert Screenshot of Reminders Page Here ]
+        </div>
+
+        <h3 style="margin-top: 30px;">Tracker / Reports Analytics</h3>
+        <div class="diagram-placeholder" style="height: 350px;">
+            [ Insert Screenshot of Reports Analytics Here ]
+        </div>
+        
+        <div class="footer-line"></div>
+        <div class="page-number">23</div>
+    </div>
+
+    <!-- Page 26: System Diagram - User 6 -->
+    <div class="page">
+        <div class="page-header">Cash-Book: Smart Finance & Digital Ledger</div>
+        
+        <h3 style="margin-top: 30px;">Active Sessions</h3>
+        <div class="diagram-placeholder" style="height: 350px;">
+            [ Insert Screenshot of Active Sessions Here ]
+        </div>
+        
+        <h3 style="margin-top: 30px;">Profile / Settings</h3>
+        <div class="diagram-placeholder" style="height: 350px;">
+            [ Insert Screenshot of Settings Page Here ]
+        </div>
+        
+        <div class="footer-line"></div>
+        <div class="page-number">24</div>
+    </div>
+
+    <!-- Page 27: References -->
+    <div class="page">
+        <div class="page-header">Cash-Book: Smart Finance & Digital Ledger</div>
+        
+        <div class="title-box">10. References</div>
+        
+        <ul style="font-size: 18px; margin-top: 40px; line-height: 2.5;">
+            <li>➢ <b>React Official Documentation</b> – <a href="https://react.dev/">https://react.dev/</a></li>
+            <li>➢ <b>Node.js Documentation</b> – <a href="https://nodejs.org/docs/">https://nodejs.org/docs/</a></li>
+            <li>➢ <b>MongoDB Mongoose Docs</b> – <a href="https://mongoosejs.com/">https://mongoosejs.com/</a></li>
+            <li>➢ <b>Tailwind CSS Framework</b> – <a href="https://tailwindcss.com/">https://tailwindcss.com/</a></li>
+            <li>➢ <b>Framer Motion Animation</b> – <a href="https://www.framer.com/motion/">https://www.framer.com/motion/</a></li>
+            <li>➢ <b>W3Schools Web Tutorials</b> – <a href="https://www.w3schools.com/">https://www.w3schools.com/</a></li>
+            <li>➢ <b>GitHub Repository</b> – <a href="https://github.com/">https://github.com/</a></li>
+        </ul>
+        
+        <div class="footer-line"></div>
+        <div class="page-number">25</div>
+    </div>
+
+</body>
+</html>

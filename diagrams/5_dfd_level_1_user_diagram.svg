@@ -1,0 +1,144 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 1020" width="980" height="1020">
+<style>
+  text {
+    font-family: Arial, Helvetica, sans-serif;
+    fill: #000000;
+  }
+  .box {
+    fill: #ffffff;
+    stroke: #000000;
+    stroke-width: 1.8;
+  }
+  .line {
+    stroke: #000000;
+    stroke-width: 1.8;
+    fill: none;
+  }
+  .label {
+    font-size: 13px;
+    font-weight: normal;
+  }
+  .node-text {
+    font-size: 13.5px;
+    font-weight: 500;
+    text-anchor: middle;
+    dominant-baseline: central;
+  }
+  .pk {
+    text-decoration: underline;
+    font-weight: 600;
+  }
+</style>
+<defs>
+  <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M 0 1 L 10 5 L 0 9 z" fill="#000000" />
+  </marker>
+</defs>
+<rect width="100%" height="100%" fill="#ffffff" />
+
+  <!-- Users Entity -->
+  <rect class="box" x="60" y="80" width="130" height="70"/>
+  <text class="node-text" x="125" y="115" font-size="16" font-weight="bold">Users</text>
+  
+  <!-- Long trunk line down from Users -->
+  <line class="line" x1="125" y1="150" x2="125" y2="920"/>
+  
+  <!-- 1.0 Login -->
+  <line class="line" x1="190" y1="115" x2="472" y2="115" marker-end="url(#arrow)"/>
+  <text class="label" x="330" y="105" text-anchor="middle">Pass Login Details</text>
+  
+  <circle class="box" cx="520" cy="115" r="48"/>
+  <text class="node-text" x="520" y="104" font-size="14" font-weight="bold">1.0</text>
+  <text class="node-text" x="520" y="125" font-size="13">Login</text>
+  
+  <line class="line" x1="568" y1="115" x2="760" y2="115" marker-end="url(#arrow)"/>
+  <text class="label" x="660" y="105" text-anchor="middle">Verify Details</text>
+  
+  <rect class="box" x="760" y="93" width="150" height="44"/>
+  <text class="node-text" x="835" y="115">user</text>
+  
+  <!-- 2.0 New Register -->
+  <path class="line" d="M 125,245 L 472,245" marker-end="url(#arrow)"/>
+  <text class="label" x="330" y="235" text-anchor="middle">Pass User Details</text>
+  
+  <circle class="box" cx="520" cy="245" r="48"/>
+  <text class="node-text" x="520" y="234" font-size="13.5" font-weight="bold">2.0</text>
+  <text class="node-text" x="520" y="254" font-size="12">New Register</text>
+  
+  <line class="line" x1="568" y1="245" x2="760" y2="245" marker-end="url(#arrow)"/>
+  <text class="label" x="660" y="235" text-anchor="middle">Store Details</text>
+  
+  <rect class="box" x="760" y="223" width="150" height="44"/>
+  <text class="node-text" x="835" y="245">user</text>
+  
+  <!-- 3.0 Manage Cashbooks -->
+  <path class="line" d="M 125,375 L 472,375" marker-end="url(#arrow)"/>
+  <text class="label" x="330" y="365" text-anchor="middle">Create / Select Cashbook</text>
+  
+  <circle class="box" cx="520" cy="375" r="48"/>
+  <text class="node-text" x="520" y="364" font-size="13.5" font-weight="bold">3.0</text>
+  <text class="node-text" x="520" y="384" font-size="11.5">Manage Books</text>
+  
+  <line class="line" x1="568" y1="375" x2="760" y2="375" marker-end="url(#arrow)"/>
+  <text class="label" x="660" y="365" text-anchor="middle">Store / Fetch Details</text>
+  
+  <rect class="box" x="760" y="353" width="150" height="44"/>
+  <text class="node-text" x="835" y="375">Cashbooks</text>
+  
+  <!-- 4.0 Record Transactions -->
+  <path class="line" d="M 125,510 L 472,510" marker-end="url(#arrow)"/>
+  <text class="label" x="330" y="500" text-anchor="middle">Add Cash-In / Cash-Out</text>
+  
+  <circle class="box" cx="520" cy="510" r="48"/>
+  <text class="node-text" x="520" y="499" font-size="13.5" font-weight="bold">4.0</text>
+  <text class="node-text" x="520" y="519" font-size="12">Transactions</text>
+  
+  <line class="line" x1="568" y1="510" x2="760" y2="510" marker-end="url(#arrow)"/>
+  <text class="label" x="660" y="500" text-anchor="middle">Store Transaction</text>
+  
+  <rect class="box" x="760" y="488" width="150" height="44"/>
+  <text class="node-text" x="835" y="510">Transactions</text>
+  
+  <!-- 5.0 Party Ledger -->
+  <path class="line" d="M 125,650 L 472,650" marker-end="url(#arrow)"/>
+  <text class="label" x="330" y="640" text-anchor="middle">Add / Update Party Debt</text>
+  
+  <circle class="box" cx="520" cy="650" r="48"/>
+  <text class="node-text" x="520" y="639" font-size="13.5" font-weight="bold">5.0</text>
+  <text class="node-text" x="520" y="659" font-size="12">Party Ledger</text>
+  
+  <line class="line" x1="568" y1="650" x2="760" y2="650" marker-end="url(#arrow)"/>
+  <text class="label" x="660" y="640" text-anchor="middle">Store Party Records</text>
+  
+  <rect class="box" x="760" y="628" width="150" height="44"/>
+  <text class="node-text" x="835" y="650">PartyLedger</text>
+  
+  <!-- 6.0 Receipts Vault -->
+  <path class="line" d="M 125,785 L 472,785" marker-end="url(#arrow)"/>
+  <text class="label" x="330" y="775" text-anchor="middle">Upload Bill / Receipt</text>
+  
+  <circle class="box" cx="520" cy="785" r="48"/>
+  <text class="node-text" x="520" y="774" font-size="13.5" font-weight="bold">6.0</text>
+  <text class="node-text" x="520" y="794" font-size="11.5">Receipts Vault</text>
+  
+  <line class="line" x1="568" y1="785" x2="760" y2="785" marker-end="url(#arrow)"/>
+  <text class="label" x="660" y="775" text-anchor="middle">Store Attachment</text>
+  
+  <rect class="box" x="760" y="763" width="150" height="44"/>
+  <text class="node-text" x="835" y="785">Receipts</text>
+  
+  <!-- 7.0 Financial Reports -->
+  <path class="line" d="M 125,920 L 472,920" marker-end="url(#arrow)"/>
+  <text class="label" x="330" y="910" text-anchor="middle">Request Summary / PDF</text>
+  
+  <circle class="box" cx="520" cy="920" r="48"/>
+  <text class="node-text" x="520" y="909" font-size="13.5" font-weight="bold">7.0</text>
+  <text class="node-text" x="520" y="929" font-size="12">Reports</text>
+  
+  <line class="line" x1="568" y1="920" x2="760" y2="920" marker-end="url(#arrow)"/>
+  <text class="label" x="660" y="910" text-anchor="middle">Generate Summary</text>
+  
+  <rect class="box" x="760" y="898" width="150" height="44"/>
+  <text class="node-text" x="835" y="920">Reports</text>
+
+</svg>

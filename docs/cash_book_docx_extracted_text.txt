@@ -1,0 +1,231 @@
+P5: PROJECT REPORT
+P6: Cash-Book: Smart Finance & Digital Ledger
+P9: SUBMITTED BY:
+P11: GUIDED BY:
+P12: Prof. Sanskruti Ramani
+
+Assistant Professor, BCA Dept.
+Academic Year: 2026–2027
+P17: Acknowledgement
+P18: We take great pleasure in presenting this project, Cash-Book: Smart Finance & Digital Ledger, developed during our academic semester. We would like to mention here that this project would not have been possible without the invaluable support and guidance of our professors.
+P20: As the final frontier toward achieving our degree, the activity of developing an IT project has helped us bridge the gap between academic knowledge and practical real-life applications. It has prepared us to apply our learning effectively and motivated us to grow into capable IT professionals.
+P22: On the occasion of completing our project on Cash-Book, we would like to express our heartfelt gratitude to all those who directly or indirectly supported us. We are extremely grateful to everyone who has helped us in this journey. We would especially like to extend our sincere thanks to our Guide for their valuable suggestions, encouragement, and stimulating discussions that guided us throughout the project. We would also like to express our gratitude to our Principal for their constant support and guidance.
+P24: It has been a rich and rewarding experience, and this project stands as a testament to the knowledge and skills we have gained during our academic journey.
+P25: Declaration
+P26: We hereby declare that the project "Cash-Book: Smart Finance & Digital Ledger" is our original work completed as part of our academic requirements. The project provides an online platform for personal and small business finance management, featuring tracking of daily transactions, party ledgers, EMI/subscriptions, receipt management, and deep analytics.
+P28: Cash-Book is developed using React, Node.js, and MongoDB, representing a complete, full-stack, scalable digital ledger solution.
+P30: We sincerely thank our guide and our parents and family members for their continuous support, guidance, and encouragement throughout this project.
+P32: We further declare that this work has not been submitted to any other institution for any degree, diploma, or certificate.
+P34: 3
+P35: Cash-Book: Sma
+P36: 1. Introduction of Project
+P37: It aims to simplify personal and small business finance management by offering a fast, convenient, and accessible way to track income, expenses, and debts.
+P38: The platform eliminates the limitations of traditional paper ledgers, such as data loss, manual calculation errors, and restricted physical access.
+P39: It offers essential financial management features including: 
+P40: User registration & secure authentication
+P41: Daily transaction tracking (Income/Expense) categorized dynamically
+P42: Party Ledger (Udhaar Book) for tracking debts and credits
+P43: EMI & Subscription tracking with calendar views
+P44: Receipts Vault for securely storing bill images
+P45: Advanced analytics and summary reports
+P46: Shared cashbooks through user invitations
+P47: For admins, the system includes: 
+P48: System analytics and user metrics
+P49: Transaction and cashbook oversight
+P50: Platform setting configurations
+P51: Cash-Book acts as a digital companion, allowing users to make informed financial decisions through clear insights and organized records.
+P52: The project uses modern web technologies: 
+P53: Frontend: React (Vite)
+P54: Backend: Node.js (Express)
+P55: Database: MongoDB (Mongoose)
+P56: It serves as a real-world implementation of an end-to-end financial SaaS solution.
+P58: 2. Project Profile
+P60: 3. Technology Study
+P61: ❖ React :
+P62: React was first developed by Jordan Walke at Facebook in 2011.
+P63: React is a JavaScript library used for building user interfaces (UI), especially single-page applications (SPA).
+P64: React uses a component-based architecture, where the UI is divided into reusable pieces called components.
+P65: React uses a Virtual DOM to efficiently update only the parts of the page that change, improving performance.
+P66: Vite is used as the build tool, providing a faster and leaner development experience for modern web projects.
+P67: ❖ HTML & Tailwind CSS :
+P68: First developed by Tim Berners-Lee in 1990, HTML is short for Hypertext Markup Language.
+P69: HTML is used to create electronic documents (called pages) that are displayed on the World Wide Web. 
+P70: Tailwind CSS is a utility-first CSS framework used in this project to rapidly build custom user interfaces without leaving the HTML/JSX.
+P71: ❖ JavaScript :
+P72: JavaScript is a dynamic computer programming language.
+P73: It is lightweight and most commonly used as a part of web pages.
+P74: JavaScript allows client-side scripts to interact with the user and fetch dynamic data asynchronously. 
+P75: ❖ Node.js & Express.js :
+P76: Node.js was developed by Ryan Dahl in 2009.
+P77: It allows running JavaScript outside the browser (on the server side), using the V8 JavaScript engine. 
+P78: Express.js is a minimal and flexible Node.js web application framework that provides a robust set of features for web and mobile applications.
+P79: It is used in this project to create RESTful APIs to handle frontend requests securely.
+P80: ❖ MongoDB :
+P81: MongoDB was first released in 2009 by MongoDB Inc.
+P82: MongoDB is an open-source NoSQL database.
+P83: It stores data in flexible, JSON-like documents instead of tables, making it perfect for dynamic data models.
+P84: MongoDB is schema-less by nature, though Mongoose is used in this project to enforce structured schemas. 
+P85: It is designed for high performance, scalability, and flexibility.
+P86: ❖ Development Tools:
+P87: VS Code (Visual Studio Code): A free, open-source code editor developed by Microsoft. It is widely used for coding, debugging, and software development.
+P88: Postman: Used for API testing and endpoint verification.
+P89: Git & GitHub: Used for version control and source code management.
+P90: 4. Objectives
+P91: The objective of the project Cash-Book is to design and develop a professional, responsive, and user-friendly web application for personal and small-business finance tracking.
+P92: The platform offers essential features such as transaction logging, categorization, receipt attachments, party ledger for debts/credits, and subscription tracking.
+P93: The aim is to deliver a scalable system that helps users gain complete control and visibility over their financial flow.
+P94: Start To End Process
+P95: 1. Project Planning & Requirement Analysis
+P96: Define the purpose of the website: digital ledger and financial management.
+P97: Identify key features for users: transaction management, dynamic categories, invitations (shared cashbooks), and analytics.
+P98: Finalize the technology stack: React, Tailwind CSS (frontend), Node.js, Express, and MongoDB (backend). 
+P99: 2. UI/UX Design
+P100: Design a modern, clean, and responsive dashboard interface.
+P101: Use intuitive color schemes (green for income, red for expense) and high-quality icons.
+P102: Incorporate animations (Framer Motion) to enhance user experience.
+P103: 3. Frontend Development
+P104: Use React for building the frontend user interface.
+P105: Build pages such as: Dashboard Home, Transactions, Party Ledger, Receipts Vault, EMI Tracker, and Settings.
+P106: 4. Backend Development
+P107: Use Node.js with Express.js to handle user authentication, transaction logic, and data aggregation.
+P108: Connect to MongoDB via Mongoose for managing backend data like: 
+P109: Users
+P110: Transactions and Cashbooks
+P111: Categories and Payment Modes
+P112: Invitations and Receipts
+P113: Implement secure authentication (JWT) for API protection.
+P114: 5. Functionality Implementation
+P115: User Side: Registration/Login, add/edit/delete transactions, filter by date/category, manage debts, view graphical reports.
+P116: Admin Side: System analytics, manage all users, oversee total transactions across the platform. 
+P117: 6. Testing & Optimization
+P118: Perform end-to-end testing of form validations, API response times, and state management.
+P119: Optimize UI rendering using React hooks and lazy loading components.
+P120: 5. System Flow Diagram
+P121: ❖ Process Flow Diagram:
+P123: 6. Data Flow Diagram(DFD) / Undefined Modeling Language(UML)
+P124: ❖ Context Diagram (0 Level DFD):
+P125: 1.Establishes system boundaries by modeling the entire platform as a single black-box bubble: 0.0 Cash-Book System.
+P126: 2: Maps bidirectional data flows between external entities: User, Collaborator, Admin, and External Email/Socket Services.
+P127: 3: Transforms input data (credentials, ledger entries, commands) into output deliverables (reports, alerts, telemetry).
+P131: ❖ 1 Level User Diagram (DFD):
+P133: 1: Maps the complete user lifecycle from initial signup and 4-digit security PIN setup to custom cashbook creation.
+P134: 2: Details daily Cash-In/Cash-Out entries with category tagging, Receipt Vault attachments, and Party Khata interest.
+P135: 3: Enables collaborative multi-user book sharing with role permissions and instant 1-click vector PDF balance sheet export.
+P139: ❖ 1 Level Admin Diagram (DFD):
+P141: 1.Establishes administrative governance using strict Role-Based Access Control (RBAC) and AdminProtectedRoute guards.
+P142: 2: Provides platform telemetry, user account moderation (Active/Suspended toggles), and global multi-cashbook audits.
+P144: 7. ER Diagram
+P146: 8. Database Design
+P147: ❖ Collection Name: User
+P149: ❖ Collection Name: Transaction
+P151: ❖ Collection Name: Cashbook
+P153: ❖ Collection Name: Invitation
+P155: ❖ Collection Name: Receipt
+P159: 9. System Diagram
+P160: ❖ Admin side:
+P161: Admin Login
+P163: Admin Register
+P165: Admin Dashboard
+P167: User Management
+P169: Cashbook Management
+P171: System Analytics
+P174: ❖ User side:
+P175: Landing Page (Index)
+P177: User Login
+P182: User Register
+P185: Dashboard (Home)
+P187: User Cashbooks
+P189: Transactions Page
+P191: Add Transaction Popup
+P193: Party Ledger (Udhaar Book)
+P195: EMI & Subs
+P197: Receipts Vault
+P199: Reminders
+P201: Payment Mode
+P203: Invitations
+P205: Reports
+P207: History
+P209: Profile
+P211: Active Sessions
+P213: Preferences
+P215: References
+P216: Documentation & Technical Resources:
+•  React Official Documentation: https://reactjs.org/docs/getting-started.html 
+•  Node.js & Express API Reference: https://nodejs.org/en/docs/ |  https://expressjs.com 
+•  MongoDB & Mongoose Manuals:  https://docs.mongodb.com/manual/|  https://expressjs.com/en/4x/api.html
+•  Tailwind CSS Design https://tailwindcss.com/docs
+•  Gemini for Diagrams : https://gemini.google.com
+
+P217: 
+Institutional Guidance & Support:
+P218: 
+Prof. V. B. Shah Institute of Management & Sutex Bank College of Computer Applications & Science, Amroli
+P219: Guidance and Mentorship by  (Assistant Professor)
+Veer Narmad South Gujarat University (VNSGU), Surat
+
+=== TABLES ===
+
+--- Table 1 ---
+NO. | Title | Page NO.
+1 | Introduction to project | 5
+2 | project profile | 6
+3 | technology study | 7
+4 | objectives | 9
+5 | system flow diagram | 11
+6 | Data Flow Diagram (DFD) / Unified Modeling Language (uml) | 12
+7 | ER diagram | 13
+8 | database design | 14
+9 | system diagram (screenshots) | 20
+10 | references | 33
+
+--- Table 2 ---
+cash-book : smart finance & digital ledger | cash-book : smart finance & digital ledger
+project Title : | CASH-BOOK SMART FINANCE & DIGITAL LEDGER
+operating system : | WINDOWS 10 /11/LIUX/MACOS
+front end tschnologies : | REACT(VITE), TAILWIND CSS, FRAMER MOTION
+Back end technologies : | NODE JS,EXPRESS JS, MONGO DB(MONGOSE)
+platform : | VISUAL STUDIO CODE
+documentation tool : | MICROSOFT WORD /HTML /CSS PDF GRNRRATION
+project guide : | PROF. Sanskruti ramani
+project duration : | ALMOST 3 MONTHS
+prepared by : | bhuva jeel m.  narola jash m.  savsaviya kushal b.
+
+--- Table 3 ---
+Field Name | Data Type | Constraints | Description
+username | String | Required, Trimmed | User's display name
+email_id | String | Required, Unique | User's email (Primary key identifier)
+password | String | Required | Hashed password
+mobile | String | Required | Contact number
+role | String | Enum: [0, 1] | 0 = Admin, 1 = User
+
+--- Table 4 ---
+Field Name | Data Type | Constraints | Description
+title | String | Required | Title of transaction
+type | String | Required (income/expense) | Transaction type
+amount | Number | Required | Transaction value
+date | String | Required | Date (YYYY-MM-DD)
+chalan_id | String | Required | Links to a Cashbook
+category | String | Default: '' | Transaction category
+user_email | String | Required | Email of the user who made it
+party_type | String | Enum: [creditor, debtor] | For party ledger entries
+
+--- Table 5 ---
+Field Name | Data Type | Constraints | Description
+chalan_id | String | Required, Unique | Unique ID of the cashbook
+chalan_name | String | Required | Display name of cashbook
+user_email | String | Required | Owner's email
+
+--- Table 6 ---
+Field Name | Data Type | Constraints | Description
+invite_name | String | Required | Name of the invitee
+invite_email | String | Required | Email of the invited user
+inviter_email | String | Required | Email of the user sending invite
+cashbook_id | String | Required | The cashbook being shared
+status | String | Enum: [pending, accepted, rejected] | Current status of invite
+
+--- Table 7 ---
+Field Name | Data Type | Constraints | Description
+title | String | Required | Description of the receipt
+file_url | String | Required | URL/Base64 of the receipt image
+user_email | String | Required | Owner's email
+date | String | Required | Date of upload

@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Cash-Book – System Architecture Diagram</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0f172a; font-family: 'Segoe UI', Arial, sans-serif; }
+  svg { display: block; margin: 0 auto; }
+</style>
+</head>
+<body>
+<svg width="1200" height="980" viewBox="0 0 1200 980" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arr" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0 0,8 3,0 6" fill="#94a3b8"/>
+    </marker>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#00000060"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="980" fill="#0f172a"/>
+
+  <!-- Grid dots -->
+  <pattern id="dots" width="30" height="30" patternUnits="userSpaceOnUse">
+    <circle cx="15" cy="15" r="1" fill="#ffffff08"/>
+  </pattern>
+  <rect width="1200" height="980" fill="url(#dots)"/>
+
+  <!-- Title -->
+  <text x="600" y="42" text-anchor="middle" font-size="22" font-weight="bold" fill="#f1f5f9">Cash-Book – System Architecture</text>
+  <text x="600" y="64" text-anchor="middle" font-size="13" fill="#64748b">MERN Stack (MongoDB · Express · React · Node.js) + Firebase Auth</text>
+
+  <!-- ═════════════════════════
+       LAYER 1: CLIENT LAYER
+  ═════════════════════════ -->
+  <rect x="30" y="90" width="1140" height="195" rx="12" fill="#1e293b" stroke="#334155" stroke-width="1.5"/>
+  <text x="45" y="115" font-size="12" font-weight="bold" fill="#94a3b8" letter-spacing="2">CLIENT LAYER (Browser)</text>
+
+  <!-- React App box -->
+  <rect x="60" y="125" width="280" height="140" rx="10" fill="#0ea5e9" fill-opacity="0.15" stroke="#0ea5e9" stroke-width="2"/>
+  <text x="200" y="148" text-anchor="middle" font-size="13" font-weight="bold" fill="#38bdf8">React 18 + Vite</text>
+  <line x1="70" y1="155" x2="330" y2="155" stroke="#0ea5e910" stroke-width="1"/>
+  <text x="200" y="172" text-anchor="middle" font-size="10" fill="#7dd3fc">React Router v6 (SPA)</text>
+  <text x="200" y="188" text-anchor="middle" font-size="10" fill="#7dd3fc">Context API (Theme, Toast)</text>
+  <text x="200" y="204" text-anchor="middle" font-size="10" fill="#7dd3fc">Lazy Loading + Suspense</text>
+  <text x="200" y="220" text-anchor="middle" font-size="10" fill="#7dd3fc">Tailwind CSS + Custom CSS Vars</text>
+  <text x="200" y="236" text-anchor="middle" font-size="10" fill="#7dd3fc">Axios HTTP Client</text>
+  <text x="200" y="252" text-anchor="middle" font-size="10" fill="#7dd3fc">Socket.io Client (Real-time)</text>
+
+  <!-- User Dashboard box -->
+  <rect x="360" y="125" width="230" height="140" rx="10" fill="#22c55e" fill-opacity="0.12" stroke="#22c55e" stroke-width="2"/>
+  <text x="475" y="148" text-anchor="middle" font-size="13" font-weight="bold" fill="#4ade80">User Dashboard</text>
+  <line x1="370" y1="155" x2="580" y2="155" stroke="#22c55e10" stroke-width="1"/>
+  <text x="475" y="172" text-anchor="middle" font-size="10" fill="#86efac">Home / Analytics / Reports</text>
+  <text x="475" y="188" text-anchor="middle" font-size="10" fill="#86efac">Cashbooks / Chalans</text>
+  <text x="475" y="204" text-anchor="middle" font-size="10" fill="#86efac">Transactions / Party Ledger</text>
+  <text x="475" y="220" text-anchor="middle" font-size="10" fill="#86efac">EMI / Reminders / Savings</text>
+  <text x="475" y="236" text-anchor="middle" font-size="10" fill="#86efac">Receipts / Invitations</text>
+  <text x="475" y="252" text-anchor="middle" font-size="10" fill="#86efac">Settings / Profile</text>
+
+  <!-- Admin Panel box -->
+  <rect x="610" y="125" width="230" height="140" rx="10" fill="#ef4444" fill-opacity="0.12" stroke="#ef4444" stroke-width="2"/>
+  <text x="725" y="148" text-anchor="middle" font-size="13" font-weight="bold" fill="#f87171">Admin Panel</text>
+  <line x1="620" y1="155" x2="830" y2="155" stroke="#ef444410" stroke-width="1"/>
+  <text x="725" y="172" text-anchor="middle" font-size="10" fill="#fca5a5">Admin Dashboard</text>
+  <text x="725" y="188" text-anchor="middle" font-size="10" fill="#fca5a5">User Management</text>
+  <text x="725" y="204" text-anchor="middle" font-size="10" fill="#fca5a5">Cashbook Management</text>
+  <text x="725" y="220" text-anchor="middle" font-size="10" fill="#fca5a5">Transaction Management</text>
+  <text x="725" y="236" text-anchor="middle" font-size="10" fill="#fca5a5">System Analytics</text>
+  <text x="725" y="252" text-anchor="middle" font-size="10" fill="#fca5a5">Settings / Admin CRUD</text>
+
+  <!-- Public Pages box -->
+  <rect x="860" y="125" width="280" height="140" rx="10" fill="#8b5cf6" fill-opacity="0.12" stroke="#8b5cf6" stroke-width="2"/>
+  <text x="1000" y="148" text-anchor="middle" font-size="13" font-weight="bold" fill="#a78bfa">Public Pages</text>
+  <line x1="870" y1="155" x2="1130" y2="155" stroke="#8b5cf610" stroke-width="1"/>
+  <text x="1000" y="172" text-anchor="middle" font-size="10" fill="#c4b5fd">Landing / About / Services</text>
+  <text x="1000" y="188" text-anchor="middle" font-size="10" fill="#c4b5fd">Blog / Contact / FAQ</text>
+  <text x="1000" y="204" text-anchor="middle" font-size="10" fill="#c4b5fd">Auth: SignIn / SignUp</text>
+  <text x="1000" y="220" text-anchor="middle" font-size="10" fill="#c4b5fd">Firebase OTP Auth</text>
+  <text x="1000" y="236" text-anchor="middle" font-size="10" fill="#c4b5fd">Legal / Privacy / Terms</text>
+  <text x="1000" y="252" text-anchor="middle" font-size="10" fill="#c4b5fd">Help / Roadmap / Security</text>
+
+  <!-- ═════════════════════════
+       ARROWS: Client → API Layer
+  ═════════════════════════ -->
+  <line x1="600" y1="285" x2="600" y2="340" stroke="#475569" stroke-width="2" stroke-dasharray="8 4" marker-end="url(#arr)"/>
+  <rect x="510" y="295" width="180" height="20" rx="4" fill="#1e293b"/>
+  <text x="600" y="308" text-anchor="middle" font-size="10" fill="#94a3b8">HTTP / REST API Calls</text>
+
+  <!-- ═════════════════════════
+       LAYER 2: API GATEWAY
+  ═════════════════════════ -->
+  <rect x="30" y="340" width="1140" height="90" rx="12" fill="#1e293b" stroke="#334155" stroke-width="1.5"/>
+  <text x="45" y="365" font-size="12" font-weight="bold" fill="#94a3b8" letter-spacing="2">API GATEWAY LAYER</text>
+  <rect x="60" y="373" width="1080" height="45" rx="8" fill="#f97316" fill-opacity="0.12" stroke="#f97316" stroke-width="1.5"/>
+  <text x="600" y="390" text-anchor="middle" font-size="12" font-weight="bold" fill="#fb923c">Express.js API Server  ·  Port 5001  ·  CORS Enabled</text>
+  <text x="600" y="408" text-anchor="middle" font-size="10" fill="#fdba74">Auth Middleware (JWT / Firebase Token)  ·  Error Handler  ·  Rate Limiting  ·  10MB Body Limit</text>
+
+  <!-- ═════════════════════════
+       ARROWS: API → Business
+  ═════════════════════════ -->
+  <line x1="600" y1="430" x2="600" y2="480" stroke="#475569" stroke-width="2" stroke-dasharray="8 4" marker-end="url(#arr)"/>
+
+  <!-- ═════════════════════════
+       LAYER 3: BUSINESS LOGIC
+  ═════════════════════════ -->
+  <rect x="30" y="480" width="1140" height="195" rx="12" fill="#1e293b" stroke="#334155" stroke-width="1.5"/>
+  <text x="45" y="505" font-size="12" font-weight="bold" fill="#94a3b8" letter-spacing="2">BUSINESS LOGIC LAYER (Node.js Controllers)</text>
+
+  <!-- Route blocks -->
+  <rect x="60" y="515" width="130" height="140" rx="8" fill="#0ea5e9" fill-opacity="0.1" stroke="#0ea5e9" stroke-width="1.5"/>
+  <text x="125" y="535" text-anchor="middle" font-size="11" font-weight="bold" fill="#38bdf8">Auth</text>
+  <text x="125" y="552" text-anchor="middle" font-size="9" fill="#7dd3fc">/api/auth</text>
+  <text x="125" y="568" text-anchor="middle" font-size="9" fill="#7dd3fc">Login/Register</text>
+  <text x="125" y="584" text-anchor="middle" font-size="9" fill="#7dd3fc">Firebase Auth</text>
+  <text x="125" y="600" text-anchor="middle" font-size="9" fill="#7dd3fc">JWT Token</text>
+
+  <rect x="205" y="515" width="130" height="140" rx="8" fill="#22c55e" fill-opacity="0.1" stroke="#22c55e" stroke-width="1.5"/>
+  <text x="270" y="535" text-anchor="middle" font-size="11" font-weight="bold" fill="#4ade80">Cashbooks</text>
+  <text x="270" y="552" text-anchor="middle" font-size="9" fill="#86efac">/api/cashbook</text>
+  <text x="270" y="568" text-anchor="middle" font-size="9" fill="#86efac">CRUD Cashbooks</text>
+  <text x="270" y="584" text-anchor="middle" font-size="9" fill="#86efac">Chalans</text>
+  <text x="270" y="600" text-anchor="middle" font-size="9" fill="#86efac">User Filtering</text>
+
+  <rect x="350" y="515" width="130" height="140" rx="8" fill="#a855f7" fill-opacity="0.1" stroke="#a855f7" stroke-width="1.5"/>
+  <text x="415" y="535" text-anchor="middle" font-size="11" font-weight="bold" fill="#c084fc">Transactions</text>
+  <text x="415" y="552" text-anchor="middle" font-size="9" fill="#d8b4fe">/api/transaction</text>
+  <text x="415" y="568" text-anchor="middle" font-size="9" fill="#d8b4fe">Income/Expense</text>
+  <text x="415" y="584" text-anchor="middle" font-size="9" fill="#d8b4fe">Party Ledger</text>
+  <text x="415" y="600" text-anchor="middle" font-size="9" fill="#d8b4fe">Interest Calc</text>
+
+  <rect x="495" y="515" width="130" height="140" rx="8" fill="#f97316" fill-opacity="0.1" stroke="#f97316" stroke-width="1.5"/>
+  <text x="560" y="535" text-anchor="middle" font-size="11" font-weight="bold" fill="#fb923c">Invitations</text>
+  <text x="560" y="552" text-anchor="middle" font-size="9" fill="#fdba74">/api/invitation</text>
+  <text x="560" y="568" text-anchor="middle" font-size="9" fill="#fdba74">Send/Accept</text>
+  <text x="560" y="584" text-anchor="middle" font-size="9" fill="#fdba74">Email Service</text>
+  <text x="560" y="600" text-anchor="middle" font-size="9" fill="#fdba74">Status Mgmt</text>
+
+  <rect x="640" y="515" width="130" height="140" rx="8" fill="#ec4899" fill-opacity="0.1" stroke="#ec4899" stroke-width="1.5"/>
+  <text x="705" y="535" text-anchor="middle" font-size="11" font-weight="bold" fill="#f472b6">EMI &amp; Subs</text>
+  <text x="705" y="552" text-anchor="middle" font-size="9" fill="#f9a8d4">/api/emi-subscription</text>
+  <text x="705" y="568" text-anchor="middle" font-size="9" fill="#f9a8d4">Track EMI</text>
+  <text x="705" y="584" text-anchor="middle" font-size="9" fill="#f9a8d4">Subscriptions</text>
+  <text x="705" y="600" text-anchor="middle" font-size="9" fill="#f9a8d4">Due Dates</text>
+
+  <rect x="785" y="515" width="130" height="140" rx="8" fill="#06b6d4" fill-opacity="0.1" stroke="#06b6d4" stroke-width="1.5"/>
+  <text x="850" y="535" text-anchor="middle" font-size="11" font-weight="bold" fill="#22d3ee">Categories</text>
+  <text x="850" y="552" text-anchor="middle" font-size="9" fill="#67e8f9">/api/category</text>
+  <text x="850" y="568" text-anchor="middle" font-size="9" fill="#67e8f9">/api/subcategory</text>
+  <text x="850" y="584" text-anchor="middle" font-size="9" fill="#67e8f9">Income/Expense</text>
+  <text x="850" y="600" text-anchor="middle" font-size="9" fill="#67e8f9">Custom Labels</text>
+
+  <rect x="930" y="515" width="130" height="140" rx="8" fill="#ef4444" fill-opacity="0.1" stroke="#ef4444" stroke-width="1.5"/>
+  <text x="995" y="535" text-anchor="middle" font-size="11" font-weight="bold" fill="#f87171">Admin</text>
+  <text x="995" y="552" text-anchor="middle" font-size="9" fill="#fca5a5">/api/admin</text>
+  <text x="995" y="568" text-anchor="middle" font-size="9" fill="#fca5a5">User CRUD</text>
+  <text x="995" y="584" text-anchor="middle" font-size="9" fill="#fca5a5">System Stats</text>
+  <text x="995" y="600" text-anchor="middle" font-size="9" fill="#fca5a5">Admin Auth</text>
+
+  <rect x="1075" y="515" width="80" height="140" rx="8" fill="#f59e0b" fill-opacity="0.1" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="1115" y="535" text-anchor="middle" font-size="11" font-weight="bold" fill="#fbbf24">More</text>
+  <text x="1115" y="552" text-anchor="middle" font-size="9" fill="#fde68a">Receipts</text>
+  <text x="1115" y="568" text-anchor="middle" font-size="9" fill="#fde68a">Payment</text>
+  <text x="1115" y="584" text-anchor="middle" font-size="9" fill="#fde68a">Modes</text>
+  <text x="1115" y="600" text-anchor="middle" font-size="9" fill="#fde68a">Contact</text>
+  <text x="1115" y="616" text-anchor="middle" font-size="9" fill="#fde68a">Users</text>
+
+  <!-- ═════════════════════════
+       ARROWS: Business → Data Layer
+  ═════════════════════════ -->
+  <line x1="600" y1="675" x2="600" y2="720" stroke="#475569" stroke-width="2" stroke-dasharray="8 4" marker-end="url(#arr)"/>
+
+  <!-- ═════════════════════════
+       LAYER 4: DATA LAYER
+  ═════════════════════════ -->
+  <rect x="30" y="720" width="860" height="130" rx="12" fill="#1e293b" stroke="#334155" stroke-width="1.5"/>
+  <text x="45" y="745" font-size="12" font-weight="bold" fill="#94a3b8" letter-spacing="2">DATA LAYER</text>
+
+  <!-- MongoDB -->
+  <rect x="60" y="755" width="260" height="80" rx="8" fill="#16a34a" fill-opacity="0.15" stroke="#16a34a" stroke-width="2"/>
+  <text x="190" y="778" text-anchor="middle" font-size="13" font-weight="bold" fill="#4ade80">MongoDB (Mongoose ODM)</text>
+  <text x="190" y="796" text-anchor="middle" font-size="10" fill="#86efac">Collections: user_info, cashbooks, transactions</text>
+  <text x="190" y="812" text-anchor="middle" font-size="10" fill="#86efac">invite_info, categories, receipts, payment_modes</text>
+  <text x="190" y="828" text-anchor="middle" font-size="10" fill="#86efac">emi_subscriptions, admins</text>
+
+  <!-- Mongoose -->
+  <rect x="340" y="755" width="200" height="80" rx="8" fill="#3b82f6" fill-opacity="0.15" stroke="#3b82f6" stroke-width="2"/>
+  <text x="440" y="778" text-anchor="middle" font-size="13" font-weight="bold" fill="#60a5fa">Mongoose Models</text>
+  <text x="440" y="796" text-anchor="middle" font-size="10" fill="#93c5fd">Schema Validation</text>
+  <text x="440" y="812" text-anchor="middle" font-size="10" fill="#93c5fd">Virtual Fields (id)</text>
+  <text x="440" y="828" text-anchor="middle" font-size="10" fill="#93c5fd">Pre-save Hooks</text>
+
+  <!-- File Storage -->
+  <rect x="560" y="755" width="200" height="80" rx="8" fill="#f59e0b" fill-opacity="0.15" stroke="#f59e0b" stroke-width="2"/>
+  <text x="660" y="778" text-anchor="middle" font-size="13" font-weight="bold" fill="#fbbf24">File Storage</text>
+  <text x="660" y="796" text-anchor="middle" font-size="10" fill="#fde68a">Multer (Receipt uploads)</text>
+  <text x="660" y="812" text-anchor="middle" font-size="10" fill="#fde68a">/uploads directory</text>
+  <text x="660" y="828" text-anchor="middle" font-size="10" fill="#fde68a">Base64 encoding</text>
+
+  <!-- ═════════════════════════
+       EXTERNAL SERVICES (right column)
+  ═════════════════════════ -->
+  <rect x="910" y="720" width="260" height="240" rx="12" fill="#1e293b" stroke="#334155" stroke-width="1.5"/>
+  <text x="925" y="745" font-size="12" font-weight="bold" fill="#94a3b8" letter-spacing="2">EXTERNAL SERVICES</text>
+
+  <!-- Firebase -->
+  <rect x="930" y="755" width="220" height="60" rx="8" fill="#f97316" fill-opacity="0.15" stroke="#f97316" stroke-width="2"/>
+  <text x="1040" y="778" text-anchor="middle" font-size="12" font-weight="bold" fill="#fb923c">Firebase Auth</text>
+  <text x="1040" y="796" text-anchor="middle" font-size="10" fill="#fdba74">Google / OTP / Social Login</text>
+  <text x="1040" y="810" text-anchor="middle" font-size="10" fill="#fdba74">JWT UID Verification</text>
+
+  <!-- Email -->
+  <rect x="930" y="830" width="220" height="60" rx="8" fill="#8b5cf6" fill-opacity="0.15" stroke="#8b5cf6" stroke-width="2"/>
+  <text x="1040" y="853" text-anchor="middle" font-size="12" font-weight="bold" fill="#a78bfa">Email Service</text>
+  <text x="1040" y="871" text-anchor="middle" font-size="10" fill="#c4b5fd">Nodemailer / SMTP</text>
+  <text x="1040" y="885" text-anchor="middle" font-size="10" fill="#c4b5fd">Invitation &amp; OTP Emails</text>
+
+  <!-- Socket.io -->
+  <rect x="930" y="905" width="220" height="45" rx="8" fill="#06b6d4" fill-opacity="0.15" stroke="#06b6d4" stroke-width="2"/>
+  <text x="1040" y="925" text-anchor="middle" font-size="12" font-weight="bold" fill="#22d3ee">Socket.io</text>
+  <text x="1040" y="942" text-anchor="middle" font-size="10" fill="#67e8f9">Real-time Session Management</text>
+
+  <!-- Bottom label -->
+  <text x="600" y="975" text-anchor="middle" font-size="11" fill="#475569">Stack: React 18 · Node.js · Express.js · MongoDB · Firebase · Socket.io · Tailwind CSS · Vite</text>
+</svg>
+</body>
+</html>
+

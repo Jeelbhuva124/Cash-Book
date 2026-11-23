@@ -1,0 +1,232 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 950" width="1000" height="950">
+<style>
+  text {
+    font-family: Arial, Helvetica, sans-serif;
+    fill: #000000;
+  }
+  .box {
+    fill: #ffffff;
+    stroke: #000000;
+    stroke-width: 1.8;
+  }
+  .line {
+    stroke: #000000;
+    stroke-width: 1.8;
+    fill: none;
+  }
+  .label {
+    font-size: 13px;
+    font-weight: normal;
+  }
+  .node-text {
+    font-size: 13.5px;
+    font-weight: 500;
+    text-anchor: middle;
+    dominant-baseline: central;
+  }
+  .pk {
+    text-decoration: underline;
+    font-weight: 600;
+  }
+</style>
+<defs>
+  <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M 0 1 L 10 5 L 0 9 z" fill="#000000" />
+  </marker>
+</defs>
+<rect width="100%" height="100%" fill="#ffffff" />
+
+  <!-- RELATIONSHIPS (Diamonds) -->
+  <!-- Admin to User: Manages -->
+  <polygon class="box" points="330,165 375,195 330,225 285,195"/>
+  <text class="node-text" x="330" y="195" font-size="12">Manages</text>
+  
+  <!-- Admin to Cashbook: Monitors -->
+  <polygon class="box" points="670,165 715,195 670,225 625,195"/>
+  <text class="node-text" x="670" y="195" font-size="12">Monitors</text>
+  
+  <!-- User to Cashbook: Creates -->
+  <polygon class="box" points="500,285 545,315 500,345 455,315"/>
+  <text class="node-text" x="500" y="315" font-size="12">Creates</text>
+  
+  <!-- User to PartyLedger: Maintains -->
+  <polygon class="box" points="200,485 245,515 200,545 155,515"/>
+  <text class="node-text" x="200" y="515" font-size="12">Maintains</text>
+  
+  <!-- Cashbook to Transaction: Contains -->
+  <polygon class="box" points="670,410 715,440 670,470 625,440"/>
+  <text class="node-text" x="670" y="440" font-size="12">Contains</text>
+  
+  <!-- Transaction to Receipt: Attaches -->
+  <polygon class="box" points="500,635 545,665 500,695 455,665"/>
+  <text class="node-text" x="500" y="665" font-size="12">Attaches</text>
+  
+  <!-- Transaction to Category: Classified Under -->
+  <polygon class="box" points="670,600 725,630 670,660 615,630"/>
+  <text class="node-text" x="670" y="630" font-size="11">Classified</text>
+  
+  <!-- CONNECTING LINES BETWEEN ENTITIES & RELATIONSHIPS -->
+  <!-- Admin to Manages & Monitors -->
+  <line class="line" x1="450" y1="120" x2="375" y2="195"/>
+  <line class="line" x1="550" y1="120" x2="625" y2="195"/>
+  
+  <!-- Manages to User -->
+  <line class="line" x1="330" y1="225" x2="230" y2="295"/>
+  
+  <!-- Monitors to Cashbook -->
+  <line class="line" x1="670" y1="225" x2="770" y2="295"/>
+  
+  <!-- User to Creates to Cashbook -->
+  <line class="line" x1="260" y1="315" x2="455" y2="315"/>
+  <line class="line" x1="545" y1="315" x2="720" y2="315"/>
+  
+  <!-- User to Maintains to PartyLedger -->
+  <line class="line" x1="200" y1="340" x2="200" y2="485"/>
+  <line class="line" x1="200" y1="545" x2="200" y2="695"/>
+  
+  <!-- Cashbook to Contains to Transaction -->
+  <line class="line" x1="750" y1="340" x2="705" y2="415"/>
+  <line class="line" x1="635" y1="455" x2="560" y2="500"/>
+  
+  <!-- Transaction to Attaches to Receipt -->
+  <line class="line" x1="500" y1="545" x2="500" y2="635"/>
+  <line class="line" x1="500" y1="695" x2="500" y2="760"/>
+  
+  <!-- Transaction to Classified to Category -->
+  <line class="line" x1="560" y1="540" x2="620" y2="615"/>
+  <line class="line" x1="710" y1="645" x2="750" y2="695"/>
+  
+  <!-- ENTITIES (Rectangles) -->
+  <!-- 1. Admin -->
+  <rect class="box" x="435" y="95" width="130" height="48"/>
+  <text class="node-text" x="500" y="119" font-size="15" font-weight="bold">Admin</text>
+  
+  <!-- 2. User -->
+  <rect class="box" x="140" y="295" width="120" height="48"/>
+  <text class="node-text" x="200" y="319" font-size="15" font-weight="bold">User</text>
+  
+  <!-- 3. Cashbook -->
+  <rect class="box" x="720" y="295" width="140" height="48"/>
+  <text class="node-text" x="790" y="319" font-size="15" font-weight="bold">Cashbook</text>
+  
+  <!-- 4. Transaction -->
+  <rect class="box" x="430" y="495" width="140" height="48"/>
+  <text class="node-text" x="500" y="519" font-size="15" font-weight="bold">Transaction</text>
+  
+  <!-- 5. PartyLedger -->
+  <rect class="box" x="135" y="695" width="130" height="48"/>
+  <text class="node-text" x="200" y="719" font-size="15" font-weight="bold">PartyLedger</text>
+  
+  <!-- 6. Receipt -->
+  <rect class="box" x="440" y="760" width="120" height="48"/>
+  <text class="node-text" x="500" y="784" font-size="15" font-weight="bold">Receipt</text>
+  
+  <!-- 7. Category -->
+  <rect class="box" x="725" y="695" width="130" height="48"/>
+  <text class="node-text" x="790" y="719" font-size="15" font-weight="bold">Category</text>
+  
+  <!-- ATTRIBUTES (Ovals / Ellipses) -->
+  <!-- Admin Attributes -->
+  <line class="line" x1="460" y1="95" x2="395" y2="60"/>
+  <ellipse class="box" cx="380" cy="52" rx="35" ry="19"/>
+  <text class="node-text pk" x="380" y="52" font-size="12">aid</text>
+  
+  <line class="line" x1="500" y1="95" x2="500" y2="52"/>
+  <ellipse class="box" cx="500" cy="38" rx="40" ry="19"/>
+  <text class="node-text" x="500" y="38" font-size="12">email</text>
+  
+  <line class="line" x1="540" y1="95" x2="605" y2="60"/>
+  <ellipse class="box" cx="620" cy="52" rx="35" ry="19"/>
+  <text class="node-text" x="620" y="52" font-size="12">role</text>
+  
+  <!-- User Attributes: positioned to avoid line to Manages -->
+  <line class="line" x1="140" y1="300" x2="75" y2="250"/>
+  <ellipse class="box" cx="65" cy="240" rx="35" ry="19"/>
+  <text class="node-text pk" x="65" y="240" font-size="12">uid</text>
+  
+  <line class="line" x1="160" y1="295" x2="135" y2="230"/>
+  <ellipse class="box" cx="130" cy="215" rx="42" ry="19"/>
+  <text class="node-text" x="130" y="215" font-size="12">username</text>
+  
+  <line class="line" x1="140" y1="320" x2="65" y2="320"/>
+  <ellipse class="box" cx="60" cy="320" rx="38" ry="19"/>
+  <text class="node-text" x="60" y="320" font-size="12">email</text>
+  
+  <line class="line" x1="140" y1="335" x2="75" y2="390"/>
+  <ellipse class="box" cx="65" cy="400" rx="36" ry="19"/>
+  <text class="node-text" x="65" y="400" font-size="12">phone</text>
+  
+  <!-- Cashbook Attributes: positioned to avoid line to Monitors -->
+  <line class="line" x1="810" y1="295" x2="810" y2="235"/>
+  <ellipse class="box" cx="810" cy="220" rx="35" ry="19"/>
+  <text class="node-text pk" x="810" y="220" font-size="12">cid</text>
+  
+  <line class="line" x1="840" y1="295" x2="905" y2="240"/>
+  <ellipse class="box" cx="920" cy="225" rx="55" ry="19"/>
+  <text class="node-text" x="920" y="225" font-size="12">cashbook_name</text>
+  
+  <line class="line" x1="860" y1="310" x2="920" y2="290"/>
+  <ellipse class="box" cx="940" cy="285" rx="40" ry="19"/>
+  <text class="node-text" x="940" y="285" font-size="12">balance</text>
+  
+  <line class="line" x1="860" y1="330" x2="920" y2="350"/>
+  <ellipse class="box" cx="940" cy="355" rx="42" ry="19"/>
+  <text class="node-text" x="940" y="355" font-size="12">currency</text>
+  
+  <!-- Transaction Attributes -->
+  <line class="line" x1="430" y1="505" x2="370" y2="465"/>
+  <ellipse class="box" cx="355" cy="455" rx="35" ry="19"/>
+  <text class="node-text pk" x="355" y="455" font-size="12">tid</text>
+  
+  <line class="line" x1="430" y1="520" x2="365" y2="520"/>
+  <ellipse class="box" cx="345" cy="520" rx="38" ry="19"/>
+  <text class="node-text" x="345" y="520" font-size="12">amount</text>
+  
+  <line class="line" x1="430" y1="535" x2="370" y2="575"/>
+  <ellipse class="box" cx="355" cy="585" rx="35" ry="19"/>
+  <text class="node-text" x="355" y="585" font-size="12">type</text>
+  
+  <line class="line" x1="465" y1="545" x2="435" y2="600"/>
+  <ellipse class="box" cx="425" cy="615" rx="35" ry="19"/>
+  <text class="node-text" x="425" y="615" font-size="12">date</text>
+  
+  <!-- PartyLedger Attributes -->
+  <line class="line" x1="135" y1="705" x2="80" y2="675"/>
+  <ellipse class="box" cx="65" cy="665" rx="35" ry="19"/>
+  <text class="node-text pk" x="65" y="665" font-size="12">pid</text>
+  
+  <line class="line" x1="135" y1="730" x2="80" y2="745"/>
+  <ellipse class="box" cx="65" cy="750" rx="46" ry="19"/>
+  <text class="node-text" x="65" y="750" font-size="12">party_name</text>
+  
+  <line class="line" x1="180" y1="745" x2="165" y2="815"/>
+  <ellipse class="box" cx="160" cy="830" rx="48" ry="19"/>
+  <text class="node-text" x="160" y="830" font-size="12">net_balance</text>
+  
+  <!-- Receipt Attributes -->
+  <line class="line" x1="445" y1="808" x2="385" y2="850"/>
+  <ellipse class="box" cx="370" cy="860" rx="35" ry="19"/>
+  <text class="node-text pk" x="370" y="860" font-size="12">rid</text>
+  
+  <line class="line" x1="500" y1="808" x2="500" y2="855"/>
+  <ellipse class="box" cx="500" cy="870" rx="42" ry="19"/>
+  <text class="node-text" x="500" y="870" font-size="12">file_url</text>
+  
+  <line class="line" x1="555" y1="808" x2="615" y2="850"/>
+  <ellipse class="box" cx="630" cy="860" rx="48" ry="19"/>
+  <text class="node-text" x="630" y="860" font-size="12">upload_date</text>
+  
+  <!-- Category Attributes -->
+  <line class="line" x1="855" y1="705" x2="910" y2="670"/>
+  <ellipse class="box" cx="925" cy="660" rx="38" ry="19"/>
+  <text class="node-text pk" x="925" y="660" font-size="12">cat_id</text>
+  
+  <line class="line" x1="855" y1="725" x2="910" y2="735"/>
+  <ellipse class="box" cx="930" cy="740" rx="44" ry="19"/>
+  <text class="node-text" x="930" y="740" font-size="12">cat_name</text>
+  
+  <line class="line" x1="810" y1="745" x2="825" y2="815"/>
+  <ellipse class="box" cx="830" cy="830" rx="35" ry="19"/>
+  <text class="node-text" x="830" y="830" font-size="12">type</text>
+
+</svg>

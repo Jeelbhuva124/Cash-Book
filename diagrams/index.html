@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Cash-Book – Project Diagrams</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0f172a;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    color: #f1f5f9;
+    padding: 40px 60px;
+    min-height: 100vh;
+  }
+  h1 { font-size: 32px; font-weight: 800; color: #38bdf8; margin-bottom: 8px; }
+  .subtitle { color: #64748b; font-size: 15px; margin-bottom: 40px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; }
+  .card {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 16px;
+    padding: 28px;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .card:hover { border-color: #60a5fa; transform: translateY(-3px); box-shadow: 0 12px 32px #00000060; }
+  .card-icon { font-size: 36px; }
+  .card-title { font-size: 18px; font-weight: 700; color: #e2e8f0; }
+  .card-desc { font-size: 13px; color: #94a3b8; line-height: 1.6; }
+  .card-tag {
+    display: inline-block;
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+    width: fit-content;
+    margin-top: 4px;
+  }
+  .tag-blue { background: #1d4ed820; color: #60a5fa; border: 1px solid #3b82f640; }
+  .tag-green { background: #15803d20; color: #4ade80; border: 1px solid #22c55e40; }
+  .tag-purple { background: #7e22ce20; color: #c084fc; border: 1px solid #9333ea40; }
+  .tag-orange { background: #c2410c20; color: #fb923c; border: 1px solid #f9731640; }
+  .tag-red { background: #b91c1c20; color: #f87171; border: 1px solid #ef444440; }
+  footer { margin-top: 60px; text-align: center; color: #334155; font-size: 12px; }
+</style>
+</head>
+<body>
+  <h1>📊 Cash-Book – Project Diagrams</h1>
+  <p class="subtitle">Complete visual documentation of the Cash-Book Financial Management System</p>
+
+  <div class="grid">
+    <a class="card" href="01_system_flowchart.html">
+      <div class="card-icon">🔄</div>
+      <div class="card-title">System Flowchart</div>
+      <div class="card-desc">Complete system flow from app launch to logout. Shows the Sign Up → Login → Role Selection → User/Admin panel flow with all decision points and feature branches.</div>
+      <span class="card-tag tag-blue">Admin &amp; User Panel</span>
+    </a>
+
+    <a class="card" href="02_context_diagram.html">
+      <div class="card-icon">🌐</div>
+      <div class="card-title">Context Diagram (DFD Level 0)</div>
+      <div class="card-desc">System boundary view showing all external entities (User, Admin, Firebase, MongoDB, Email Service) and the data flows between them and the Cash-Book system.</div>
+      <span class="card-tag tag-green">DFD Level 0</span>
+    </a>
+
+    <a class="card" href="03_er_diagram.html">
+      <div class="card-icon">🗄️</div>
+      <div class="card-title">Entity Relationship Diagram</div>
+      <div class="card-desc">MongoDB collections schema with all fields, data types, primary keys, and foreign key relationships. Covers user_info, cashbooks, transactions, invite_info, emi_subscriptions, categories, receipts, payment_modes, and admins.</div>
+      <span class="card-tag tag-purple">Database Schema</span>
+    </a>
+
+    <a class="card" href="04_architecture_diagram.html">
+      <div class="card-icon">🏗️</div>
+      <div class="card-title">System Architecture Diagram</div>
+      <div class="card-desc">Full MERN stack architecture showing the 4-layer design: Client (React 18), API Gateway (Express.js), Business Logic (Controllers/Routes), and Data Layer (MongoDB + Firebase + Socket.io).</div>
+      <span class="card-tag tag-orange">MERN Stack</span>
+    </a>
+
+    <a class="card" href="05_dfd_level1.html">
+      <div class="card-icon">📐</div>
+      <div class="card-title">DFD Level 1</div>
+      <div class="card-desc">Detailed data flow diagram showing 8 internal processes (Auth, Cashbook Mgmt, Transactions, Invitations, Analytics, EMI, Receipt Vault, Admin Control) with data stores and all flows.</div>
+      <span class="card-tag tag-red">DFD Level 1</span>
+    </a>
+  </div>
+
+  <footer>
+    Cash-Book – Financial Management System &nbsp;·&nbsp; Diagrams generated for project documentation
+  </footer>
+</body>
+</html>
+

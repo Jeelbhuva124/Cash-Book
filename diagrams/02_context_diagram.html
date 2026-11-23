@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Cash-Book – Context Diagram (DFD Level 0)</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #fff; font-family: Arial, sans-serif; }
+  svg { display: block; margin: 0 auto; }
+</style>
+</head>
+<body>
+<svg width="1050" height="800" viewBox="0 0 1050 800" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arr" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0 0,8 3,0 6" fill="#000"/>
+    </marker>
+    <marker id="arrl" markerWidth="8" markerHeight="6" refX="0" refY="3" orient="auto">
+      <polygon points="8 0,0 3,8 6" fill="#000"/>
+    </marker>
+  </defs>
+
+  <rect width="1050" height="800" fill="#fff"/>
+
+  <!-- TITLE -->
+  <text x="525" y="34" text-anchor="middle" font-size="18" font-weight="bold" font-family="Arial" fill="#000">Cash-Book – Context Diagram (DFD Level 0)</text>
+
+  <!-- ══ CENTER OVAL — System ══ -->
+  <ellipse cx="525" cy="400" rx="145" ry="120" fill="#fff" stroke="#000" stroke-width="2"/>
+  <text x="525" y="385" text-anchor="middle" font-size="15" font-weight="bold" font-family="Arial" fill="#000">Cash-Book –</text>
+  <text x="525" y="405" text-anchor="middle" font-size="13" font-family="Arial" fill="#000">Financial Management</text>
+  <text x="525" y="422" text-anchor="middle" font-size="13" font-family="Arial" fill="#000">&amp; Tracking System</text>
+
+  <!-- ══ ADMIN (top-left rect) ══ -->
+  <rect x="60" y="120" width="150" height="80" rx="4" fill="#fff" stroke="#000" stroke-width="2"/>
+  <line x1="70" y1="150" x2="200" y2="150" stroke="#000" stroke-width="1.5"/>
+  <text x="135" y="142" text-anchor="middle" font-size="16" font-weight="bold" font-family="Arial" fill="#000">Admin</text>
+
+  <!-- ══ USER (right rect) ══ -->
+  <rect x="840" y="330" width="150" height="140" rx="4" fill="#fff" stroke="#000" stroke-width="2"/>
+  <line x1="850" y1="365" x2="980" y2="365" stroke="#000" stroke-width="1.5"/>
+  <text x="915" y="358" text-anchor="middle" font-size="16" font-weight="bold" font-family="Arial" fill="#000">User</text>
+
+  <!-- ════════════════════════════════════
+       ADMIN → SYSTEM ARROWS (inputs to system)
+  ════════════════════════════════════ -->
+  <!-- 5 arrows from Admin → System, stacked, all pointing right into the oval -->
+
+  <!-- A1: Manage Cashbooks & Transactions -->
+  <line x1="210" y1="130" x2="460" y2="285" stroke="#000" stroke-width="1.2" marker-end="url(#arr)"/>
+  <text x="295" y="192" font-size="10" font-family="Arial" fill="#000" transform="rotate(-30,295,192)">Manage Cashbooks &amp; Transactions</text>
+
+  <!-- A2: Manage Users -->
+  <line x1="210" y1="148" x2="385" y2="310" stroke="#000" stroke-width="1.2" marker-end="url(#arr)"/>
+  <text x="250" y="225" font-size="10" font-family="Arial" fill="#000">Manage Users</text>
+
+  <!-- A3: Manage Admins -->
+  <line x1="210" y1="162" x2="385" y2="335" stroke="#000" stroke-width="1.2" marker-end="url(#arr)"/>
+  <text x="233" y="258" font-size="10" font-family="Arial" fill="#000">Manage Admins</text>
+
+  <!-- A4: System Settings & Config -->
+  <line x1="210" y1="176" x2="385" y2="365" stroke="#000" stroke-width="1.2" marker-end="url(#arr)"/>
+  <text x="225" y="290" font-size="10" font-family="Arial" fill="#000">System Settings &amp; Config</text>
+
+  <!-- A5: View Analytics Commands -->
+  <line x1="210" y1="192" x2="385" y2="390" stroke="#000" stroke-width="1.2" marker-end="url(#arr)"/>
+  <text x="218" y="320" font-size="10" font-family="Arial" fill="#000">View Analytics Commands</text>
+
+  <!-- ════════════════════════════════════
+       SYSTEM → ADMIN ARROWS (outputs from system)
+  ════════════════════════════════════ -->
+  <!-- B1: Dashboard, Reports & Analytics -->
+  <line x1="387" y1="438" x2="210" y2="510" stroke="#000" stroke-width="1.2" marker-end="url(#arr)"/>
+  <text x="225" y="468" font-size="10" font-family="Arial" fill="#000">Dashboard, Reports &amp; Analytics</text>
+
+  <!-- B2: User & Transaction Data -->
+  <line x1="383" y1="460" x2="210" y2="540" stroke="#000" stroke-width="1.2" marker-end="url(#arr)"/>
+  <text x="225" y="508" font-size="10" font-family="Arial" fill="#000">User &amp; Transaction Data</text>
+
+  <!-- B3: Contact Messages -->
+  <line x1="387" y1="478" x2="210" y2="570" stroke="#000" stroke-width="1.2" marker-end="url(#arr)"/>
+  <text x="228" y="548" font-size="10" font-family="Arial" fill="#000">Contact &amp; Feedback Messages</text>
+
+  <!-- ════════════════════════════════════
+       USER → SYSTEM ARROWS (inputs)
+  ════════════════════════════════════ -->
+  <!-- U1: Register / Login -->
+  <line x1="840" y1="376" x2="670" y2="335" stroke="#000" stroke-width="1.2" marker-end="url(#arr)"/>
+  <text x="720" y="348" font-size="10" font-family="Arial" fill="#000">Register / Login</text>
+
+  <!-- U2: Create Cashbook / Add Transaction -->
+  <line x1="840" y1="394" x2="670" y2="368" stroke="#000" stroke-width="1.2" marker-end="url(#arr)"/>
+  <text x="680" y="372" font-size="10" font-family="Arial" fill="#000">Create Cashbook / Add Transaction</text>
+
+  <!-- U3: Manage Profile & Settings -->
+  <line x1="840" y1="412" x2="670" y2="400" stroke="#000" stroke-width="1.2" marker-end="url(#arr)"/>
+  <text x="682" y="398" font-size="10" font-family="Arial" fill="#000">Manage Profile &amp; Settings</text>
+
+  <!-- U4: Send Invitation -->
+  <line x1="840" y1="430" x2="670" y2="425" stroke="#000" stroke-width="1.2" marker-end="url(#arr)"/>
+  <text x="690" y="430" font-size="10" font-family="Arial" fill="#000">Send Invitation</text>
+
+  <!-- U5: Track EMI / Upload Receipt -->
+  <line x1="840" y1="448" x2="670" y2="450" stroke="#000" stroke-width="1.2" marker-end="url(#arr)"/>
+  <text x="682" y="457" font-size="10" font-family="Arial" fill="#000">Track EMI / Upload Receipt</text>
+
+  <!-- U6: Submit Contact Message -->
+  <line x1="840" y1="466" x2="670" y2="475" stroke="#000" stroke-width="1.2" marker-end="url(#arr)"/>
+  <text x="680" y="478" font-size="10" font-family="Arial" fill="#000">Submit Contact Message</text>
+
+  <!-- ════════════════════════════════════
+       SYSTEM → USER ARROWS (outputs)
+  ════════════════════════════════════ -->
+  <!-- S1: Transaction Reports & Analytics -->
+  <line x1="665" y1="510" x2="840" y2="385" stroke="#000" stroke-width="1.2" marker-end="url(#arr)"/>
+  <text x="705" y="492" font-size="10" font-family="Arial" fill="#000">Transaction Reports &amp; Analytics</text>
+
+  <!-- S2: Cashbook Balance & Summary -->
+  <line x1="665" y1="525" x2="840" y2="410" stroke="#000" stroke-width="1.2" marker-end="url(#arr)"/>
+  <text x="698" y="518" font-size="10" font-family="Arial" fill="#000">Cashbook Balance &amp; Summary</text>
+
+  <!-- S3: Invitation Status & Notifications -->
+  <line x1="662" y1="540" x2="840" y2="435" stroke="#000" stroke-width="1.2" marker-end="url(#arr)"/>
+  <text x="696" y="544" font-size="10" font-family="Arial" fill="#000">Invitation Status &amp; Notifications</text>
+
+  <!-- S4: EMI Reminders & Alerts -->
+  <line x1="658" y1="555" x2="840" y2="460" stroke="#000" stroke-width="1.2" marker-end="url(#arr)"/>
+  <text x="694" y="568" font-size="10" font-family="Arial" fill="#000">EMI Reminders &amp; Alerts</text>
+
+  <!-- AUTH TOKEN note (small) -->
+  <text x="525" y="762" text-anchor="middle" font-size="10" font-family="Arial" fill="#888">External: Firebase Auth · Email Service (Nodemailer) · MongoDB Database</text>
+</svg>
+</body>
+</html>

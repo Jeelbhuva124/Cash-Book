@@ -1,0 +1,17 @@
+{
+  "name": "cash-book",
+  "version": "1.0.0",
+  "scripts": {
+    "frontend": "cd Frontend && npm run dev",
+    "backend": "cd Backend && npm run dev",
+    "install:all": "cd Frontend && npm install && cd ../Backend && npm install"
+  },
+  "dependencies": {
+    "html-docx-js": "^0.3.1",
+    "html-to-docx": "^1.8.0",
+    "jsdom": "^30.1.2",
+    "pptxgenjs": "^4.0.1",
+    "puppeteer": "^25.12.0",
+    "puppeteer-core": "^25.12.0"
+  }
+}

@@ -1,0 +1,477 @@
+=== PAGE 1 ===
+PROJECT REPORT 
+ON 
+TravelLoop - Online Trip Planner 
+SUBMITTED BY: GUIDED BY: 
+Daksh Dumraliya P . (512) - (5621) 
+Sartanpara Nayanesh D. (525) - (5892) 
+Sirvi Navratan B. (551) - (5923) 
+Mrs. Sanskruti Ramani 
+
+
+=== PAGE 2 ===
+TravelLoop - Online Trip Planner 
+1 
+Acknowledgement 
+We take great pleasure in presenting this project, An Online Trip Planner 
+Platform, developed during the 5th semester of Bachelor of Computer 
+Application (Information Technology). We would like to mention here that this 
+project would not have been possible without the invaluable support and 
+guidance of our professors. 
+As the ﬁnal frontier toward achieving our Bachelor of Computer Application 
+(Information Technology), the activity of developing an IT project has helped us 
+bridge the gap between academic knowledge and practical real-life applications. 
+It has prepared us to apply our learning eﬀectively and motivated us to grow 
+into capable IT professionals. 
+On the occasion of completing our project on TravelLoop, we would like to 
+express our heartfelt gratitude to all those who directly or indirectly supported 
+us. We are extremely grateful to everyone who has helped us in this journey. We 
+would especially like to extend our sincere thanks to Mrs. Sanskruti Ramani for 
+his valuable suggestions, encouragement, and stimulating discussions that 
+guided us throughout the project. We would also like to express our gratitude to 
+our Principal, Prin. Dr. Mukesh R. Goyani, for their constant support and 
+guidance. 
+It has been a rich and rewarding experience studying at Prof.V.B.Shah Institute 
+of Management &R.V.Patel College of Commerce(Eng.Med.) &V.L.Shah College 
+of Commerce (Guj.Med.) &Sutex Bank College of Computer Applications & 
+Science, Amroli, and this project stands as a testament to the knowledge and 
+skills we have gained during our academic journey. 
+
+=== PAGE 3 ===
+TravelLoop - Online Trip Planner 
+2 
+Declaration 
+We hereby declare that the project “TravelLoop – A Luxury Travel & Tourism 
+Platform” is our original work completed as part of our academic requirements. 
+The project provides an online platform for booking luxury travel experiences 
+with features such as user login, destination exploration, hotel and villa booking 
+with room tier selection, ﬂight booking with interactive aircraft seat selection, 
+curated vacation tour packages, AI-driven itinerary generation, interactive 
+Leaﬂet world map, live weather forecasting, wishlist, secure checkout, and 
+reservation management. It also includes admin modules for destination, hotel, 
+ﬂight, package, booking, user, and coupon management. 
+TravelLoop is developed using React, Node.js, and MongoDB, representing a 
+complete e-commerce and concierge solution for the travel and tourism 
+industry. 
+We sincerely thank our guide and our parents and family members for their 
+continuous support, guidance, and encouragement throughout this project. 
+We further declare that this work has not been submitted to any other 
+institution for any degree, diploma, or certiﬁcate. 
+
+=== PAGE 4 ===
+TravelLoop - Online Trip Planner 
+3 
+Index 
+No. Title Page No. 
+1 Introduction of Project 4 
+2 Project Proﬁle 5 
+3 Technology Study 6 
+4 Objectives 10 
+5 System Flow Diagram 13 
+6 DFD / UML Diagram 15 
+7 ER Diagram 18 
+8 Database Design 19 
+9 System Design 23 
+10 References 35 
+
+=== PAGE 5 ===
+TravelLoop - Online Trip Planner 
+1. Introduction of Project 
+• It aims to simplify the luxury travel booking experience for customers by 
+oﬀering a fast, convenient, and accessible way to reserve ﬂights, luxury 
+hotels, and bespoke vacation tours from anywhere. 
+• The platform eliminates the limitations of traditional travel agencies, such as 
+restricted location, store timings, delayed manual conﬁrmations, and 
+fragmented booking systems. 
+•  It oﬀers essential e-commerce and tourism features including: 
+◦ User registration & login (JWT token authentication) 
+◦ Destination browsing by categories (Luxury Villas, Beach Escapes, Alpine 
+Lodges, Cultural Sanctuaries) 
+◦ AI-driven trip itinerary planner with budget and weather forecastsSecure 
+multi-method checkout and instant booking conﬁrmation with confetti 
+feedback 
+◦ Customer proﬁle, travel expenditure analytics, and past trip voucher 
+management 
+• For admins, the system includes: 
+◦ Destination, hotel, ﬂight, and package catalog management (CRUD) 
+◦ Booking dispatcher and real-time reservation tracking 
+◦ User management and role administration 
+◦ Admin telemetry dashboard for monitoring revenue, bookings, and active 
+users 
+• TravelLoop acts as a digital bridge between travel operators and travelers, 
+allowing hospitality businesses to expand their market reach and automate 
+booking operations. 
+• The project uses modern web technologies: Frontend: React, Backend: Node, 
+Database: Mongodb. 
+• It serves as a real-world implementation of an end-to-end luxury travel 
+platform in the hospitality industry. 
+
+=== PAGE 6 ===
+TravelLoop - Online Trip Planner 
+5 
+An Online Trip Planner Platform 
+Project Title : An Online Trip Planner Platform 
+Operating System : Windows 11 
+Front End Technologies : React 
+Back End Technologies : Node &Mongodb 
+Platform : Vs Code 
+Documentation Tool : Microsoft Word 
+Project Guide : Mrs. Sanskruti Ramani 
+Project Duration : 3 Months 
+Prepared By : 
+2. Project Proﬁle 
+Daksh Dumraliya P . (512) - (5621) 
+Sartanpara Nayanesh D. (525) - (5892) 
+Sirvi Navratan B. (551) - (5923) 
+
+=== PAGE 7 ===
+TravelLoop - Online Trip Planner 
+6 
+❖React : 
+⮚React was ﬁrst developed by Jordan Walke at Facebook in 2011. 
+⮚React is a JavaScript library used for building user interfaces (UI), 
+especially single-page applications (SPA). 
+⮚React uses a component-based architecture, where the UI is 
+divided into reusable pieces called components. 
+⮚React uses a Virtual DOM to eﬃciently update only the parts of the 
+page that change, improving performance. 
+❖HTML : 
+⮚ First developed by Tim Berners-Lee in 1990, HTML is short for 
+Hypertext Markup Language. 
+CSS 
+Java-
+script 
+React 
+ Mongod 
+b 
+Node 
+HTML 
+3. Technology Study 
+
+=== PAGE 8 ===
+TravelLoop - Online Trip Planner 
+⮚ 
+⮚ 
+❖JavaScript : 
+⮚ JavaScript is a dynamic computer programming language. 
+⮚ It is lightweight and most commonly used as a part of web pages. 7 
+⮚ JavaScript allows client-side scripts to interact with the user. 
+⮚ It is an interpreted programming language with object-oriented 
+capabilities. 
+❖Node : 
+⮚Node.js was developed by Ryan Dahl in 2009. 
+⮚Node.js is an open-source, cross-platform runtime environment. 
+⮚It allows running JavaScript outside the browser (on the server 
+side). 
+⮚Node.js uses the V8 JavaScript engine from Google Chrome. 
+⮚It is designed for scalable, fast, and event-driven applications. 
+❖Mongodb : 
+• MongoDB was ﬁrst released in 2009 by MongoDB Inc. 
+• MongoDB is an open-source NoSQL database. 
+• It stores data in ﬂexible, JSON-like documents instead of tables. 
+• MongoDB is schema-less, meaning each document can have 
+diﬀerent ﬁelds. 
+• It is designed for high performance, scalability, and ﬂexibility. 
+• Commonly used in modern web applications, big data, and real-time 
+analytics. 
+HTML is used to create electronic documents (called pages) that are 
+displayed on the World Wide Web.  
+Each page contains a series of connections to other pages called 
+hyperlinks. 
+
+=== PAGE 9 ===
+TravelLoop - Online Trip Planner 
+8 
+Tools: 
+⮊Documentation Tools: 
+• MS Word:- 
+• Microsoft Word or MS-WORD (often called Word) is a graphical word 
+processing program that allows users to type and format text. 
+• It is developed by Microsoft and is widely used for creating documents 
+such as letters, reports, and resumes 
+• MS Word provides features like spell check, templates, tables, mail 
+merge, and image insertion to enhance documents. 
+⮊Development Tools: 
+MS-WORLD 
+TEXT-EDITOR 
+VISULAL STUDIO 
+TOOLS 
+
+=== PAGE 10 ===
+TravelLoop - Online Trip Planner 
+❖VS Code:- 
+⮚ Visual Studio Code (VS Code) is a free, open-source code editor 
+developed by Microsoft. 9 
+⮚ It is available for Windows, macOS, and Linux. 
+⮚ VS Code is widely used for coding, debugging, and software 
+development in various programming languages like Python, 
+JavaScript, C++, Java, React,Node and more. 
+
+=== PAGE 11 ===
+TravelLoop - Online Trip Planner 
+10 
+• The objective of the project TravelLoop – A Luxury Travel & Tourism 
+Platform is to design and develop a professional, responsive, and 
+user-friendly e-commerce website for booking luxury hotels, ﬂights, and 
+curated vacation packages. 
+• The platform oﬀers essential features such as destination exploration, 
+room tier selection, aircraft seat selection, itinerary planning, order 
+placement, and tracking for customers, along with a secure admin panel to 
+manage destinations, hotels, ﬂights, packages, users, and orders. 
+• The aim is to deliver a functional and scalable system that simulates 
+real-world online retail experiences in the travel and hospitality domain. 
+Start To End Process 
+1. Project Planning & Requirement Analysis 
+• Deﬁne the purpose of the website: booking luxury hotels, ﬂights, and 
+curated tour packages online. 
+• Identify key features for users and admins such as destination 
+browsing, interactive seat and room selection, cart and wishlist 
+management, secure login, order placement, and admin catalog 
+management. 
+• Finalize the technology stack: React, CSS, JavaScript, Tailwind 
+(frontend), Node, and Mongodb (database). 
+2. UI/UX Design 
+• Design wireframes or layout sketches for all major pages: Homepage, 
+Explore, Destination Details, Hotel Booking, Flight Seat Selector, AI 
+Planner, Map, Wishlist, Login/Register, User Dashboard, and Admin 
+Panel. 
+• Ensure a modern, clean, and responsive interface. 
+• Use a consistent color scheme, readable fonts, and high-quality 
+destination images to enhance visual appeal. 
+4. Objectives 
+
+=== PAGE 12 ===
+TravelLoop - Online Trip Planner 
+11 
+3. Frontend Development 
+  Use: 
+o React – for building the frontend user interface 
+o CSS – for visual design and layout 
+o JavaScript – for interactivity and dynamic features 
+o HTML (used within JSX) – for structuring elements inside 
+components. 
+  Build pages such as: 
+4. Backend Development 
+  
+  
+  
+5. Database Design 
+  Create essential Collections: 
+o Users 
+o Admin 
+o Destination 
+o Hotel 
+o Flight 
+o Package 
+o Booking 
+o Payment 
+o Wishlist 
+• Home 
+• Explore Listing and Details 
+• Hotel Booking and Flight Seat Selector 
+• AI Planner and Interactive Map 
+• Wishlist and Checkout Modal 
+• Use Node.js with Express.js to handle user sessions, catalog queries, 
+reservation logic, and admin actions. 
+• Connect to MongoDB for managing backend data like: 
+◦ Users and Admin accounts 
+◦ Destinations, Hotels, Flights, and Packages 
+◦ Wishlist items and Saved Itineraries 
+• Implement secure session or token-based authentication (e.g., JWT) for both 
+user and admin access. 
+
+=== PAGE 13 ===
+TravelLoop - Online Trip Planner 
+  
+6. Functionality Implementation 
+User Side: 
+• User Registration and Login 
+• Browse and search destinations, hotels, ﬂights, and tour packages 
+• Select hotel room tiers and interactive aircraft seats 
+• Generate AI customized trip itineraries and budgets 
+• Add items to wishlist 
+Admin Side: 
+• Admin login and secure access (/admin) 
+• Add/Edit/Delete destinations, hotels, ﬂights, and vacation packages 
+• Manage customer bookings and update status 
+• View user directory and promote administrative accounts 
+• Manage promotional coupons and review activity audit logs 
+7. Testing 
+8. Final Review & Optimization 
+• Optimize page loading speed by compressing images and minifying 
+code. 
+• Ensure code readability and remove unused ﬁles/scripts. 
+• Final UI/UX polish to ensure consistency across all devices. 
+• Deﬁne relationships using references (ObjectId) or embedding: 
+ Users → Bookings → Payments (reference by userId and bookingId) 
+ Destinations → Hotels → Packages (reference by destinationId) 
+ Users → Wishlist, SavedItineraries, Reviews (reference by userId) 
+• Perform end-to-end testing of all major features: 
+◦ Form validation (login, register, checkout) 
+◦ Room & seat selection and wishlist functionality 
+◦ Order placement and payment simulation ﬂow 
+◦ Admin actions, catalog updates, and audit logging 
+• Fix bugs, logical errors, and UI issues. 
+
+=== PAGE 14 ===
+TravelLoop - Online Trip Planner 
+13 
+❖Admin Process Flow Diagram: 
+5. System Flow Diagram 
+
+
+=== PAGE 15 ===
+TravelLoop - Online Trip Planner 
+14 
+❖User Process Flow Diagram: 
+
+
+=== PAGE 16 ===
+TravelLoop - Online Trip Planner 
+15 
+❖0 level Diagram(Context Diagram): 
+6. DFD / UML Diagram 
+
+
+=== PAGE 17 ===
+TravelLoop - Online Trip Planner 
+16 
+❖1st Level Admin Diagram: 
+
+
+=== PAGE 18 ===
+TravelLoop - Online Trip Planner 
+17 
+❖1st Level User Diagram: 
+
+
+=== PAGE 19 ===
+TravelLoop - Online Trip Planner 
+18 
+7. ER Diagram 
+
+
+=== PAGE 20 ===
+TravelLoop - Online Trip Planner 
+19 
+❖CollectionName: Admin  & User 
+❖Collection Name : Destination 
+8. Database Design 
+
+
+=== PAGE 21 ===
+TravelLoop - Online Trip Planner 
+20 
+❖Collection Name : Bookings 
+❖Collection Name : Hotel 
+
+
+=== PAGE 22 ===
+TravelLoop - Online Trip Planner 
+21 
+❖Collection Name : Payment 
+❖Collection Name : Wishlist 
+
+=== PAGE 23 ===
+TravelLoop - Online Trip Planner 
+22 
+❖Collection name : Flights 
+❖Collection name : Package 
+
+=== PAGE 24 ===
+TravelLoop - Online Trip Planner 
+23 
+❖Admin side: 
+Admin Login 
+Admin Register 
+9. System Diagram 
+
+
+=== PAGE 25 ===
+TravelLoop - Online Trip Planner 
+24 
+Admin Dashboard 
+Destination List 
+Add Hotel 
+
+
+=== PAGE 26 ===
+TravelLoop - Online Trip Planner 
+25 
+Wishlist 
+Bookings 
+Update Hotels 
+
+
+=== PAGE 27 ===
+TravelLoop - Online Trip Planner 
+26 
+CMS & Settings 
+Reviews 
+Users 
+
+
+=== PAGE 28 ===
+TravelLoop - Online Trip Planner 
+27 
+❖User side: 
+User Login 
+User Register 
+Home Page 
+
+
+=== PAGE 29 ===
+TravelLoop - Online Trip Planner 
+28 
+Home 
+
+=== PAGE 30 ===
+TravelLoop - Online Trip Planner 
+29 
+Hotels Page 
+
+
+=== PAGE 31 ===
+TravelLoop - Online Trip Planner 
+30 
+Flights up 
+Wishlist 
+Bookings 
+
+
+=== PAGE 32 ===
+TravelLoop - Online Trip Planner 
+31 
+Book Hotels 
+Pachage Bookings 
+
+
+=== PAGE 33 ===
+TravelLoop - Online Trip Planner 
+32 
+Settings 
+About Us 
+
+
+=== PAGE 34 ===
+Live Map 
+33 
+AI Planner 
+Live Map 
+TravelLoop - Online Trip Planner 
+
+=== PAGE 35 ===
+TravelLoop - Online Trip Planner 
+34 
+
+
+=== PAGE 36 ===
+TravelLoop - Online Trip Planner 
+35 
+OpenAI ChatGPT – https://openai.com/chatgpt ⮚ 
+⮚ W3Schools – https://www.w3schools.com 
+⮚ Google Knowledge Graph Article –https://g.co/kgs/19gU1q3 
+⮚ Bootstrap Framework – https://getbootstrap.com 
+⮚ GitHub – https://github.com 
+10. References 
+

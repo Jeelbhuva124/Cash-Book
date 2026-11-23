@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Cash-Book – DFD Level 1</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #fff; font-family: 'Segoe UI', Arial, sans-serif; }
+  svg { display: block; margin: 0 auto; }
+</style>
+</head>
+<body>
+<svg width="1200" height="980" viewBox="0 0 1200 980" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arr" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0 0,8 3,0 6" fill="#374151"/>
+    </marker>
+    <filter id="shadow">
+      <feDropShadow dx="1" dy="2" stdDeviation="3" flood-color="#0000001a"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="980" fill="#f8fafc"/>
+
+  <!-- Title -->
+  <text x="600" y="38" text-anchor="middle" font-size="21" font-weight="bold" fill="#1e293b">Cash-Book – Data Flow Diagram (Level 1)</text>
+  <text x="600" y="58" text-anchor="middle" font-size="13" fill="#64748b">Detailed internal processes and data stores</text>
+
+  <!-- ══════════════════════════
+       EXTERNAL ENTITIES
+  ══════════════════════════ -->
+  <!-- User (left) -->
+  <rect x="20" y="410" width="120" height="60" rx="6" fill="#dbeafe" stroke="#3b82f6" stroke-width="2.5" filter="url(#shadow)"/>
+  <text x="80" y="437" text-anchor="middle" font-size="13" font-weight="bold" fill="#1e3a8a">User</text>
+  <text x="80" y="453" text-anchor="middle" font-size="10" fill="#3b82f6">External Entity</text>
+
+  <!-- Admin (right) -->
+  <rect x="1060" y="410" width="120" height="60" rx="6" fill="#fee2e2" stroke="#ef4444" stroke-width="2.5" filter="url(#shadow)"/>
+  <text x="1120" y="437" text-anchor="middle" font-size="13" font-weight="bold" fill="#7f1d1d">Admin</text>
+  <text x="1120" y="453" text-anchor="middle" font-size="10" fill="#ef4444">External Entity</text>
+
+  <!-- ══════════════════════════
+       PROCESS CIRCLES
+  ══════════════════════════ -->
+
+  <!-- P1: Auth -->
+  <circle cx="230" cy="140" r="65" fill="#fff7ed" stroke="#f97316" stroke-width="2.5" filter="url(#shadow)"/>
+  <text x="230" y="133" text-anchor="middle" font-size="11" font-weight="bold" fill="#c2410c">P1</text>
+  <text x="230" y="148" text-anchor="middle" font-size="10" fill="#c2410c">Authentication</text>
+  <text x="230" y="162" text-anchor="middle" font-size="9" fill="#9a3412">&amp; Authorization</text>
+
+  <!-- P2: Cashbook Mgmt -->
+  <circle cx="480" cy="140" r="65" fill="#f0fdf4" stroke="#16a34a" stroke-width="2.5" filter="url(#shadow)"/>
+  <text x="480" y="133" text-anchor="middle" font-size="11" font-weight="bold" fill="#15803d">P2</text>
+  <text x="480" y="148" text-anchor="middle" font-size="10" fill="#15803d">Cashbook</text>
+  <text x="480" y="162" text-anchor="middle" font-size="9" fill="#166534">Management</text>
+
+  <!-- P3: Transaction Mgmt -->
+  <circle cx="730" cy="140" r="65" fill="#eff6ff" stroke="#2563eb" stroke-width="2.5" filter="url(#shadow)"/>
+  <text x="730" y="133" text-anchor="middle" font-size="11" font-weight="bold" fill="#1d4ed8">P3</text>
+  <text x="730" y="148" text-anchor="middle" font-size="10" fill="#1d4ed8">Transaction</text>
+  <text x="730" y="162" text-anchor="middle" font-size="9" fill="#1e40af">Management</text>
+
+  <!-- P4: Invitation Mgmt -->
+  <circle cx="980" cy="140" r="65" fill="#fdf4ff" stroke="#9333ea" stroke-width="2.5" filter="url(#shadow)"/>
+  <text x="980" y="133" text-anchor="middle" font-size="11" font-weight="bold" fill="#7e22ce">P4</text>
+  <text x="980" y="148" text-anchor="middle" font-size="10" fill="#7e22ce">Invitation</text>
+  <text x="980" y="162" text-anchor="middle" font-size="9" fill="#6b21a8">Management</text>
+
+  <!-- P5: Analytics -->
+  <circle cx="230" cy="460" r="65" fill="#fefce8" stroke="#ca8a04" stroke-width="2.5" filter="url(#shadow)"/>
+  <text x="230" y="453" text-anchor="middle" font-size="11" font-weight="bold" fill="#a16207">P5</text>
+  <text x="230" y="468" text-anchor="middle" font-size="10" fill="#a16207">Analytics &amp;</text>
+  <text x="230" y="482" text-anchor="middle" font-size="9" fill="#92400e">Reports</text>
+
+  <!-- P6: EMI/Subscription -->
+  <circle cx="480" cy="460" r="65" fill="#fff1f2" stroke="#e11d48" stroke-width="2.5" filter="url(#shadow)"/>
+  <text x="480" y="453" text-anchor="middle" font-size="11" font-weight="bold" fill="#be123c">P6</text>
+  <text x="480" y="468" text-anchor="middle" font-size="10" fill="#be123c">EMI &amp;</text>
+  <text x="480" y="482" text-anchor="middle" font-size="9" fill="#9f1239">Subscriptions</text>
+
+  <!-- P7: Receipt Vault -->
+  <circle cx="730" cy="460" r="65" fill="#fff7ed" stroke="#c2410c" stroke-width="2.5" filter="url(#shadow)"/>
+  <text x="730" y="453" text-anchor="middle" font-size="11" font-weight="bold" fill="#c2410c">P7</text>
+  <text x="730" y="468" text-anchor="middle" font-size="10" fill="#c2410c">Receipt</text>
+  <text x="730" y="482" text-anchor="middle" font-size="9" fill="#9a3412">Vault</text>
+
+  <!-- P8: Admin Control -->
+  <circle cx="980" cy="460" r="65" fill="#fff1f2" stroke="#dc2626" stroke-width="2.5" filter="url(#shadow)"/>
+  <text x="980" y="453" text-anchor="middle" font-size="11" font-weight="bold" fill="#b91c1c">P8</text>
+  <text x="980" y="468" text-anchor="middle" font-size="10" fill="#b91c1c">Admin</text>
+  <text x="980" y="482" text-anchor="middle" font-size="9" fill="#7f1d1d">Control Panel</text>
+
+  <!-- ══════════════════════════
+       DATA STORES
+  ══════════════════════════ -->
+
+  <!-- DS1: user_info -->
+  <rect x="20" y="650" width="200" height="38" rx="0" fill="#fff" stroke="#374151" stroke-width="2"/>
+  <line x1="20" y1="650" x2="20" y2="688" stroke="#374151" stroke-width="2"/>
+  <line x1="220" y1="650" x2="220" y2="688" stroke="#374151" stroke-width="2"/>
+  <text x="40" y="667" font-size="10" font-weight="bold" fill="#374151">D1</text>
+  <text x="120" y="667" text-anchor="middle" font-size="10" fill="#374151">user_info</text>
+  <text x="120" y="681" text-anchor="middle" font-size="9" fill="#6b7280">Users &amp; Auth Data</text>
+
+  <!-- DS2: cashbooks -->
+  <rect x="250" y="650" width="200" height="38" rx="0" fill="#fff" stroke="#374151" stroke-width="2"/>
+  <line x1="250" y1="650" x2="250" y2="688" stroke="#374151" stroke-width="2"/>
+  <line x1="450" y1="650" x2="450" y2="688" stroke="#374151" stroke-width="2"/>
+  <text x="270" y="667" font-size="10" font-weight="bold" fill="#374151">D2</text>
+  <text x="350" y="667" text-anchor="middle" font-size="10" fill="#374151">cashbooks</text>
+  <text x="350" y="681" text-anchor="middle" font-size="9" fill="#6b7280">Books &amp; Chalans</text>
+
+  <!-- DS3: transactions -->
+  <rect x="480" y="650" width="200" height="38" rx="0" fill="#fff" stroke="#374151" stroke-width="2"/>
+  <line x1="480" y1="650" x2="480" y2="688" stroke="#374151" stroke-width="2"/>
+  <line x1="680" y1="650" x2="680" y2="688" stroke="#374151" stroke-width="2"/>
+  <text x="500" y="667" font-size="10" font-weight="bold" fill="#374151">D3</text>
+  <text x="580" y="667" text-anchor="middle" font-size="10" fill="#374151">transactions</text>
+  <text x="580" y="681" text-anchor="middle" font-size="9" fill="#6b7280">Income &amp; Expense</text>
+
+  <!-- DS4: invite_info -->
+  <rect x="710" y="650" width="200" height="38" rx="0" fill="#fff" stroke="#374151" stroke-width="2"/>
+  <line x1="710" y1="650" x2="710" y2="688" stroke="#374151" stroke-width="2"/>
+  <line x1="910" y1="650" x2="910" y2="688" stroke="#374151" stroke-width="2"/>
+  <text x="730" y="667" font-size="10" font-weight="bold" fill="#374151">D4</text>
+  <text x="810" y="667" text-anchor="middle" font-size="10" fill="#374151">invite_info</text>
+  <text x="810" y="681" text-anchor="middle" font-size="9" fill="#6b7280">Invitations</text>
+
+  <!-- DS5: emi_subscriptions -->
+  <rect x="20" y="720" width="200" height="38" rx="0" fill="#fff" stroke="#374151" stroke-width="2"/>
+  <line x1="20" y1="720" x2="20" y2="758" stroke="#374151" stroke-width="2"/>
+  <line x1="220" y1="720" x2="220" y2="758" stroke="#374151" stroke-width="2"/>
+  <text x="40" y="737" font-size="10" font-weight="bold" fill="#374151">D5</text>
+  <text x="120" y="737" text-anchor="middle" font-size="10" fill="#374151">emi_subscriptions</text>
+  <text x="120" y="751" text-anchor="middle" font-size="9" fill="#6b7280">EMI &amp; Subs Records</text>
+
+  <!-- DS6: receipts -->
+  <rect x="250" y="720" width="200" height="38" rx="0" fill="#fff" stroke="#374151" stroke-width="2"/>
+  <line x1="250" y1="720" x2="250" y2="758" stroke="#374151" stroke-width="2"/>
+  <line x1="450" y1="720" x2="450" y2="758" stroke="#374151" stroke-width="2"/>
+  <text x="270" y="737" font-size="10" font-weight="bold" fill="#374151">D6</text>
+  <text x="350" y="737" text-anchor="middle" font-size="10" fill="#374151">receipts</text>
+  <text x="350" y="751" text-anchor="middle" font-size="9" fill="#6b7280">Receipt Images</text>
+
+  <!-- DS7: categories + payment_modes -->
+  <rect x="480" y="720" width="200" height="38" rx="0" fill="#fff" stroke="#374151" stroke-width="2"/>
+  <line x1="480" y1="720" x2="480" y2="758" stroke="#374151" stroke-width="2"/>
+  <line x1="680" y1="720" x2="680" y2="758" stroke="#374151" stroke-width="2"/>
+  <text x="500" y="737" font-size="10" font-weight="bold" fill="#374151">D7</text>
+  <text x="580" y="737" text-anchor="middle" font-size="10" fill="#374151">categories</text>
+  <text x="580" y="751" text-anchor="middle" font-size="9" fill="#6b7280">+ payment_modes</text>
+
+  <!-- DS8: admins -->
+  <rect x="940" y="650" width="200" height="38" rx="0" fill="#fff" stroke="#374151" stroke-width="2"/>
+  <line x1="940" y1="650" x2="940" y2="688" stroke="#374151" stroke-width="2"/>
+  <line x1="1140" y1="650" x2="1140" y2="688" stroke="#374151" stroke-width="2"/>
+  <text x="960" y="667" font-size="10" font-weight="bold" fill="#374151">D8</text>
+  <text x="1040" y="667" text-anchor="middle" font-size="10" fill="#374151">admins</text>
+  <text x="1040" y="681" text-anchor="middle" font-size="9" fill="#6b7280">Admin Accounts</text>
+
+  <!-- ══════════════════════════
+       FLOW ARROWS
+  ══════════════════════════ -->
+
+  <!-- User → P1 (Login creds) -->
+  <path d="M 140 430 L 180 190" stroke="#3b82f6" stroke-width="1.8" fill="none" marker-end="url(#arr)"/>
+  <text x="143" y="310" font-size="9" fill="#3b82f6">Email/Password</text>
+  <text x="143" y="322" font-size="9" fill="#3b82f6">/ Firebase UID</text>
+
+  <!-- P1 → User (token) -->
+  <path d="M 175 170 L 135 420" stroke="#22c55e" stroke-width="1.8" fill="none" marker-end="url(#arr)" stroke-dasharray="5 3"/>
+  <text x="102" y="295" font-size="9" fill="#22c55e">JWT Token</text>
+  <text x="102" y="307" font-size="9" fill="#22c55e">/ Session</text>
+
+  <!-- User → P2 (Cashbook) -->
+  <path d="M 140 435 C 300 440 400 300 420 200" stroke="#3b82f6" stroke-width="1.8" fill="none" marker-end="url(#arr)"/>
+  <text x="258" y="395" font-size="9" fill="#3b82f6">Create / Manage</text>
+  <text x="258" y="407" font-size="9" fill="#3b82f6">Cashbook</text>
+
+  <!-- User → P3 (Transaction) -->
+  <path d="M 140 440 C 400 480 600 350 668 200" stroke="#3b82f6" stroke-width="1.8" fill="none" marker-end="url(#arr)"/>
+  <text x="380" y="454" font-size="9" fill="#3b82f6">Add Transaction</text>
+
+  <!-- User → P5 (Analytics) -->
+  <path d="M 140 445 L 165 450" stroke="#3b82f6" stroke-width="1.8" fill="none" marker-end="url(#arr)"/>
+  <text x="40" y="508" font-size="9" fill="#3b82f6">View Reports</text>
+
+  <!-- User → P6 (EMI) -->
+  <path d="M 140 450 C 250 490 380 490 416 490" stroke="#3b82f6" stroke-width="1.8" fill="none" marker-end="url(#arr)"/>
+  <text x="250" y="510" font-size="9" fill="#3b82f6">EMI / Subscription</text>
+
+  <!-- User → P7 (Receipts) -->
+  <path d="M 140 455 C 400 530 600 510 666 475" stroke="#3b82f6" stroke-width="1.8" fill="none" marker-end="url(#arr)"/>
+  <text x="420" y="535" font-size="9" fill="#3b82f6">Upload Receipt</text>
+
+  <!-- P5 → User (reports back) -->
+  <path d="M 168 452 L 140 453" stroke="#22c55e" stroke-width="1.8" fill="none" stroke-dasharray="5 3" marker-end="url(#arr)"/>
+  <text x="20" y="475" font-size="9" fill="#22c55e">Charts &amp; Data</text>
+
+  <!-- Admin → P8 -->
+  <path d="M 1060 435 L 1046 490" stroke="#ef4444" stroke-width="1.8" fill="none" marker-end="url(#arr)"/>
+  <text x="1050" y="468" font-size="9" fill="#ef4444">Admin Cmds</text>
+
+  <!-- P8 → Admin -->
+  <path d="M 1047 460 L 1065 440" stroke="#22c55e" stroke-width="1.8" fill="none" stroke-dasharray="5 3" marker-end="url(#arr)"/>
+  <text x="1058" y="445" font-size="9" fill="#22c55e">Stats / Data</text>
+
+  <!-- P4 → Admin (invitation sent) -->
+  <path d="M 1060 430 L 1046 200" stroke="#9333ea" stroke-width="1.8" fill="none" stroke-dasharray="5 3" marker-end="url(#arr)"/>
+  <text x="1052" y="315" font-size="9" fill="#9333ea">Email Sent</text>
+
+  <!-- Process to Data Store flows -->
+  <!-- P1 ↔ D1 -->
+  <path d="M 230 205 L 230 460 L 120 460 L 120 650" stroke="#f97316" stroke-width="1.5" fill="none" stroke-dasharray="5 3" marker-end="url(#arr)"/>
+  <text x="50" y="560" font-size="9" fill="#f97316">Read/Write User</text>
+
+  <!-- P2 ↔ D2 -->
+  <path d="M 480 205 L 480 460 L 350 460 L 350 650" stroke="#16a34a" stroke-width="1.5" fill="none" stroke-dasharray="5 3" marker-end="url(#arr)"/>
+  <text x="258" y="560" font-size="9" fill="#16a34a">Read/Write Cashbook</text>
+
+  <!-- P3 ↔ D3 -->
+  <path d="M 730 205 L 730 460 L 580 460 L 580 650" stroke="#2563eb" stroke-width="1.5" fill="none" stroke-dasharray="5 3" marker-end="url(#arr)"/>
+  <text x="600" y="582" font-size="9" fill="#2563eb">Read/Write Txn</text>
+
+  <!-- P4 ↔ D4 -->
+  <path d="M 980 205 L 980 540 L 810 540 L 810 650" stroke="#9333ea" stroke-width="1.5" fill="none" stroke-dasharray="5 3" marker-end="url(#arr)"/>
+  <text x="818" y="582" font-size="9" fill="#9333ea">Read/Write Invite</text>
+
+  <!-- P6 ↔ D5 -->
+  <path d="M 480 525 L 480 600 L 120 600 L 120 720" stroke="#e11d48" stroke-width="1.5" fill="none" stroke-dasharray="5 3" marker-end="url(#arr)"/>
+  <text x="135" y="700" font-size="9" fill="#e11d48">Read/Write EMI</text>
+
+  <!-- P7 ↔ D6 -->
+  <path d="M 730 525 L 730 590 L 350 590 L 350 720" stroke="#c2410c" stroke-width="1.5" fill="none" stroke-dasharray="5 3" marker-end="url(#arr)"/>
+  <text x="362" y="705" font-size="9" fill="#c2410c">Read/Write Receipt</text>
+
+  <!-- P5 ↔ D3 (reads transactions for analytics) -->
+  <path d="M 290 480 L 580 580 L 580 650" stroke="#ca8a04" stroke-width="1.5" fill="none" stroke-dasharray="5 3" marker-end="url(#arr)"/>
+  <text x="390" y="560" font-size="9" fill="#ca8a04">Read Txn Data</text>
+
+  <!-- P8 ↔ D8 -->
+  <path d="M 980 525 L 980 600 L 1040 600 L 1040 650" stroke="#dc2626" stroke-width="1.5" fill="none" stroke-dasharray="5 3" marker-end="url(#arr)"/>
+  <text x="980" y="625" font-size="9" fill="#dc2626">Admin Auth</text>
+
+  <!-- P2 ↔ P3 (cashbook contains transactions) -->
+  <path d="M 545 140 L 665 140" stroke="#6b7280" stroke-width="1.5" fill="none" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+  <text x="572" y="133" font-size="9" fill="#6b7280">Chalan ID</text>
+
+  <!-- Legend -->
+  <rect x="30" y="830" width="500" height="100" rx="8" fill="#fff" stroke="#e2e8f0" stroke-width="1.5"/>
+  <text x="265" y="850" text-anchor="middle" font-size="12" font-weight="bold" fill="#374151">Legend</text>
+  <line x1="50" y1="870" x2="100" y2="870" stroke="#374151" stroke-width="2" marker-end="url(#arr)"/>
+  <text x="108" y="874" font-size="10" fill="#374151">Data Flow (Input)</text>
+  <line x1="50" y1="893" x2="100" y2="893" stroke="#374151" stroke-width="2" stroke-dasharray="6 3" marker-end="url(#arr)"/>
+  <text x="108" y="897" font-size="10" fill="#374151">Data Flow (Output / DB Read-Write)</text>
+  <circle cx="270" cy="870" r="12" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+  <text x="270" y="874" text-anchor="middle" font-size="9" fill="#15803d">P#</text>
+  <text x="290" y="874" font-size="10" fill="#374151">Process</text>
+  <rect x="260" y="885" width="20" height="12" fill="#fff" stroke="#374151" stroke-width="1.5"/>
+  <text x="290" y="895" font-size="10" fill="#374151">Data Store (Collection)</text>
+  <rect x="385" y="860" width="80" height="30" rx="4" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/>
+  <text x="425" y="879" text-anchor="middle" font-size="10" fill="#1e3a8a">External Entity</text>
+</svg>
+</body>
+</html>
+

@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 860" width="980" height="860">
+<style>
+  text {
+    font-family: Arial, Helvetica, sans-serif;
+    fill: #000000;
+  }
+  .box {
+    fill: #ffffff;
+    stroke: #000000;
+    stroke-width: 1.8;
+  }
+  .line {
+    stroke: #000000;
+    stroke-width: 1.8;
+    fill: none;
+  }
+  .label {
+    font-size: 13px;
+    font-weight: normal;
+  }
+  .node-text {
+    font-size: 13.5px;
+    font-weight: 500;
+    text-anchor: middle;
+    dominant-baseline: central;
+  }
+  .pk {
+    text-decoration: underline;
+    font-weight: 600;
+  }
+</style>
+<defs>
+  <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M 0 1 L 10 5 L 0 9 z" fill="#000000" />
+  </marker>
+</defs>
+<rect width="100%" height="100%" fill="#ffffff" />
+
+  <!-- Central System Circle -->
+  <circle class="box" cx="490" cy="420" r="135"/>
+  <text class="node-text" x="490" y="398" font-size="16" font-weight="bold">Cash-Book –</text>
+  <text class="node-text" x="490" y="423" font-size="14.5" font-weight="600">Smart Finance &amp; Digital Ledger</text>
+  <text class="node-text" x="490" y="446" font-size="14">(System)</text>
+  
+  <!-- Admin Entity -->
+  <rect class="box" x="80" y="150" width="140" height="70"/>
+  <text class="node-text" x="150" y="185" font-size="16" font-weight="bold">Admin</text>
+  
+  <!-- User Entity -->
+  <rect class="box" x="760" y="600" width="140" height="70"/>
+  <text class="node-text" x="830" y="635" font-size="16" font-weight="bold">User</text>
+  
+  <!-- Admin Flows -->
+  <!-- 1. Admin to System top -->
+  <path class="line" d="M 220,170 L 490,170 L 490,285" marker-end="url(#arrow)"/>
+  <text class="label" x="355" y="160" text-anchor="middle">Manage Users &amp; Cashbooks</text>
+  
+  <!-- 2. System to Admin upper -->
+  <path class="line" d="M 360,370 L 250,370 L 250,205 L 220,205" marker-end="url(#arrow)"/>
+  <text class="label" x="250" y="360" text-anchor="middle">System Telemetry &amp; Stats</text>
+  
+  <!-- 3. Admin to System lower -->
+  <path class="line" d="M 110,220 L 110,430 L 355,430" marker-end="url(#arrow)"/>
+  <text class="label" x="230" y="420" text-anchor="middle">Platform Configurations</text>
+  
+  <!-- 4. System to Admin lower -->
+  <path class="line" d="M 375,480 L 160,480 L 160,220" marker-end="url(#arrow)"/>
+  <text class="label" x="255" y="470" text-anchor="middle">Audit Logs &amp; Activity Reports</text>
+  
+  <!-- User Flows -->
+  <!-- 1. System to User top -->
+  <path class="line" d="M 610,360 L 830,360 L 830,600" marker-end="url(#arrow)"/>
+  <text class="label" x="725" y="350" text-anchor="middle">Financial Summary &amp; Analytics PDF</text>
+  
+  <!-- 2. User to System mid-high -->
+  <path class="line" d="M 760,540 L 618,540 L 618,455" marker-end="url(#arrow)"/>
+  <text class="label" x="695" y="530" text-anchor="middle">Record Cash-In / Cash-Out</text>
+  
+  <!-- 3. User to System mid -->
+  <path class="line" d="M 760,615 L 575,615 L 575,525" marker-end="url(#arrow)"/>
+  <text class="label" x="675" y="605" text-anchor="middle">Register / Login Details</text>
+  
+  <!-- 4. User to System mid-low -->
+  <path class="line" d="M 760,650 L 535,650 L 535,550" marker-end="url(#arrow)"/>
+  <text class="label" x="655" y="640" text-anchor="middle">Party Ledger (Khata) Entries</text>
+  
+  <!-- 5. User to System bottom -->
+  <path class="line" d="M 830,670 L 830,750 L 490,750 L 490,555" marker-end="url(#arrow)"/>
+  <text class="label" x="650" y="740" text-anchor="middle">Upload Receipts &amp; Bill Attachments</text>
+
+</svg>

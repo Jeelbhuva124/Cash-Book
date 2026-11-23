@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Cash-Book – Entity Relationship Diagram</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #f8fafc; font-family: 'Segoe UI', Arial, sans-serif; }
+  svg { display: block; margin: 0 auto; }
+</style>
+</head>
+<body>
+<svg width="1300" height="1050" viewBox="0 0 1300 1050" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arr" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0 0,8 3,0 6" fill="#6b7280"/>
+    </marker>
+    <filter id="shadow">
+      <feDropShadow dx="1" dy="2" stdDeviation="3" flood-color="#0000001a"/>
+    </filter>
+  </defs>
+  <rect width="1300" height="1050" fill="#f8fafc"/>
+
+  <!-- Title -->
+  <text x="650" y="38" text-anchor="middle" font-size="22" font-weight="bold" fill="#1e293b">Cash-Book – Entity Relationship Diagram</text>
+  <text x="650" y="60" text-anchor="middle" font-size="13" fill="#64748b">MongoDB Collections and their Relationships</text>
+
+  <!-- ═══ ENTITY TABLE HELPER ═══
+       Each table: header rect + divider + fields
+  ═══ -->
+
+  <!-- ══ USER ══ (top-center) -->
+  <rect x="470" y="85" width="210" height="250" rx="8" fill="#fff" stroke="#3b82f6" stroke-width="2.5" filter="url(#shadow)"/>
+  <rect x="470" y="85" width="210" height="38" rx="8" fill="#3b82f6"/>
+  <rect x="470" y="108" width="210" height="15" fill="#3b82f6"/>
+  <text x="575" y="110" text-anchor="middle" font-size="13" font-weight="bold" fill="#fff">user_info</text>
+  <line x1="470" y1="123" x2="680" y2="123" stroke="#bfdbfe" stroke-width="1.5"/>
+  <text x="480" y="140" font-size="10" fill="#374151">🔑 _id (ObjectId, PK)</text>
+  <text x="480" y="156" font-size="10" fill="#374151">  firebase_uid (String, unique)</text>
+  <text x="480" y="172" font-size="10" fill="#374151">  email / email_id (String)</text>
+  <text x="480" y="188" font-size="10" fill="#374151">  username / name (String)</text>
+  <text x="480" y="204" font-size="10" fill="#374151">  password (String, hashed)</text>
+  <text x="480" y="220" font-size="10" fill="#374151">  role ['user','admin']</text>
+  <text x="480" y="236" font-size="10" fill="#374151">  account_status ['active','suspended']</text>
+  <text x="480" y="252" font-size="10" fill="#374151">  phone_number (String)</text>
+  <text x="480" y="268" font-size="10" fill="#374151">  avatar (String/URL)</text>
+  <text x="480" y="284" font-size="10" fill="#374151">  security_pin (String)</text>
+  <text x="480" y="300" font-size="10" fill="#374151">  createdAt / updatedAt</text>
+  <text x="480" y="316" font-size="10" fill="#6b7280" font-style="italic">Collection: user_info</text>
+
+  <!-- ══ CASHBOOK ══ (left) -->
+  <rect x="60" y="300" width="210" height="210" rx="8" fill="#fff" stroke="#8b5cf6" stroke-width="2.5" filter="url(#shadow)"/>
+  <rect x="60" y="300" width="210" height="38" rx="8" fill="#8b5cf6"/>
+  <rect x="60" y="323" width="210" height="15" fill="#8b5cf6"/>
+  <text x="165" y="325" text-anchor="middle" font-size="13" font-weight="bold" fill="#fff">cashbooks</text>
+  <line x1="60" y1="338" x2="270" y2="338" stroke="#ddd6fe" stroke-width="1.5"/>
+  <text x="70" y="355" font-size="10" fill="#374151">🔑 _id (ObjectId, PK)</text>
+  <text x="70" y="371" font-size="10" fill="#374151">  cashbook_name (String, req)</text>
+  <text x="70" y="387" font-size="10" fill="#374151">  cashbook_type (String)</text>
+  <text x="70" y="403" font-size="10" fill="#374151">  description (String)</text>
+  <text x="70" y="419" font-size="10" fill="#374151">  hex_code (String, color)</text>
+  <text x="70" y="435" font-size="10" fill="#374151">🔗 user_email (FK→user_info)</text>
+  <text x="70" y="451" font-size="10" fill="#374151">🔗 user_id (FK→user_info)</text>
+  <text x="70" y="467" font-size="10" fill="#374151">  createdAt / updatedAt</text>
+  <text x="70" y="483" font-size="10" fill="#6b7280" font-style="italic">Collection: cashbooks</text>
+
+  <!-- ══ TRANSACTION ══ (center) -->
+  <rect x="460" y="390" width="230" height="340" rx="8" fill="#fff" stroke="#22c55e" stroke-width="2.5" filter="url(#shadow)"/>
+  <rect x="460" y="390" width="230" height="38" rx="8" fill="#22c55e"/>
+  <rect x="460" y="413" width="230" height="15" fill="#22c55e"/>
+  <text x="575" y="415" text-anchor="middle" font-size="13" font-weight="bold" fill="#fff">transactions</text>
+  <line x1="460" y1="428" x2="690" y2="428" stroke="#bbf7d0" stroke-width="1.5"/>
+  <text x="470" y="445" font-size="10" fill="#374151">🔑 _id (ObjectId, PK)</text>
+  <text x="470" y="461" font-size="10" fill="#374151">  title (String, required)</text>
+  <text x="470" y="477" font-size="10" fill="#374151">  type ['income','expense']</text>
+  <text x="470" y="493" font-size="10" fill="#374151">  amount (Number, required)</text>
+  <text x="470" y="509" font-size="10" fill="#374151">  date (String YYYY-MM-DD)</text>
+  <text x="470" y="525" font-size="10" fill="#374151">  time (String HH:MM:SS)</text>
+  <text x="470" y="541" font-size="10" fill="#374151">🔗 chalan_id (FK→chalans)</text>
+  <text x="470" y="557" font-size="10" fill="#374151">  category / subcategory</text>
+  <text x="470" y="573" font-size="10" fill="#374151">  payment_mode (String)</text>
+  <text x="470" y="589" font-size="10" fill="#374151">  remark (String)</text>
+  <text x="470" y="605" font-size="10" fill="#374151">  party_type ['creditor','debtor']</text>
+  <text x="470" y="621" font-size="10" fill="#374151">  party_name (String)</text>
+  <text x="470" y="637" font-size="10" fill="#374151">  interest_rate / total_days</text>
+  <text x="470" y="653" font-size="10" fill="#374151">  start_date / end_date</text>
+  <text x="470" y="669" font-size="10" fill="#374151">  is_deleted (Boolean)</text>
+  <text x="470" y="685" font-size="10" fill="#374151">🔗 user_email / user_id</text>
+  <text x="470" y="701" font-size="10" fill="#374151">  createdAt / updatedAt</text>
+  <text x="470" y="717" font-size="10" fill="#6b7280" font-style="italic">Collection: transactions</text>
+
+  <!-- ══ INVITATION ══ (right-top) -->
+  <rect x="910" y="85" width="210" height="230" rx="8" fill="#fff" stroke="#f97316" stroke-width="2.5" filter="url(#shadow)"/>
+  <rect x="910" y="85" width="210" height="38" rx="8" fill="#f97316"/>
+  <rect x="910" y="108" width="210" height="15" fill="#f97316"/>
+  <text x="1015" y="110" text-anchor="middle" font-size="13" font-weight="bold" fill="#fff">invite_info</text>
+  <line x1="910" y1="123" x2="1120" y2="123" stroke="#fed7aa" stroke-width="1.5"/>
+  <text x="920" y="140" font-size="10" fill="#374151">🔑 _id (ObjectId, PK)</text>
+  <text x="920" y="156" font-size="10" fill="#374151">  email (String, required)</text>
+  <text x="920" y="172" font-size="10" fill="#374151">  invite_name (String)</text>
+  <text x="920" y="188" font-size="10" fill="#374151">🔗 inviter_email (FK→user_info)</text>
+  <text x="920" y="204" font-size="10" fill="#374151">🔗 inviter_id (FK→user_info)</text>
+  <text x="920" y="220" font-size="10" fill="#374151">🔗 cashbook_name (FK→cashbooks)</text>
+  <text x="920" y="236" font-size="10" fill="#374151">  permissions (String)</text>
+  <text x="920" y="252" font-size="10" fill="#374151">  status ['Pending','Accepted','Rejected']</text>
+  <text x="920" y="268" font-size="10" fill="#374151">  createdAt / updatedAt</text>
+  <text x="920" y="284" font-size="10" fill="#6b7280" font-style="italic">Collection: invite_info</text>
+
+  <!-- ══ EMI SUBSCRIPTION ══ (right-bottom) -->
+  <rect x="910" y="345" width="210" height="300" rx="8" fill="#fff" stroke="#ec4899" stroke-width="2.5" filter="url(#shadow)"/>
+  <rect x="910" y="345" width="210" height="38" rx="8" fill="#ec4899"/>
+  <rect x="910" y="368" width="210" height="15" fill="#ec4899"/>
+  <text x="1015" y="370" text-anchor="middle" font-size="13" font-weight="bold" fill="#fff">emi_subscriptions</text>
+  <line x1="910" y1="383" x2="1120" y2="383" stroke="#fbcfe8" stroke-width="1.5"/>
+  <text x="920" y="400" font-size="10" fill="#374151">🔑 _id (ObjectId, PK)</text>
+  <text x="920" y="416" font-size="10" fill="#374151">  title (String, required)</text>
+  <text x="920" y="432" font-size="10" fill="#374151">  amount (Number, required)</text>
+  <text x="920" y="448" font-size="10" fill="#374151">  due_date (String)</text>
+  <text x="920" y="464" font-size="10" fill="#374151">  start_date / end_date</text>
+  <text x="920" y="480" font-size="10" fill="#374151">  last_paid_date (String)</text>
+  <text x="920" y="496" font-size="10" fill="#374151">  type ['EMI','Subscription']</text>
+  <text x="920" y="512" font-size="10" fill="#374151">  status ['Active','Completed']</text>
+  <text x="920" y="528" font-size="10" fill="#374151">🔗 chalan_id (FK→chalans)</text>
+  <text x="920" y="544" font-size="10" fill="#374151">🔗 user_email / user_id</text>
+  <text x="920" y="560" font-size="10" fill="#374151">  created_by (String)</text>
+  <text x="920" y="576" font-size="10" fill="#374151">  createdAt / updatedAt</text>
+  <text x="920" y="592" font-size="10" fill="#6b7280" font-style="italic">Collection: emi_subscriptions</text>
+
+  <!-- ══ CATEGORY ══ (bottom-left) -->
+  <rect x="60" y="560" width="195" height="160" rx="8" fill="#fff" stroke="#06b6d4" stroke-width="2.5" filter="url(#shadow)"/>
+  <rect x="60" y="560" width="195" height="38" rx="8" fill="#06b6d4"/>
+  <rect x="60" y="583" width="195" height="15" fill="#06b6d4"/>
+  <text x="157" y="585" text-anchor="middle" font-size="13" font-weight="bold" fill="#fff">categories</text>
+  <line x1="60" y1="598" x2="255" y2="598" stroke="#a5f3fc" stroke-width="1.5"/>
+  <text x="70" y="615" font-size="10" fill="#374151">🔑 _id (ObjectId, PK)</text>
+  <text x="70" y="631" font-size="10" fill="#374151">  name (String, required)</text>
+  <text x="70" y="647" font-size="10" fill="#374151">  type ['income','expense']</text>
+  <text x="70" y="663" font-size="10" fill="#374151">🔗 user_id / user_email</text>
+  <text x="70" y="679" font-size="10" fill="#374151">  createdAt / updatedAt</text>
+  <text x="70" y="697" font-size="10" fill="#6b7280" font-style="italic">Collection: categories</text>
+
+  <!-- ══ RECEIPT ══ (bottom-center-left) -->
+  <rect x="275" y="560" width="175" height="175" rx="8" fill="#fff" stroke="#f59e0b" stroke-width="2.5" filter="url(#shadow)"/>
+  <rect x="275" y="560" width="175" height="38" rx="8" fill="#f59e0b"/>
+  <rect x="275" y="583" width="175" height="15" fill="#f59e0b"/>
+  <text x="362" y="585" text-anchor="middle" font-size="13" font-weight="bold" fill="#fff">receipts</text>
+  <line x1="275" y1="598" x2="450" y2="598" stroke="#fde68a" stroke-width="1.5"/>
+  <text x="285" y="615" font-size="10" fill="#374151">🔑 _id (ObjectId, PK)</text>
+  <text x="285" y="631" font-size="10" fill="#374151">  title (String)</text>
+  <text x="285" y="647" font-size="10" fill="#374151">  image_url / base64</text>
+  <text x="285" y="663" font-size="10" fill="#374151">  amount (Number)</text>
+  <text x="285" y="679" font-size="10" fill="#374151">  date (String)</text>
+  <text x="285" y="695" font-size="10" fill="#374151">🔗 user_email / user_id</text>
+  <text x="285" y="711" font-size="10" fill="#374151">  createdAt / updatedAt</text>
+  <text x="285" y="727" font-size="10" fill="#6b7280" font-style="italic">Collection: receipts</text>
+
+  <!-- ══ PAYMENT MODE ══ (bottom-right of center) -->
+  <rect x="715" y="560" width="175" height="175" rx="8" fill="#fff" stroke="#64748b" stroke-width="2.5" filter="url(#shadow)"/>
+  <rect x="715" y="560" width="175" height="38" rx="8" fill="#64748b"/>
+  <rect x="715" y="583" width="175" height="15" fill="#64748b"/>
+  <text x="802" y="585" text-anchor="middle" font-size="13" font-weight="bold" fill="#fff">payment_modes</text>
+  <line x1="715" y1="598" x2="890" y2="598" stroke="#cbd5e1" stroke-width="1.5"/>
+  <text x="725" y="615" font-size="10" fill="#374151">🔑 _id (ObjectId, PK)</text>
+  <text x="725" y="631" font-size="10" fill="#374151">  name (String)</text>
+  <text x="725" y="647" font-size="10" fill="#374151">  icon (String)</text>
+  <text x="725" y="663" font-size="10" fill="#374151">  is_default (Boolean)</text>
+  <text x="725" y="679" font-size="10" fill="#374151">🔗 user_email / user_id</text>
+  <text x="725" y="695" font-size="10" fill="#374151">  createdAt / updatedAt</text>
+  <text x="725" y="711" font-size="10" fill="#6b7280" font-style="italic">Collection: payment_modes</text>
+
+  <!-- ══ ADMIN ══ (bottom-right) -->
+  <rect x="910" y="680" width="210" height="200" rx="8" fill="#fff" stroke="#ef4444" stroke-width="2.5" filter="url(#shadow)"/>
+  <rect x="910" y="680" width="210" height="38" rx="8" fill="#ef4444"/>
+  <rect x="910" y="703" width="210" height="15" fill="#ef4444"/>
+  <text x="1015" y="705" text-anchor="middle" font-size="13" font-weight="bold" fill="#fff">admins</text>
+  <line x1="910" y1="718" x2="1120" y2="718" stroke="#fecaca" stroke-width="1.5"/>
+  <text x="920" y="735" font-size="10" fill="#374151">🔑 _id (ObjectId, PK)</text>
+  <text x="920" y="751" font-size="10" fill="#374151">  name (String)</text>
+  <text x="920" y="767" font-size="10" fill="#374151">  email (String, unique)</text>
+  <text x="920" y="783" font-size="10" fill="#374151">  password (String, hashed)</text>
+  <text x="920" y="799" font-size="10" fill="#374151">  role ['superadmin','admin']</text>
+  <text x="920" y="815" font-size="10" fill="#374151">  is_active (Boolean)</text>
+  <text x="920" y="831" font-size="10" fill="#374151">  createdAt / updatedAt</text>
+  <text x="920" y="847" font-size="10" fill="#6b7280" font-style="italic">Collection: admins</text>
+
+  <!-- ══════════════════════
+       RELATIONSHIP LINES
+  ══════════════════════ -->
+
+  <!-- USER → CASHBOOK (1-to-many) -->
+  <path d="M 575 335 L 575 380 L 270 380 L 270 300" stroke="#8b5cf6" stroke-width="2" fill="none" stroke-dasharray="6 3" marker-end="url(#arr)"/>
+  <text x="390" y="372" font-size="10" font-weight="bold" fill="#8b5cf6">1 : N</text>
+
+  <!-- USER → TRANSACTION (1-to-many) -->
+  <path d="M 620 335 L 620 390" stroke="#22c55e" stroke-width="2" fill="none" stroke-dasharray="6 3" marker-end="url(#arr)"/>
+  <text x="626" y="370" font-size="10" font-weight="bold" fill="#22c55e">1 : N</text>
+
+  <!-- USER → INVITATION (1-to-many) -->
+  <path d="M 680 180 L 910 180" stroke="#f97316" stroke-width="2" fill="none" stroke-dasharray="6 3" marker-end="url(#arr)"/>
+  <text x="780" y="173" font-size="10" font-weight="bold" fill="#f97316">1 : N</text>
+
+  <!-- USER → EMI_SUBSCRIPTION (1-to-many) -->
+  <path d="M 680 200 L 850 200 L 850 420 L 910 420" stroke="#ec4899" stroke-width="2" fill="none" stroke-dasharray="6 3" marker-end="url(#arr)"/>
+  <text x="860" y="315" font-size="10" font-weight="bold" fill="#ec4899">1 : N</text>
+
+  <!-- CASHBOOK → TRANSACTION (1-to-many via chalan_id) -->
+  <path d="M 270 400 L 460 480" stroke="#22c55e" stroke-width="2" fill="none" stroke-dasharray="6 3" marker-end="url(#arr)"/>
+  <text x="310" y="435" font-size="10" font-weight="bold" fill="#22c55e">1 : N</text>
+
+  <!-- USER → CATEGORY -->
+  <path d="M 575 335 L 575 920 L 157 920 L 157 720" stroke="#06b6d4" stroke-width="2" fill="none" stroke-dasharray="6 3" marker-end="url(#arr)"/>
+  <text x="250" y="912" font-size="10" font-weight="bold" fill="#06b6d4">1 : N</text>
+
+  <!-- USER → RECEIPT -->
+  <path d="M 575 335 L 575 940 L 362 940 L 362 735" stroke="#f59e0b" stroke-width="2" fill="none" stroke-dasharray="6 3" marker-end="url(#arr)"/>
+  <text x="430" y="930" font-size="10" font-weight="bold" fill="#f59e0b">1 : N</text>
+
+  <!-- USER → PAYMENT MODE -->
+  <path d="M 620 335 L 620 960 L 802 960 L 802 735" stroke="#64748b" stroke-width="2" fill="none" stroke-dasharray="6 3" marker-end="url(#arr)"/>
+  <text x="745" y="950" font-size="10" font-weight="bold" fill="#64748b">1 : N</text>
+
+  <!-- Legend -->
+  <rect x="30" y="975" width="400" height="55" rx="8" fill="#fff" stroke="#e2e8f0" stroke-width="1.5"/>
+  <text x="230" y="993" text-anchor="middle" font-size="11" font-weight="bold" fill="#374151">Legend</text>
+  <line x1="50" y1="1010" x2="90" y2="1010" stroke="#6b7280" stroke-width="2" stroke-dasharray="6 3" marker-end="url(#arr)"/>
+  <text x="98" y="1014" font-size="10" fill="#374151">Relationship (1:N — One to Many)</text>
+  <text x="50" y="1030" font-size="10" fill="#374151">🔑 Primary Key</text>
+  <text x="175" y="1030" font-size="10" fill="#374151">🔗 Foreign Key Reference</text>
+</svg>
+</body>
+</html>
+
